@@ -1,0 +1,58 @@
+
+<article class="detail">
+  <header class="verdict">
+    <div class="verdict-top">
+      <div class="verdict-badges"><span class="badge badge-review">NEEDS REVIEW</span>
+        <span class="conf-ring" style="--pct:60">
+          <span class="conf-num">60%</span>
+        </span>
+      </div>
+      <div class="verdict-id mono">inv-6bde2d57f9</div>
+    </div>
+    <h1>Faultline catalog p99 latency &gt; 1s — catalog</h1>
+    <div class="verdict-meta">
+      <span class="mono">catalog</span>
+      <span class="row-dot">·</span>
+      <span>Faultline catalog p99 latency &gt; 1s</span>
+      <span class="row-dot">·</span>
+      <span>2026-07-16 22:47 UTC</span>
+    </div>
+  </header>
+
+  <div class="review-banner review-review">⚠ Flagged for human review — confidence 60% is below the 75% verification threshold.</div>
+
+  <section class="card">
+    <h3>Root cause</h3>
+    <p class="root-cause">The catalog service is timing out under load, causing the gateway to receive upstream timeouts and return 502s to clients. — Throughput to catalog jumped 5.7x while p99 latency remained elevated (~2.6-4.2s), pushing requests past the gateway&#x27;s upstream timeout threshold; the gateway logs &#x27;upstream call http://catalog:*/products failed: timed out&#x27; and emits 502 http send spans, indicating catalog cannot keep up with the increased request rate. (verified: found &#x27;timed out&#x27; in 3 matching rows)</p>
+  </section>
+
+  <section class="card">
+    <h3>Impact</h3>
+    <p class="impact">p99_latency_ms: 4186.7ms before -&gt; 2601.6ms after the alert boundary (0.6x); error_rate: 0.0% before -&gt; 0.0% after the alert boundary (1.0x); throughput_per_min: 23.7req/min before -&gt; 136.4req/min after the alert boundary (5.7x)</p>
+  </section>
+
+  <section class="card">
+    <h3>Timeline</h3>
+    <ul class="timeline"><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">22:16:07 UTC — baseline window opens (pre-incident comparison)</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">22:46:07 UTC — alert &#x27;Faultline catalog p99 latency &gt; 1s&#x27; started firing</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">alert window — p99_latency_ms: 4186.7ms before -&gt; 2601.6ms after the alert boundary (0.6x)</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">alert window — error_rate: 0.0% before -&gt; 0.0% after the alert boundary (1.0x)</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">alert window — throughput_per_min: 23.7req/min before -&gt; 136.4req/min after the alert boundary (5.7x)</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">22:47:08 UTC — ARGUS investigation inv-6bde2d57f9 began</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">22:47:27 UTC — hypothesis CONFIRMED: The catalog service is timing out under load, causing the gateway to receive upstream timeouts and return 502s to clients.</span></li></ul>
+  </section>
+
+  <section class="card">
+    <h3>Hypotheses <span class="chip">verified against telemetry</span></h3>
+    <div class="hyp-list"><div class="hyp hyp-confirmed"><div class="hyp-head"><span class="hyp-mark">✓</span><span class="hyp-verdict">CONFIRMED</span></div><div class="hyp-text">The catalog service is timing out under load, causing the gateway to receive upstream timeouts and return 502s to clients. — Throughput to catalog jumped 5.7x while p99 latency remained elevated (~2.6-4.2s), pushing requests past the gateway&#x27;s upstream timeout threshold; the gateway logs &#x27;upstream call http://catalog:*/products failed: timed out&#x27; and emits 502 http send spans, indicating catalog cannot keep up with the increased request rate.</div><div class="hyp-detail">found &#x27;timed out&#x27; in 3 matching rows</div></div><div class="hyp hyp-error"><div class="hyp-head"><span class="hyp-mark">!</span><span class="hyp-verdict">ERROR</span></div><div class="hyp-text">Catalog&#x27;s /products endpoint itself is the latency bottleneck (e.g., slow downstream dependency or resource saturation), not the gateway.</div><div class="hyp-detail">verification failed to run: Client error &#x27;404 Not Found&#x27; for url &#x27;http://localhost:8080/api/v5/query_range&#x27;
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404</div></div><div class="hyp hyp-error"><div class="hyp-head"><span class="hyp-mark">!</span><span class="hyp-verdict">ERROR</span></div><div class="hyp-text">A sudden 5.7x surge in request throughput to catalog overwhelmed available capacity (e.g., connection pool or worker exhaustion), causing queuing delays that manifest as timeouts.</div><div class="hyp-detail">verification failed to run: Client error &#x27;400 Bad Request&#x27; for url &#x27;http://localhost:8080/api/v5/query_range&#x27;
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400</div></div><div class="hyp hyp-refuted"><div class="hyp-head"><span class="hyp-mark">✗</span><span class="hyp-verdict">REFUTED</span></div><div class="hyp-text">The gateway&#x27;s outbound HTTP client/connection pool to catalog is saturated, causing 502s independent of catalog&#x27;s actual processing time. — &#x27;connection&#x27; not found in 5 rows</div></div></div>
+  </section>
+
+  <section class="card">
+    <h3>Evidence <span class="chip">deep-links into SigNoz</span></h3>
+    <ul class="ev-list"><li class="ev"><span class="ev-text">p99_latency_ms: 4186.7ms before -&gt; 2601.6ms after the alert boundary (0.6x)</span><a class="ev-link" title="Deep-links resolve on your own SigNoz instance (http://localhost:8080)" href="http://localhost:8080/services/catalog?startTime=1784240167961&amp;endTime=1784242028076" target="_blank" rel="noopener noreferrer">view in SigNoz ↗</a></li><li class="ev"><span class="ev-text">error_rate: 0.0% before -&gt; 0.0% after the alert boundary (1.0x)</span><a class="ev-link" title="Deep-links resolve on your own SigNoz instance (http://localhost:8080)" href="http://localhost:8080/services/catalog?startTime=1784240167961&amp;endTime=1784242028076" target="_blank" rel="noopener noreferrer">view in SigNoz ↗</a></li><li class="ev"><span class="ev-text">throughput_per_min: 23.7req/min before -&gt; 136.4req/min after the alert boundary (5.7x)</span><a class="ev-link" title="Deep-links resolve on your own SigNoz instance (http://localhost:8080)" href="http://localhost:8080/services/catalog?startTime=1784240167961&amp;endTime=1784242028076" target="_blank" rel="noopener noreferrer">view in SigNoz ↗</a></li><li class="ev"><span class="ev-text">exemplar trace 20b567758df5c978…: culprit span &#x27;GET /api/products http send&#x27; (service=gateway, 0ms, error=True) | http.status_code=502</span><a class="ev-link" title="Deep-links resolve on your own SigNoz instance (http://localhost:8080)" href="http://localhost:8080/trace/20b567758df5c978938500f1ee147d40?spanId=0ab53ca105ac487d" target="_blank" rel="noopener noreferrer">view in SigNoz ↗</a></li><li class="ev"><span class="ev-text">exemplar trace a6f5f04a659f8f4a…: culprit span &#x27;GET /api/products http send&#x27; (service=gateway, 0ms, error=True) | http.status_code=502</span><a class="ev-link" title="Deep-links resolve on your own SigNoz instance (http://localhost:8080)" href="http://localhost:8080/trace/a6f5f04a659f8f4a610e758c0c32454d?spanId=a0dbfeabd504cb0c" target="_blank" rel="noopener noreferrer">view in SigNoz ↗</a></li><li class="ev"><span class="ev-text">exemplar trace 20b567758df5c978…: culprit span &#x27;GET /api/products http send&#x27; (service=gateway, 0ms, error=True) | http.status_code=502</span><a class="ev-link" title="Deep-links resolve on your own SigNoz instance (http://localhost:8080)" href="http://localhost:8080/trace/20b567758df5c978938500f1ee147d40?spanId=0ab53ca105ac487d" target="_blank" rel="noopener noreferrer">view in SigNoz ↗</a></li><li class="ev"><span class="ev-text">log signature x3 (novel vs prior hour): upstream call http://catalog:&lt;*&gt;/products failed: timed out</span><a class="ev-link" title="Deep-links resolve on your own SigNoz instance (http://localhost:8080)" href="http://localhost:8080/logs/logs-explorer?startTime=1784240167961&amp;endTime=1784242028076&amp;filter=%7B%22expression%22%3A%20%22service.name%20%3D%20%27catalog%27%20AND%20severity_text%20IN%20%28%27ERROR%27%2C%27FATAL%27%29%22%7D" target="_blank" rel="noopener noreferrer">view in SigNoz ↗</a></li></ul>
+  </section>
+
+  
+  <section class="card"><h3>Actions taken</h3><ul class="link-list"><li><a href="http://localhost:8080/dashboard/019f6d1d-0b76-785a-8d51-71cb735d6c3b" target="_blank" rel="noopener noreferrer">incident evidence dashboard auto-created ↗</a></li></ul></section>
+
+  <footer class="cost-footer">
+    <div class="cost-title">Investigation cost</div>
+    <div class="cost-grid"><div class="cost-cell"><div class="cost-val mono">claude-haiku-4-5-20251001 (live)</div><div class="cost-label">model</div></div><div class="cost-cell"><div class="cost-val mono">4,864 / 1,468</div><div class="cost-label">tokens in / out</div></div><div class="cost-cell"><div class="cost-val mono">$0.0350</div><div class="cost-label">est. cost</div></div><div class="cost-cell"><div class="cost-val mono">21 SigNoz queries · 825,207 rows / 128.5 MB scanned · 1888 ms query time</div><div class="cost-label">SigNoz query footprint</div></div></div>
+  </footer>
+</article>

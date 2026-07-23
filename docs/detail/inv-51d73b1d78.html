@@ -1,0 +1,56 @@
+
+<article class="detail">
+  <header class="verdict">
+    <div class="verdict-top">
+      <div class="verdict-badges"><span class="badge badge-degraded">DEGRADED</span>
+        <span class="conf-ring" style="--pct:0">
+          <span class="conf-num">0%</span>
+        </span>
+      </div>
+      <div class="verdict-id mono">inv-51d73b1d78</div>
+    </div>
+    <h1>ARGUS LLM spend rate — argus</h1>
+    <div class="verdict-meta">
+      <span class="mono">argus</span>
+      <span class="row-dot">·</span>
+      <span>ARGUS LLM spend rate</span>
+      <span class="row-dot">·</span>
+      <span>2026-07-17 20:41 UTC</span>
+    </div>
+  </header>
+
+  <div class="review-banner review-degraded">⚠ Flagged for human review — all hypotheses refuted — evidence-only report.</div>
+
+  <section class="card">
+    <h3>Root cause</h3>
+    <p class="root-cause">No hypothesis survived verification. Evidence-only report; human investigation required.</p>
+  </section>
+
+  <section class="card">
+    <h3>Impact</h3>
+    <p class="impact">p99_latency_ms: 0.0ms before -&gt; 0.0ms after the alert boundary (1.0x); error_rate: 0.0% before -&gt; 0.0% after the alert boundary (1.0x); throughput_per_min: 0.0req/min before -&gt; 0.0req/min after the alert boundary (1.0x)</p>
+  </section>
+
+  <section class="card">
+    <h3>Timeline</h3>
+    <ul class="timeline"><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">20:10:03 UTC — baseline window opens (pre-incident comparison)</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">20:40:03 UTC — alert &#x27;ARGUS LLM spend rate&#x27; started firing</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">alert window — p99_latency_ms: 0.0ms before -&gt; 0.0ms after the alert boundary (1.0x)</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">alert window — error_rate: 0.0% before -&gt; 0.0% after the alert boundary (1.0x)</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">alert window — throughput_per_min: 0.0req/min before -&gt; 0.0req/min after the alert boundary (1.0x)</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">20:40:33 UTC — ARGUS investigation inv-51d73b1d78 began</span></li></ul>
+  </section>
+
+  <section class="card">
+    <h3>Hypotheses <span class="chip">verified against telemetry</span></h3>
+    <div class="hyp-list"><div class="hyp hyp-refuted"><div class="hyp-head"><span class="hyp-mark">✗</span><span class="hyp-verdict">REFUTED</span></div><div class="hyp-text">A malformed self-query from ARGUS to its own query_range API (e.g. for deployment changes) is failing with repeated 400 errors, causing retries that inflate LLM investigation spend. — 0 rows (need &gt; 0.0)</div></div><div class="hyp hyp-refuted"><div class="hyp-head"><span class="hyp-mark">✗</span><span class="hyp-verdict">REFUTED</span></div><div class="hyp-text">The spend spike is driven by a high volume of unrelated low-signal alerts each triggering a full-cost ARGUS investigation, rather than any single malfunction. — count() after/before ratio = 0.00 (need &gt; 2.0)</div></div><div class="hyp hyp-refuted"><div class="hyp-head"><span class="hyp-mark">✗</span><span class="hyp-verdict">REFUTED</span></div><div class="hyp-text">argus.cost.usd is being emitted multiple times per single investigation due to a metric double-emission bug, not an actual increase in LLM calls. — 0 rows (need &gt; 1.0)</div></div><div class="hyp hyp-refuted"><div class="hyp-head"><span class="hyp-mark">✗</span><span class="hyp-verdict">REFUTED</span></div><div class="hyp-text">A single investigation (or small set) is running away with excessive LLM calls per investigation—e.g. an unbounded retry/self-recursive loop in ARGUS&#x27;s own reasoning chain—driving argus.cost.usd up without any change in HTTP throughput or errors. — count() after/before ratio = 0.00 (need &gt; 2.0)</div></div><div class="hyp hyp-refuted"><div class="hyp-head"><span class="hyp-mark">✗</span><span class="hyp-verdict">REFUTED</span></div><div class="hyp-text">ARGUS is using an unusually large prompt/context size per LLM call (e.g. bloated conversation history or oversized telemetry payloads included in the prompt), inflating per-call token cost even though call count and request volume are unchanged. — &#x27;prompt_tokens&#x27; not found in 0 rows</div></div><div class="hyp hyp-refuted"><div class="hyp-head"><span class="hyp-mark">✗</span><span class="hyp-verdict">REFUTED</span></div><div class="hyp-text">A specific investigation type or hypothesis-generation path (e.g. the &#x27;memory.recall&#x27; similarity search step) is being invoked redundantly per investigation, each redundant invocation an independent billed LLM call, inflating cost without affecting external golden signals. — &#x27;memory.recall&#x27; not found in 0 rows</div></div></div>
+  </section>
+
+  <section class="card">
+    <h3>Evidence <span class="chip">deep-links into SigNoz</span></h3>
+    <ul class="ev-list"><li class="ev"><span class="ev-text">p99_latency_ms: 0.0ms before -&gt; 0.0ms after the alert boundary (1.0x)</span><a class="ev-link" title="Deep-links resolve on your own SigNoz instance (http://localhost:8080)" href="http://localhost:8080/services/argus?startTime=1784319003876&amp;endTime=1784320833972" target="_blank" rel="noopener noreferrer">view in SigNoz ↗</a></li><li class="ev"><span class="ev-text">error_rate: 0.0% before -&gt; 0.0% after the alert boundary (1.0x)</span><a class="ev-link" title="Deep-links resolve on your own SigNoz instance (http://localhost:8080)" href="http://localhost:8080/services/argus?startTime=1784319003876&amp;endTime=1784320833972" target="_blank" rel="noopener noreferrer">view in SigNoz ↗</a></li><li class="ev"><span class="ev-text">throughput_per_min: 0.0req/min before -&gt; 0.0req/min after the alert boundary (1.0x)</span><a class="ev-link" title="Deep-links resolve on your own SigNoz instance (http://localhost:8080)" href="http://localhost:8080/services/argus?startTime=1784319003876&amp;endTime=1784320833972" target="_blank" rel="noopener noreferrer">view in SigNoz ↗</a></li></ul>
+  </section>
+
+  <section class="card"><h3>Similar past incidents <span class="chip">ARGUS memory</span></h3><ul class="sim-list"><li class="sim">similar to incident inv-8fcd8347ee (Jul 17, alert &#x27;[DRAFT · ARGUS] catalog: A specific slow child span (e.g., a database query) inside catalog&#x27;s handling of&#x27;, service unknown, similarity 57%): root cause was: Reduced throughput and any latency figures observed are symptomatic of client-side backoff, not caused by catalog-side errors. — If clients or the load balancer back off/retry after slow responses, throughput drops, but this doesn&#x27;t reflect a server-side failure since error rate remains 0%; this hypothesis is a check to rule out timeout/502-driven explanations for the pattern. (verified: count() =</li><li class="sim">similar to incident inv-a2a0b2e215 (Jul 16, alert &#x27;ARGUS LLM spend rate&#x27;, service argus, similarity 30%): root cause was: ARGUS&#x27;s own self-query to the &#x27;changes.deployments&#x27; query_range API is malformed, causing repeated failed 400 requests that retry and inflate both throughput and LLM investigation spend. — Each investigation triggers a query_range call for deployment changes; a bad request parameter (e.g. invalid time range or filter syntax) causes a 400 Bad Request. ARGUS likely retries or re-invokes the LLM to r</li><li class="sim">similar to incident inv-58c6674b76 (Jul 16, alert &#x27;Faultline catalog p99 latency &gt; 1s&#x27;, service catalog, similarity 23%): root cause was: Reduced throughput is a symptom (clients/load balancer backing off or timing out) rather than a cause, and error rate staying flat at 0% rules out timeout/502-driven explanations seen in prior similar incidents. — Because error_rate remained 0.0% before and after (no 502s), the gateway is not aborting due to timeout thresholds being exceeded, distinguishing this incident from the two lower-similar</li></ul></section>
+  <section class="card"><h3>Actions taken</h3><ul class="link-list"><li><a href="http://localhost:8080/dashboard/019f71cf-cc27-7c05-9862-cb9ba870d342" target="_blank" rel="noopener noreferrer">incident evidence dashboard auto-created ↗</a></li></ul></section>
+
+  <footer class="cost-footer">
+    <div class="cost-title">Investigation cost</div>
+    <div class="cost-grid"><div class="cost-cell"><div class="cost-val mono">claude-haiku-4-5-20251001 (live)</div><div class="cost-label">model</div></div><div class="cost-cell"><div class="cost-val mono">9,428 / 2,463</div><div class="cost-label">tokens in / out</div></div><div class="cost-cell"><div class="cost-val mono">$0.0787</div><div class="cost-label">est. cost</div></div><div class="cost-cell"><div class="cost-val mono">21 SigNoz queries · 8,306 rows / 0.1 MB scanned · 127 ms query time</div><div class="cost-label">SigNoz query footprint</div></div></div>
+  </footer>
+</article>

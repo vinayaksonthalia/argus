@@ -1,0 +1,56 @@
+
+<article class="detail">
+  <header class="verdict">
+    <div class="verdict-top">
+      <div class="verdict-badges"><span class="badge badge-review">NEEDS REVIEW</span>
+        <span class="conf-ring" style="--pct:45">
+          <span class="conf-num">45%</span>
+        </span>
+      </div>
+      <div class="verdict-id mono">inv-3b55b3bdb8</div>
+    </div>
+    <h1>ARGUS LLM spend rate — argus</h1>
+    <div class="verdict-meta">
+      <span class="mono">argus</span>
+      <span class="row-dot">·</span>
+      <span>ARGUS LLM spend rate</span>
+      <span class="row-dot">·</span>
+      <span>2026-07-17 21:16 UTC</span>
+    </div>
+  </header>
+
+  <div class="review-banner review-review">⚠ Flagged for human review — confidence 45% is below the 75% verification threshold.</div>
+
+  <section class="card">
+    <h3>Root cause</h3>
+    <p class="root-cause">Individual gen_ai.chat &#x27;sonnet&#x27; spans are taking ~22-25s each, indicating oversized prompts/context (e.g. large tool outputs or verbose retrieval payloads) are being sent to the model, driving both latency and token-cost spend per call. — Large input token counts increase both LLM processing time and per-call cost; a single 23s span with no error suggests the call succeeded but processed an unusually large payload, so cost-per-investigation is inflated even at low request volume. (verified: found &#x27;gen_ai.usage.input_tokens&#x27; in 10 matching rows)</p>
+  </section>
+
+  <section class="card">
+    <h3>Impact</h3>
+    <p class="impact">p99_latency_ms: 0.0ms before -&gt; 25397.6ms after the alert boundary (from ~zero); error_rate: 0.0% before -&gt; 6.7% after the alert boundary (from ~zero); throughput_per_min: 0.0req/min before -&gt; 3.2req/min after the alert boundary (from ~zero)</p>
+  </section>
+
+  <section class="card">
+    <h3>Timeline</h3>
+    <ul class="timeline"><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">20:10:03 UTC — baseline window opens (pre-incident comparison)</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">20:40:03 UTC — alert &#x27;ARGUS LLM spend rate&#x27; started firing</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">alert window — p99_latency_ms: 0.0ms before -&gt; 25397.6ms after the alert boundary (from ~zero)</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">alert window — error_rate: 0.0% before -&gt; 6.7% after the alert boundary (from ~zero)</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">alert window — throughput_per_min: 0.0req/min before -&gt; 3.2req/min after the alert boundary (from ~zero)</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">21:15:33 UTC — ARGUS investigation inv-3b55b3bdb8 began</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">21:16:11 UTC — hypothesis CONFIRMED: Individual gen_ai.chat &#x27;sonnet&#x27; spans are taking ~22-25s each, indicating oversized prompts/context (e.g. large tool outputs or verbose retrieval payloads) are being sent to the model, driving both latency and token-cost spend per call.</span></li></ul>
+  </section>
+
+  <section class="card">
+    <h3>Hypotheses <span class="chip">verified against telemetry</span></h3>
+    <div class="hyp-list"><div class="hyp hyp-confirmed"><div class="hyp-head"><span class="hyp-mark">✓</span><span class="hyp-verdict">CONFIRMED</span></div><div class="hyp-text">Individual gen_ai.chat &#x27;sonnet&#x27; spans are taking ~22-25s each, indicating oversized prompts/context (e.g. large tool outputs or verbose retrieval payloads) are being sent to the model, driving both latency and token-cost spend per call. — Large input token counts increase both LLM processing time and per-call cost; a single 23s span with no error suggests the call succeeded but processed an unusually large payload, so cost-per-investigation is inflated even at low request volume.</div><div class="hyp-detail">found &#x27;gen_ai.usage.input_tokens&#x27; in 10 matching rows</div></div><div class="hyp hyp-refuted"><div class="hyp-head"><span class="hyp-mark">✗</span><span class="hyp-verdict">REFUTED</span></div><div class="hyp-text">A malformed self-query from ARGUS to the changes.deployments query_range API is causing repeated 400 errors, triggering retries that re-invoke the LLM and inflate spend (recurrence of inv-a2a0b2e215). — 0 rows (need &gt; 0.0)</div></div><div class="hyp hyp-refuted"><div class="hyp-head"><span class="hyp-mark">✗</span><span class="hyp-verdict">REFUTED</span></div><div class="hyp-text">Investigation throughput itself (3.2 req/min, each triggering an LLM call) is simply higher than the budget assumes, i.e., volume-driven overspend rather than any single call anomaly. — count() = 10.00 (need &gt; 150.0)</div></div><div class="hyp hyp-refuted"><div class="hyp-head"><span class="hyp-mark">✗</span><span class="hyp-verdict">REFUTED</span></div><div class="hyp-text">The 6.7% error rate reflects a subset of investigations retrying the LLM call after failure (e.g. timeout or malformed tool response), so each retried investigation incurs 2x+ LLM cost, inflating total spend without inflating raw throughput. — count() = 0.00 (need &gt; 1.0)</div></div><div class="hyp hyp-refuted"><div class="hyp-head"><span class="hyp-mark">✗</span><span class="hyp-verdict">REFUTED</span></div><div class="hyp-text">ARGUS is invoking a more expensive/larger model variant (sonnet with extended reasoning or larger max_tokens) than the budget assumes, so cost-per-call — not call count or errors — exceeds threshold. — &#x27;gen_ai.request.max_tokens&#x27; not found in 10 rows</div></div></div>
+  </section>
+
+  <section class="card">
+    <h3>Evidence <span class="chip">deep-links into SigNoz</span></h3>
+    <ul class="ev-list"><li class="ev"><span class="ev-text">p99_latency_ms: 0.0ms before -&gt; 25397.6ms after the alert boundary (from ~zero)</span><a class="ev-link" title="Deep-links resolve on your own SigNoz instance (http://localhost:8080)" href="http://localhost:8080/services/argus?startTime=1784319003876&amp;endTime=1784322933978" target="_blank" rel="noopener noreferrer">view in SigNoz ↗</a></li><li class="ev"><span class="ev-text">error_rate: 0.0% before -&gt; 6.7% after the alert boundary (from ~zero)</span><a class="ev-link" title="Deep-links resolve on your own SigNoz instance (http://localhost:8080)" href="http://localhost:8080/services/argus?startTime=1784319003876&amp;endTime=1784322933978" target="_blank" rel="noopener noreferrer">view in SigNoz ↗</a></li><li class="ev"><span class="ev-text">throughput_per_min: 0.0req/min before -&gt; 3.2req/min after the alert boundary (from ~zero)</span><a class="ev-link" title="Deep-links resolve on your own SigNoz instance (http://localhost:8080)" href="http://localhost:8080/services/argus?startTime=1784319003876&amp;endTime=1784322933978" target="_blank" rel="noopener noreferrer">view in SigNoz ↗</a></li><li class="ev"><span class="ev-text">exemplar trace 09837f2bc0744d0d…: culprit span &#x27;gen_ai.chat sonnet&#x27; (service=argus, 23345ms, error=False)</span><a class="ev-link" title="Deep-links resolve on your own SigNoz instance (http://localhost:8080)" href="http://localhost:8080/trace/09837f2bc0744d0db3dfd18bd3adc86a?spanId=8c3e1927b774e4b4" target="_blank" rel="noopener noreferrer">view in SigNoz ↗</a></li><li class="ev"><span class="ev-text">exemplar trace b63c810b4de1a99b…: culprit span &#x27;gen_ai.chat sonnet&#x27; (service=argus, 21995ms, error=False)</span><a class="ev-link" title="Deep-links resolve on your own SigNoz instance (http://localhost:8080)" href="http://localhost:8080/trace/b63c810b4de1a99b8b0e17357be7f233?spanId=0d7949c476259001" target="_blank" rel="noopener noreferrer">view in SigNoz ↗</a></li><li class="ev"><span class="ev-text">exemplar trace 09837f2bc0744d0d…: culprit span &#x27;gen_ai.chat sonnet&#x27; (service=argus, 23345ms, error=False)</span><a class="ev-link" title="Deep-links resolve on your own SigNoz instance (http://localhost:8080)" href="http://localhost:8080/trace/09837f2bc0744d0db3dfd18bd3adc86a?spanId=8c3e1927b774e4b4" target="_blank" rel="noopener noreferrer">view in SigNoz ↗</a></li></ul>
+  </section>
+
+  <section class="card"><h3>Similar past incidents <span class="chip">ARGUS memory</span></h3><ul class="sim-list"><li class="sim">similar to incident inv-51d73b1d78 (Jul 17, alert &#x27;ARGUS LLM spend rate&#x27;, service argus, similarity 44%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.</li><li class="sim">similar to incident inv-fcdb95f553 (Jul 17, alert &#x27;Faultline catalog p99 latency &gt; 1s&#x27;, service catalog, similarity 42%): root cause was: An injected/artificial pg_sleep(2.5) call embedded in the products SELECT statement is directly causing the ~2.5s query latency that drives the p99 breach. — The exact SQL text executed contains &#x27;pg_sleep(2.5)&#x27; concatenated into the products query, forcing Postgres to block for 2.5s per call regardless of load; since this is synchronous within the request path, it fully explains the ~2.5s span dur</li><li class="sim">similar to incident inv-a2a0b2e215 (Jul 16, alert &#x27;ARGUS LLM spend rate&#x27;, service argus, similarity 42%): root cause was: ARGUS&#x27;s own self-query to the &#x27;changes.deployments&#x27; query_range API is malformed, causing repeated failed 400 requests that retry and inflate both throughput and LLM investigation spend. — Each investigation triggers a query_range call for deployment changes; a bad request parameter (e.g. invalid time range or filter syntax) causes a 400 Bad Request. ARGUS likely retries or re-invokes the LLM to r</li></ul></section>
+  <section class="card"><h3>Actions taken</h3><ul class="link-list"><li><a href="http://localhost:8080/dashboard/019f71ef-d89a-73e6-9305-6888b64a54e1" target="_blank" rel="noopener noreferrer">incident evidence dashboard auto-created ↗</a></li><li><a href="http://localhost:8080/alerts/edit?ruleId=019f71ef-d8b3-7215-a009-d12bee854c03" target="_blank" rel="noopener noreferrer">DRAFT follow-up alert rule proposed (disabled — review &amp; enable) ↗</a></li></ul></section>
+
+  <footer class="cost-footer">
+    <div class="cost-title">Investigation cost</div>
+    <div class="cost-grid"><div class="cost-cell"><div class="cost-val mono">claude-haiku-4-5-20251001 (live)</div><div class="cost-label">model</div></div><div class="cost-cell"><div class="cost-val mono">9,614 / 2,578</div><div class="cost-label">tokens in / out</div></div><div class="cost-cell"><div class="cost-val mono">$0.0636</div><div class="cost-label">est. cost</div></div><div class="cost-cell"><div class="cost-val mono">24 SigNoz queries · 233,925 rows / 21.3 MB scanned · 164 ms query time</div><div class="cost-label">SigNoz query footprint</div></div></div>
+  </footer>
+</article>

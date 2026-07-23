@@ -1,0 +1,57 @@
+
+<article class="detail">
+  <header class="verdict">
+    <div class="verdict-top">
+      <div class="verdict-badges"><span class="badge badge-review">NEEDS REVIEW</span>
+        <span class="conf-ring" style="--pct:15">
+          <span class="conf-num">15%</span>
+        </span>
+      </div>
+      <div class="verdict-id mono">inv-8fcd8347ee</div>
+    </div>
+    <h1>[DRAFT · ARGUS] catalog: A specific slow child span (e.g., a database query) inside catalog&#x27;s handling of — unknown</h1>
+    <div class="verdict-meta">
+      <span class="mono">unknown</span>
+      <span class="row-dot">·</span>
+      <span>[DRAFT · ARGUS] catalog: A specific slow child span (e.g., a database query) inside catalog&#x27;s handling of</span>
+      <span class="row-dot">·</span>
+      <span>2026-07-17 13:24 UTC</span>
+    </div>
+  </header>
+
+  <div class="review-banner review-review">⚠ Flagged for human review — confidence 15% is below the 75% verification threshold.</div>
+
+  <section class="card">
+    <h3>Root cause</h3>
+    <p class="root-cause">Reduced throughput and any latency figures observed are symptomatic of client-side backoff, not caused by catalog-side errors. — If clients or the load balancer back off/retry after slow responses, throughput drops, but this doesn&#x27;t reflect a server-side failure since error rate remains 0%; this hypothesis is a check to rule out timeout/502-driven explanations for the pattern. (verified: count() = 0.00 (need &lt; 1.0))</p>
+  </section>
+
+  <section class="card">
+    <h3>Impact</h3>
+    <p class="impact">p99_latency_ms: 0.0ms before -&gt; 0.0ms after the alert boundary (1.0x); error_rate: 0.0% before -&gt; 0.0% after the alert boundary (1.0x); throughput_per_min: 0.0req/min before -&gt; 0.0req/min after the alert boundary (1.0x)</p>
+  </section>
+
+  <section class="card">
+    <h3>Timeline</h3>
+    <ul class="timeline"><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">12:54:05 UTC — baseline window opens (pre-incident comparison)</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">13:24:05 UTC — alert &#x27;[DRAFT · ARGUS] catalog: A specific slow child span (e.g., a database query) inside catalog&#x27;s handling of&#x27; started firing</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">alert window — p99_latency_ms: 0.0ms before -&gt; 0.0ms after the alert boundary (1.0x)</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">alert window — error_rate: 0.0% before -&gt; 0.0% after the alert boundary (1.0x)</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">alert window — throughput_per_min: 0.0req/min before -&gt; 0.0req/min after the alert boundary (1.0x)</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">13:24:35 UTC — ARGUS investigation inv-8fcd8347ee began</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">13:24:53 UTC — hypothesis CONFIRMED: Reduced throughput and any latency figures observed are symptomatic of client-side backoff, not caused by catalog-side errors.</span></li></ul>
+  </section>
+
+  <section class="card">
+    <h3>Hypotheses <span class="chip">verified against telemetry</span></h3>
+    <div class="hyp-list"><div class="hyp hyp-confirmed"><div class="hyp-head"><span class="hyp-mark">✓</span><span class="hyp-verdict">CONFIRMED</span></div><div class="hyp-text">Reduced throughput and any latency figures observed are symptomatic of client-side backoff, not caused by catalog-side errors. — If clients or the load balancer back off/retry after slow responses, throughput drops, but this doesn&#x27;t reflect a server-side failure since error rate remains 0%; this hypothesis is a check to rule out timeout/502-driven explanations for the pattern.</div><div class="hyp-detail">count() = 0.00 (need &lt; 1.0)</div></div><div class="hyp hyp-refuted"><div class="hyp-head"><span class="hyp-mark">✗</span><span class="hyp-verdict">REFUTED</span></div><div class="hyp-text">A specific slow child span (e.g., a database query) inside catalog&#x27;s GET /products handling dominates request duration and causes the p99 breach. — 20 rows (need &gt; 1500.0)</div></div><div class="hyp hyp-error"><div class="hyp-head"><span class="hyp-mark">!</span><span class="hyp-verdict">ERROR</span></div><div class="hyp-text">The slow child span is a fixed-cost inefficient query/dependency call, independent of load, not a load-driven contention issue.</div><div class="hyp-detail">verification failed to run: Client error &#x27;404 Not Found&#x27; for url &#x27;http://localhost:8080/api/v5/query_range&#x27;
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404</div></div></div>
+  </section>
+
+  <section class="card">
+    <h3>Evidence <span class="chip">deep-links into SigNoz</span></h3>
+    <ul class="ev-list"><li class="ev"><span class="ev-text">p99_latency_ms: 0.0ms before -&gt; 0.0ms after the alert boundary (1.0x)</span><a class="ev-link" title="Deep-links resolve on your own SigNoz instance (http://localhost:8080)" href="http://localhost:8080/services/unknown?startTime=1784292845396&amp;endTime=1784294675530" target="_blank" rel="noopener noreferrer">view in SigNoz ↗</a></li><li class="ev"><span class="ev-text">error_rate: 0.0% before -&gt; 0.0% after the alert boundary (1.0x)</span><a class="ev-link" title="Deep-links resolve on your own SigNoz instance (http://localhost:8080)" href="http://localhost:8080/services/unknown?startTime=1784292845396&amp;endTime=1784294675530" target="_blank" rel="noopener noreferrer">view in SigNoz ↗</a></li><li class="ev"><span class="ev-text">throughput_per_min: 0.0req/min before -&gt; 0.0req/min after the alert boundary (1.0x)</span><a class="ev-link" title="Deep-links resolve on your own SigNoz instance (http://localhost:8080)" href="http://localhost:8080/services/unknown?startTime=1784292845396&amp;endTime=1784294675530" target="_blank" rel="noopener noreferrer">view in SigNoz ↗</a></li></ul>
+  </section>
+
+  <section class="card"><h3>Similar past incidents <span class="chip">ARGUS memory</span></h3><ul class="sim-list"><li class="sim">similar to incident inv-4f5067e229 (Jul 17, alert &#x27;Faultline catalog p99 latency &gt; 1s&#x27;, service catalog, similarity 36%): root cause was: A specific slow child span (e.g., a database query) inside catalog&#x27;s handling of GET /products is the bottleneck causing the p99 breach. — Within the catalog service&#x27;s trace, one child span (likely a DB call) dominates total request duration; this would explain why gateway-observed latency for /api/products and /api/products/{id} is ~2.5s while error rate remains 0%, since the request completes su</li><li class="sim">similar to incident inv-5736466ee5 (Jul 16, alert &#x27;Faultline catalog p99 latency &gt; 1s&#x27;, service catalog, similarity 29%): root cause was: The catalog service&#x27;s /products endpoint is consistently slow due to an inefficient downstream call or query, independent of load, causing sustained ~2.3s p99 latency. — A fixed-cost slow operation (e.g., unindexed DB query, slow dependency call) on the /products path adds ~2s latency to every request; since latency stayed flat (2278ms-&gt;2306ms) even as throughput halved, the slowness is not load-d</li><li class="sim">similar to incident inv-58c6674b76 (Jul 16, alert &#x27;Faultline catalog p99 latency &gt; 1s&#x27;, service catalog, similarity 28%): root cause was: Reduced throughput is a symptom (clients/load balancer backing off or timing out) rather than a cause, and error rate staying flat at 0% rules out timeout/502-driven explanations seen in prior similar incidents. — Because error_rate remained 0.0% before and after (no 502s), the gateway is not aborting due to timeout thresholds being exceeded, distinguishing this incident from the two lower-similar</li></ul></section>
+  <section class="card"><h3>Actions taken</h3><ul class="link-list"><li><a href="http://localhost:8080/dashboard/019f7040-5c12-77cf-82f6-f26782e89b83" target="_blank" rel="noopener noreferrer">incident evidence dashboard auto-created ↗</a></li><li><a href="http://localhost:8080/alerts/edit?ruleId=019f7040-5c2b-75b8-91df-4fb8a49f3ede" target="_blank" rel="noopener noreferrer">DRAFT follow-up alert rule proposed (disabled — review &amp; enable) ↗</a></li></ul></section>
+
+  <footer class="cost-footer">
+    <div class="cost-title">Investigation cost</div>
+    <div class="cost-grid"><div class="cost-cell"><div class="cost-val mono">claude-haiku-4-5-20251001 (live)</div><div class="cost-label">model</div></div><div class="cost-cell"><div class="cost-val mono">5,466 / 854</div><div class="cost-label">tokens in / out</div></div><div class="cost-cell"><div class="cost-val mono">$0.0298</div><div class="cost-label">est. cost</div></div><div class="cost-cell"><div class="cost-val mono">15 SigNoz queries · 126,531 rows / 9.2 MB scanned · 131 ms query time</div><div class="cost-label">SigNoz query footprint</div></div></div>
+  </footer>
+</article>

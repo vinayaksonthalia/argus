@@ -1,0 +1,57 @@
+
+<article class="detail">
+  <header class="verdict">
+    <div class="verdict-top">
+      <div class="verdict-badges"><span class="badge badge-review">NEEDS REVIEW</span>
+        <span class="conf-ring" style="--pct:55">
+          <span class="conf-num">55%</span>
+        </span>
+      </div>
+      <div class="verdict-id mono">inv-57942d0754</div>
+    </div>
+    <h1>[DRAFT · ARGUS] unknown: The meridian-web 1.4.2 frontend deploy calls .map() on an API response payload t — unknown</h1>
+    <div class="verdict-meta">
+      <span class="mono">unknown</span>
+      <span class="row-dot">·</span>
+      <span>[DRAFT · ARGUS] unknown: The meridian-web 1.4.2 frontend deploy calls .map() on an API response payload t</span>
+      <span class="row-dot">·</span>
+      <span>2026-07-17 21:39 UTC</span>
+    </div>
+  </header>
+
+  <div class="review-banner review-review">⚠ Flagged for human review — confidence 55% is below the 75% verification threshold.</div>
+
+  <section class="card">
+    <h3>Root cause</h3>
+    <p class="root-cause">The meridian-web 1.4.2 frontend deploy calls .map() on an API response payload that is not an array, causing uncaught &#x27;map is not a function&#x27; TypeErrors in the browser. — A backend endpoint change (or error response) altered the payload shape from an array to an object/null, so frontend code doing response.data.map(...) throws a TypeError before rendering, producing browser-side JS exceptions/log entries. (verified: found &#x27;map is not a function&#x27; in 40 matching rows) [Incident memory: similar to past incident inv-ebc62d8028 (similarity 71%) — see &#x27;Similar past incidents&#x27;.]</p>
+  </section>
+
+  <section class="card">
+    <h3>Impact</h3>
+    <p class="impact">p99_latency_ms: 0.0ms before -&gt; 0.0ms after the alert boundary (1.0x); error_rate: 0.0% before -&gt; 0.0% after the alert boundary (1.0x); throughput_per_min: 0.0req/min before -&gt; 0.0req/min after the alert boundary (1.0x)</p>
+  </section>
+
+  <section class="card">
+    <h3>Timeline</h3>
+    <ul class="timeline"><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">21:08:34 UTC — baseline window opens (pre-incident comparison)</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">21:38:34 UTC — alert &#x27;[DRAFT · ARGUS] unknown: The meridian-web 1.4.2 frontend deploy calls .map() on an API response payload t&#x27; started firing</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">alert window — p99_latency_ms: 0.0ms before -&gt; 0.0ms after the alert boundary (1.0x)</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">alert window — error_rate: 0.0% before -&gt; 0.0% after the alert boundary (1.0x)</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">alert window — throughput_per_min: 0.0req/min before -&gt; 0.0req/min after the alert boundary (1.0x)</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">21:39:04 UTC — ARGUS investigation inv-57942d0754 began</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">21:39:19 UTC — hypothesis CONFIRMED: The meridian-web 1.4.2 frontend deploy calls .map() on an API response payload that is not an array, causing uncaught &#x27;map is not a function&#x27; TypeErrors in the browser.</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">21:39:19 UTC — hypothesis CONFIRMED: No actual backend/runtime incident occurred; the alert is a stale/unconfirmed draft rule with no supporting golden-signal deviation.</span></li></ul>
+  </section>
+
+  <section class="card">
+    <h3>Hypotheses <span class="chip">verified against telemetry</span></h3>
+    <div class="hyp-list"><div class="hyp hyp-confirmed"><div class="hyp-head"><span class="hyp-mark">✓</span><span class="hyp-verdict">CONFIRMED</span></div><div class="hyp-text">The meridian-web 1.4.2 frontend deploy calls .map() on an API response payload that is not an array, causing uncaught &#x27;map is not a function&#x27; TypeErrors in the browser. — A backend endpoint change (or error response) altered the payload shape from an array to an object/null, so frontend code doing response.data.map(...) throws a TypeError before rendering, producing browser-side JS exceptions/log entries. (verified: found &#x27;map is not a function&#x27; in 40 matching rows) [Incident memory: similar to past incident inv-ebc62d8028 (similarity 71%) — see &#x27;Similar past incidents&#x27;.]</div></div><div class="hyp hyp-error"><div class="hyp-head"><span class="hyp-mark">!</span><span class="hyp-verdict">ERROR</span></div><div class="hyp-text">The API endpoint meridian-web depends on began returning an error/object payload instead of an array after a backend change coinciding with the 1.4.2 deploy.</div><div class="hyp-detail">verification failed to run: Client error &#x27;400 Bad Request&#x27; for url &#x27;http://localhost:8080/api/v5/query_range&#x27;
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400</div></div></div>
+  </section>
+
+  <section class="card">
+    <h3>Evidence <span class="chip">deep-links into SigNoz</span></h3>
+    <ul class="ev-list"><li class="ev"><span class="ev-text">p99_latency_ms: 0.0ms before -&gt; 0.0ms after the alert boundary (1.0x)</span><a class="ev-link" title="Deep-links resolve on your own SigNoz instance (http://localhost:8080)" href="http://localhost:8080/services/unknown?startTime=1784322514803&amp;endTime=1784324344907" target="_blank" rel="noopener noreferrer">view in SigNoz ↗</a></li><li class="ev"><span class="ev-text">error_rate: 0.0% before -&gt; 0.0% after the alert boundary (1.0x)</span><a class="ev-link" title="Deep-links resolve on your own SigNoz instance (http://localhost:8080)" href="http://localhost:8080/services/unknown?startTime=1784322514803&amp;endTime=1784324344907" target="_blank" rel="noopener noreferrer">view in SigNoz ↗</a></li><li class="ev"><span class="ev-text">throughput_per_min: 0.0req/min before -&gt; 0.0req/min after the alert boundary (1.0x)</span><a class="ev-link" title="Deep-links resolve on your own SigNoz instance (http://localhost:8080)" href="http://localhost:8080/services/unknown?startTime=1784322514803&amp;endTime=1784324344907" target="_blank" rel="noopener noreferrer">view in SigNoz ↗</a></li></ul>
+  </section>
+
+  <section class="card"><h3>Similar past incidents <span class="chip">ARGUS memory</span></h3><ul class="sim-list"><li class="sim">similar to incident inv-ebc62d8028 (Jul 17, alert &#x27;GLASSPANE: browser error spike&#x27;, service unknown, similarity 71%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.</li><li class="sim">similar to incident inv-51d73b1d78 (Jul 17, alert &#x27;ARGUS LLM spend rate&#x27;, service argus, similarity 70%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.</li><li class="sim">similar to incident inv-8874a6845f (Jul 17, alert &#x27;GLASSPANE: p75 LCP above 4s&#x27;, service unknown, similarity 68%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.</li></ul></section>
+  <section class="card"><h3>Actions taken</h3><ul class="link-list"><li><a href="http://localhost:8080/dashboard/019f7205-043d-7641-b8c4-18911f70d1e6" target="_blank" rel="noopener noreferrer">incident evidence dashboard auto-created ↗</a></li><li><a href="http://localhost:8080/alerts/edit?ruleId=019f7203-fefb-7038-848c-bc1637c6ae46" target="_blank" rel="noopener noreferrer">DRAFT follow-up alert rule proposed (disabled — review &amp; enable) ↗</a></li></ul></section>
+
+  <footer class="cost-footer">
+    <div class="cost-title">Investigation cost</div>
+    <div class="cost-grid"><div class="cost-cell"><div class="cost-val mono">claude-haiku-4-5-20251001 (live)</div><div class="cost-label">model</div></div><div class="cost-cell"><div class="cost-val mono">5,274 / 857</div><div class="cost-label">tokens in / out</div></div><div class="cost-cell"><div class="cost-val mono">$0.0286</div><div class="cost-label">est. cost</div></div><div class="cost-cell"><div class="cost-val mono">16 SigNoz queries · 43,035 rows / 7.1 MB scanned · 96 ms query time</div><div class="cost-label">SigNoz query footprint</div></div></div>
+  </footer>
+</article>

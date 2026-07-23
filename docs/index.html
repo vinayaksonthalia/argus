@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ARGUS — Investigations Console</title>
+<style>
+:root{
+  --bg-canvas:#0A0B0D; --bg-surface:#111214; --bg-raised:#17181B;
+  --hairline:rgba(255,255,255,.08); --border:rgba(255,255,255,.14);
+  --text-1:#EDEDEF; --text-2:#9A9BA3; --text-3:#6C6D75;
+  --accent:#8B5CF6; --accent-dim:rgba(139,92,246,.16);
+  --green:#3DD68C; --amber:#F5A623; --red:#E5484D; --blue:#5B8DEF;
+  --mono:"JetBrains Mono","SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --sans:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  background:var(--bg-canvas); color:var(--text-1);
+  font-family:var(--sans); font-size:14px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:var(--mono); font-variant-numeric:tabular-nums}
+
+/* ---- top bar ---- */
+.topbar{
+  display:flex; align-items:center; justify-content:space-between;
+  height:56px; padding:0 20px; border-bottom:1px solid var(--hairline);
+  background:var(--bg-surface); position:sticky; top:0; z-index:10;
+}
+.wordmark{display:flex; align-items:baseline; gap:10px}
+.wordmark .mark{color:var(--accent); font-size:18px; transform:translateY(1px)}
+.wordmark .word{font-weight:600; letter-spacing:.14em; font-size:15px}
+.wordmark .sub{color:var(--text-3); font-size:12px; letter-spacing:.02em}
+.stats-strip{display:flex; gap:22px}
+.stat{display:flex; flex-direction:column; align-items:flex-end; line-height:1.15}
+.stat-val{font-size:15px; font-weight:600}
+.stat-label{font-size:11px; color:var(--text-3); text-transform:uppercase; letter-spacing:.05em}
+
+/* ---- layout ---- */
+.layout{display:grid; grid-template-columns:320px 1fr; height:calc(100% - 56px)}
+.rail{
+  border-right:1px solid var(--hairline); overflow-y:auto;
+  background:var(--bg-canvas); padding:8px;
+}
+.pane{overflow-y:auto; padding:28px 32px 64px}
+
+/* ---- rail rows ---- */
+.row{
+  display:block; width:100%; text-align:left; cursor:pointer;
+  background:transparent; border:1px solid transparent; border-radius:10px;
+  padding:11px 12px; margin-bottom:4px; color:inherit; font:inherit;
+  transition:background .12s,border-color .12s;
+}
+.row:hover{background:var(--bg-surface)}
+.row.active{background:var(--accent-dim); border-color:rgba(139,92,246,.4)}
+.row:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+.row-top{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:5px}
+.row-service{font-size:12px; color:var(--text-2); font-weight:500}
+.row-alert{font-weight:510; font-size:13.5px; margin-bottom:5px; line-height:1.35}
+.row-meta{display:flex; align-items:center; gap:7px; font-size:11.5px; color:var(--text-3)}
+.row-dot{color:var(--text-3)}
+.conf{color:var(--text-2)}
+.rail-empty{padding:24px 12px; color:var(--text-3); font-size:13px}
+
+/* ---- badges ---- */
+.badge{
+  font-size:10.5px; font-weight:600; letter-spacing:.04em; text-transform:uppercase;
+  padding:2.5px 8px; border-radius:999px; white-space:nowrap;
+  border:1px solid transparent;
+}
+.badge-verified{color:var(--green); background:rgba(61,214,140,.12); border-color:rgba(61,214,140,.3)}
+.badge-review{color:var(--amber); background:rgba(245,166,35,.12); border-color:rgba(245,166,35,.3)}
+.badge-degraded{color:var(--red); background:rgba(229,72,77,.12); border-color:rgba(229,72,77,.3)}
+
+/* ---- detail ---- */
+.detail{max-width:900px}
+.verdict{margin-bottom:22px}
+.verdict-top{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px}
+.verdict-badges{display:flex; align-items:center; gap:14px}
+.verdict-id{font-size:12px; color:var(--text-3)}
+.verdict h1{font-size:24px; font-weight:600; letter-spacing:-.02em; margin:0 0 10px; line-height:1.25}
+.verdict-meta{display:flex; align-items:center; gap:9px; color:var(--text-2); font-size:13px; flex-wrap:wrap}
+
+.conf-ring{
+  --pct:0; position:relative; width:44px; height:44px; border-radius:50%;
+  display:grid; place-items:center;
+  background:conic-gradient(var(--accent) calc(var(--pct)*1%), var(--hairline) 0);
+}
+.conf-ring::before{content:""; position:absolute; inset:4px; border-radius:50%; background:var(--bg-canvas)}
+.conf-num{position:relative; font-size:11px; font-weight:600; font-family:var(--mono)}
+
+.review-banner{
+  padding:11px 14px; border-radius:10px; font-size:13px; margin-bottom:20px; font-weight:500;
+}
+.review-review{color:var(--amber); background:rgba(245,166,35,.1); border:1px solid rgba(245,166,35,.28)}
+.review-degraded{color:var(--red); background:rgba(229,72,77,.1); border:1px solid rgba(229,72,77,.28)}
+
+.card{
+  background:var(--bg-surface); border:1px solid var(--hairline); border-radius:12px;
+  padding:18px 20px; margin-bottom:16px;
+}
+.card h3{
+  margin:0 0 12px; font-size:12px; text-transform:uppercase; letter-spacing:.06em;
+  color:var(--text-2); font-weight:600; display:flex; align-items:center; gap:10px;
+}
+.chip{
+  text-transform:none; letter-spacing:normal; font-weight:500; font-size:11px;
+  color:var(--text-3); background:var(--bg-raised); border:1px solid var(--hairline);
+  padding:1.5px 8px; border-radius:999px;
+}
+.root-cause{margin:0; font-size:15px; line-height:1.6}
+.impact{margin:0; font-family:var(--mono); font-size:13px; color:var(--text-1); line-height:1.7}
+.muted{color:var(--text-3)}
+
+/* ---- timeline ---- */
+.timeline{list-style:none; margin:0; padding:0}
+.tl-item{position:relative; padding:0 0 14px 20px; font-size:13px; line-height:1.5}
+.tl-item:last-child{padding-bottom:0}
+.tl-dot{position:absolute; left:0; top:6px; width:8px; height:8px; border-radius:50%;
+  background:var(--accent); box-shadow:0 0 0 3px var(--accent-dim)}
+.timeline .tl-item:not(:last-child)::before{
+  content:""; position:absolute; left:3.5px; top:12px; bottom:2px; width:1px; background:var(--hairline)}
+.tl-text{color:var(--text-1)}
+
+/* ---- hypotheses ---- */
+.hyp-list{display:flex; flex-direction:column; gap:10px}
+.hyp{border:1px solid var(--hairline); border-radius:10px; padding:12px 14px; border-left-width:3px}
+.hyp-head{display:flex; align-items:center; gap:8px; margin-bottom:6px}
+.hyp-mark{width:18px; height:18px; border-radius:50%; display:grid; place-items:center;
+  font-size:12px; font-weight:700; color:#0A0B0D}
+.hyp-verdict{font-size:11px; font-weight:600; letter-spacing:.05em; text-transform:uppercase}
+.hyp-text{font-size:13.5px; line-height:1.5}
+.hyp-detail{margin-top:7px; font-size:12px; color:var(--text-2); font-family:var(--mono); line-height:1.5}
+.hyp-confirmed{border-left-color:var(--green)}
+.hyp-confirmed .hyp-mark{background:var(--green)} .hyp-confirmed .hyp-verdict{color:var(--green)}
+.hyp-refuted{border-left-color:var(--red); opacity:.78}
+.hyp-refuted .hyp-mark{background:var(--red)} .hyp-refuted .hyp-verdict{color:var(--red)}
+.hyp-refuted .hyp-text{color:var(--text-2)}
+.hyp-error{border-left-color:var(--amber)}
+.hyp-error .hyp-mark{background:var(--amber)} .hyp-error .hyp-verdict{color:var(--amber)}
+
+/* ---- evidence / similar / links ---- */
+.ev-list,.sim-list,.link-list{list-style:none; margin:0; padding:0}
+.ev{display:flex; align-items:flex-start; justify-content:space-between; gap:14px;
+  padding:9px 0; border-bottom:1px solid var(--hairline); font-size:13px; line-height:1.5}
+.ev:last-child{border-bottom:none}
+.ev-text{flex:1}
+.ev-link,.link-list a,.sim-list a{color:var(--accent); text-decoration:none; white-space:nowrap; font-size:12.5px}
+.ev-link:hover,.link-list a:hover{text-decoration:underline}
+.sim{padding:9px 0; border-bottom:1px solid var(--hairline); font-size:12.5px; color:var(--text-2); line-height:1.55}
+.sim:last-child{border-bottom:none}
+.link-list li{padding:6px 0; font-size:13px}
+
+/* ---- cost footer ---- */
+.cost-footer{border:1px solid var(--hairline); border-radius:12px; padding:16px 20px; background:var(--bg-surface)}
+.cost-title{font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-3); margin-bottom:12px}
+.cost-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:16px}
+.cost-cell{min-width:0}
+.cost-val{font-size:13px; font-weight:600; overflow-wrap:anywhere}
+.cost-label{font-size:11px; color:var(--text-3); margin-top:3px}
+
+/* ---- empty / loading / error ---- */
+.pane-empty{display:flex; flex-direction:column; align-items:center; justify-content:center;
+  height:100%; text-align:center; color:var(--text-2); gap:6px}
+.pane-empty-icon{font-size:34px; color:var(--text-3); margin-bottom:6px}
+.empty-cmd{margin-top:10px; background:var(--bg-surface); border:1px solid var(--hairline);
+  border-radius:8px; padding:10px 14px; color:var(--accent); font-size:13px}
+.pane-error{max-width:420px; margin:60px auto; text-align:center; color:var(--text-2);
+  background:rgba(229,72,77,.08); border:1px solid rgba(229,72,77,.3); border-radius:12px; padding:24px}
+.pane-error strong{color:var(--red); display:block; margin-bottom:6px}
+.retry{margin-top:14px; background:var(--accent); color:#fff; border:none; border-radius:8px;
+  padding:8px 16px; font:inherit; font-weight:500; cursor:pointer}
+.skeleton{max-width:900px}
+.sk{background:linear-gradient(90deg,var(--bg-surface) 25%,var(--bg-raised) 50%,var(--bg-surface) 75%);
+  background-size:200% 100%; animation:shimmer 1.3s infinite; border-radius:8px}
+.sk-title{height:28px; width:60%; margin-bottom:14px}
+.sk-line{height:14px; width:40%; margin-bottom:22px}
+.sk-card{height:120px; margin-bottom:16px}
+@keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
+
+/* scrollbars */
+.rail::-webkit-scrollbar,.pane::-webkit-scrollbar{width:10px}
+.rail::-webkit-scrollbar-thumb,.pane::-webkit-scrollbar-thumb{
+  background:var(--border); border-radius:8px; border:3px solid var(--bg-canvas)}
+
+@media (max-width:760px){
+  .layout{grid-template-columns:1fr; height:auto}
+  .rail{border-right:none; border-bottom:1px solid var(--hairline); max-height:40vh}
+  .stats-strip{gap:14px}
+}
+
+.layout{height:calc(100% - 56px - 44px)}
+.family{
+  height:44px; display:flex; align-items:center; gap:9px; flex-wrap:wrap;
+  padding:0 20px; border-top:1px solid var(--hairline); background:var(--bg-surface);
+  font-size:12px; color:var(--text-3);
+}
+.family a{color:var(--accent); text-decoration:none}
+.family a:hover{text-decoration:underline}
+.family-label{color:var(--text-2); font-weight:500}
+.fam-dot{color:var(--text-3)}
+.fam-sub{color:var(--text-3)}
+.fam-sub a{color:var(--text-3)}
+.family-note{margin-left:auto; color:var(--text-3); cursor:help; border-bottom:1px dotted var(--text-3)}
+@media (max-width:760px){
+  .layout{height:auto}
+  .family{height:auto; padding:10px 16px}
+  .family-note{margin-left:0}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="wordmark">
+    <span class="mark" aria-hidden="true">◇</span>
+    <span class="word">ARGUS</span>
+    <span class="sub">Investigations Console</span>
+  </div>
+  <div class="stats-strip"><div class="stat"><span class="stat-val mono">20</span><span class="stat-label">investigations</span></div><div class="stat"><span class="stat-val mono">5%</span><span class="stat-label">verified</span></div><div class="stat"><span class="stat-val mono">$0.94</span><span class="stat-label">total spend</span></div></div>
+</header>
+<main class="layout">
+  <aside class="rail" id="rail" role="listbox" aria-label="Investigations">
+    <button class="row" data-id="inv-57942d0754" role="option" aria-label="[DRAFT · ARGUS] unknown: The meridian-web 1.4.2 frontend deploy calls .map() on an API response payload t on unknown"><div class="row-top"><span class="row-service mono">unknown</span><span class="badge badge-review">NEEDS REVIEW</span></div><div class="row-alert">[DRAFT · ARGUS] unknown: The meridian-web 1.4.2 frontend deploy calls .map() on an API response payload t</div><div class="row-meta"><span class="mono">inv-57942d0754</span><span class="row-dot">·</span><span>2026-07-17 21:39 UTC</span></div><div class="row-meta"><span class="conf">confidence 55%</span><span class="row-dot">·</span><span class="mono">$0.0286</span></div></button><button class="row" data-id="inv-b526009b90" role="option" aria-label="[DRAFT · ARGUS] unknown: The meridian-web frontend deploy at version 1.4.2 calls .map() on an API respons on unknown"><div class="row-top"><span class="row-service mono">unknown</span><span class="badge badge-review">NEEDS REVIEW</span></div><div class="row-alert">[DRAFT · ARGUS] unknown: The meridian-web frontend deploy at version 1.4.2 calls .map() on an API respons</div><div class="row-meta"><span class="mono">inv-b526009b90</span><span class="row-dot">·</span><span>2026-07-17 21:38 UTC</span></div><div class="row-meta"><span class="conf">confidence 55%</span><span class="row-dot">·</span><span class="mono">$0.0369</span></div></button><button class="row" data-id="inv-2897e974fd" role="option" aria-label="[DRAFT · ARGUS] meridian-web: A frontend deploy (service.version 1.4.2) introduced a code path that calls .map on unknown"><div class="row-top"><span class="row-service mono">unknown</span><span class="badge badge-review">NEEDS REVIEW</span></div><div class="row-alert">[DRAFT · ARGUS] meridian-web: A frontend deploy (service.version 1.4.2) introduced a code path that calls .map</div><div class="row-meta"><span class="mono">inv-2897e974fd</span><span class="row-dot">·</span><span>2026-07-17 21:36 UTC</span></div><div class="row-meta"><span class="conf">confidence 60%</span><span class="row-dot">·</span><span class="mono">$0.0334</span></div></button><button class="row" data-id="inv-0d3daf4f0f" role="option" aria-label="GLASSPANE: browser error spike on meridian-web"><div class="row-top"><span class="row-service mono">meridian-web</span><span class="badge badge-review">NEEDS REVIEW</span></div><div class="row-alert">GLASSPANE: browser error spike</div><div class="row-meta"><span class="mono">inv-0d3daf4f0f</span><span class="row-dot">·</span><span>2026-07-17 21:35 UTC</span></div><div class="row-meta"><span class="conf">confidence 55%</span><span class="row-dot">·</span><span class="mono">$0.0295</span></div></button><button class="row" data-id="inv-ebc62d8028" role="option" aria-label="GLASSPANE: browser error spike on unknown"><div class="row-top"><span class="row-service mono">unknown</span><span class="badge badge-degraded">DEGRADED</span></div><div class="row-alert">GLASSPANE: browser error spike</div><div class="row-meta"><span class="mono">inv-ebc62d8028</span><span class="row-dot">·</span><span>2026-07-17 21:33 UTC</span></div><div class="row-meta"><span class="conf">confidence 0%</span><span class="row-dot">·</span><span class="mono">$0.0565</span></div></button><button class="row" data-id="inv-eb846fe1eb" role="option" aria-label="GLASSPANE: p75 INP regression by route on unknown"><div class="row-top"><span class="row-service mono">unknown</span><span class="badge badge-degraded">DEGRADED</span></div><div class="row-alert">GLASSPANE: p75 INP regression by route</div><div class="row-meta"><span class="mono">inv-eb846fe1eb</span><span class="row-dot">·</span><span>2026-07-17 21:33 UTC</span></div><div class="row-meta"><span class="conf">confidence 0%</span><span class="row-dot">·</span><span class="mono">$0.0593</span></div></button><button class="row" data-id="inv-3b55b3bdb8" role="option" aria-label="ARGUS LLM spend rate on argus"><div class="row-top"><span class="row-service mono">argus</span><span class="badge badge-review">NEEDS REVIEW</span></div><div class="row-alert">ARGUS LLM spend rate</div><div class="row-meta"><span class="mono">inv-3b55b3bdb8</span><span class="row-dot">·</span><span>2026-07-17 21:16 UTC</span></div><div class="row-meta"><span class="conf">confidence 45%</span><span class="row-dot">·</span><span class="mono">$0.0636</span></div></button><button class="row" data-id="inv-4cfa29706d" role="option" aria-label="GLASSPANE: p75 LCP above 4s on unknown"><div class="row-top"><span class="row-service mono">unknown</span><span class="badge badge-degraded">DEGRADED</span></div><div class="row-alert">GLASSPANE: p75 LCP above 4s</div><div class="row-meta"><span class="mono">inv-4cfa29706d</span><span class="row-dot">·</span><span>2026-07-17 21:09 UTC</span></div><div class="row-meta"><span class="conf">confidence 0%</span><span class="row-dot">·</span><span class="mono">$0.0672</span></div></button><button class="row" data-id="inv-8aa5237eb9" role="option" aria-label="GLASSPANE: p75 INP regression by route on unknown"><div class="row-top"><span class="row-service mono">unknown</span><span class="badge badge-review">NEEDS REVIEW</span></div><div class="row-alert">GLASSPANE: p75 INP regression by route</div><div class="row-meta"><span class="mono">inv-8aa5237eb9</span><span class="row-dot">·</span><span>2026-07-17 21:08 UTC</span></div><div class="row-meta"><span class="conf">confidence 60%</span><span class="row-dot">·</span><span class="mono">$0.0244</span></div></button><button class="row" data-id="inv-a4bb985ac5" role="option" aria-label="GLASSPANE: p75 INP regression by route on unknown"><div class="row-top"><span class="row-service mono">unknown</span><span class="badge badge-review">NEEDS REVIEW</span></div><div class="row-alert">GLASSPANE: p75 INP regression by route</div><div class="row-meta"><span class="mono">inv-a4bb985ac5</span><span class="row-dot">·</span><span>2026-07-17 21:07 UTC</span></div><div class="row-meta"><span class="conf">confidence 25%</span><span class="row-dot">·</span><span class="mono">$0.0521</span></div></button><button class="row" data-id="inv-fcdb95f553" role="option" aria-label="Faultline catalog p99 latency &gt; 1s on catalog"><div class="row-top"><span class="row-service mono">catalog</span><span class="badge badge-verified">VERIFIED</span></div><div class="row-alert">Faultline catalog p99 latency &gt; 1s</div><div class="row-meta"><span class="mono">inv-fcdb95f553</span><span class="row-dot">·</span><span>2026-07-17 21:02 UTC</span></div><div class="row-meta"><span class="conf">confidence 90%</span><span class="row-dot">·</span><span class="mono">$0.0407</span></div></button><button class="row" data-id="inv-8874a6845f" role="option" aria-label="GLASSPANE: p75 LCP above 4s on unknown"><div class="row-top"><span class="row-service mono">unknown</span><span class="badge badge-degraded">DEGRADED</span></div><div class="row-alert">GLASSPANE: p75 LCP above 4s</div><div class="row-meta"><span class="mono">inv-8874a6845f</span><span class="row-dot">·</span><span>2026-07-17 21:02 UTC</span></div><div class="row-meta"><span class="conf">confidence 0%</span><span class="row-dot">·</span><span class="mono">$0.0524</span></div></button><button class="row" data-id="inv-51d73b1d78" role="option" aria-label="ARGUS LLM spend rate on argus"><div class="row-top"><span class="row-service mono">argus</span><span class="badge badge-degraded">DEGRADED</span></div><div class="row-alert">ARGUS LLM spend rate</div><div class="row-meta"><span class="mono">inv-51d73b1d78</span><span class="row-dot">·</span><span>2026-07-17 20:41 UTC</span></div><div class="row-meta"><span class="conf">confidence 0%</span><span class="row-dot">·</span><span class="mono">$0.0787</span></div></button><button class="row" data-id="inv-8fcd8347ee" role="option" aria-label="[DRAFT · ARGUS] catalog: A specific slow child span (e.g., a database query) inside catalog&#x27;s handling of on unknown"><div class="row-top"><span class="row-service mono">unknown</span><span class="badge badge-review">NEEDS REVIEW</span></div><div class="row-alert">[DRAFT · ARGUS] catalog: A specific slow child span (e.g., a database query) inside catalog&#x27;s handling of</div><div class="row-meta"><span class="mono">inv-8fcd8347ee</span><span class="row-dot">·</span><span>2026-07-17 13:24 UTC</span></div><div class="row-meta"><span class="conf">confidence 15%</span><span class="row-dot">·</span><span class="mono">$0.0298</span></div></button><button class="row" data-id="inv-4f5067e229" role="option" aria-label="Faultline catalog p99 latency &gt; 1s on catalog"><div class="row-top"><span class="row-service mono">catalog</span><span class="badge badge-review">NEEDS REVIEW</span></div><div class="row-alert">Faultline catalog p99 latency &gt; 1s</div><div class="row-meta"><span class="mono">inv-4f5067e229</span><span class="row-dot">·</span><span>2026-07-17 13:23 UTC</span></div><div class="row-meta"><span class="conf">confidence 55%</span><span class="row-dot">·</span><span class="mono">$0.0585</span></div></button><button class="row" data-id="inv-a2a0b2e215" role="option" aria-label="ARGUS LLM spend rate on argus"><div class="row-top"><span class="row-service mono">argus</span><span class="badge badge-review">NEEDS REVIEW</span></div><div class="row-alert">ARGUS LLM spend rate</div><div class="row-meta"><span class="mono">inv-a2a0b2e215</span><span class="row-dot">·</span><span>2026-07-16 23:29 UTC</span></div><div class="row-meta"><span class="conf">confidence 60%</span><span class="row-dot">·</span><span class="mono">$0.0347</span></div></button><button class="row" data-id="inv-58c6674b76" role="option" aria-label="Faultline catalog p99 latency &gt; 1s on catalog"><div class="row-top"><span class="row-service mono">catalog</span><span class="badge badge-review">NEEDS REVIEW</span></div><div class="row-alert">Faultline catalog p99 latency &gt; 1s</div><div class="row-meta"><span class="mono">inv-58c6674b76</span><span class="row-dot">·</span><span>2026-07-16 23:27 UTC</span></div><div class="row-meta"><span class="conf">confidence 40%</span><span class="row-dot">·</span><span class="mono">$0.0386</span></div></button><button class="row" data-id="inv-977e5fd4e8" role="option" aria-label="Faultline catalog p99 latency &gt; 1s on catalog"><div class="row-top"><span class="row-service mono">catalog</span><span class="badge badge-review">NEEDS REVIEW</span></div><div class="row-alert">Faultline catalog p99 latency &gt; 1s</div><div class="row-meta"><span class="mono">inv-977e5fd4e8</span><span class="row-dot">·</span><span>2026-07-16 23:12 UTC</span></div><div class="row-meta"><span class="conf">confidence 60%</span><span class="row-dot">·</span><span class="mono">$0.0398</span></div></button><button class="row" data-id="inv-6bde2d57f9" role="option" aria-label="Faultline catalog p99 latency &gt; 1s on catalog"><div class="row-top"><span class="row-service mono">catalog</span><span class="badge badge-review">NEEDS REVIEW</span></div><div class="row-alert">Faultline catalog p99 latency &gt; 1s</div><div class="row-meta"><span class="mono">inv-6bde2d57f9</span><span class="row-dot">·</span><span>2026-07-16 22:47 UTC</span></div><div class="row-meta"><span class="conf">confidence 60%</span><span class="row-dot">·</span><span class="mono">$0.0350</span></div></button><button class="row" data-id="inv-3a51fe90dd" role="option" aria-label="Faultline catalog p99 latency &gt; 1s on catalog"><div class="row-top"><span class="row-service mono">catalog</span><span class="badge badge-degraded">DEGRADED</span></div><div class="row-alert">Faultline catalog p99 latency &gt; 1s</div><div class="row-meta"><span class="mono">inv-3a51fe90dd</span><span class="row-dot">·</span><span>2026-07-16 22:35 UTC</span></div><div class="row-meta"><span class="conf">confidence 0%</span><span class="row-dot">·</span><span class="mono">$0.0775</span></div></button>
+  </aside>
+  <section class="pane" id="pane">
+    <div class="pane-empty"><div class="pane-empty-icon">◎</div><p>Select an investigation to view its full RCA.</p></div>
+  </section>
+</main>
+
+<footer class="family">
+  <span class="family-label">Part of a three-tool family —</span>
+  <a href="https://github.com/vinayaksonthalia/argus">ARGUS</a>
+  <span class="fam-dot">·</span>
+  <a href="https://vinayaksonthalia.github.io/telelens/">TELELENS demo</a>
+  <span class="fam-sub">(<a href="https://github.com/vinayaksonthalia/telelens">repo</a>)</span>
+  <span class="fam-dot">·</span>
+  <a href="https://vinayaksonthalia.github.io/glasspane/">GLASSPANE demo</a>
+  <span class="fam-sub">(<a href="https://github.com/vinayaksonthalia/glasspane">repo</a>)</span>
+  <span class="family-note" title="This is a static export. Evidence deep-links point at http://localhost:8080 and resolve only on your own running SigNoz instance.">
+    &#9432; Static export &mdash; SigNoz deep-links resolve on your own instance
+  </span>
+</footer>
+
+<script>
+(function () {
+  var rail = document.getElementById('rail');
+  var pane = document.getElementById('pane');
+  var current = null;
+
+  function skeleton() {
+    pane.innerHTML =
+      '<div class="skeleton">' +
+      '<div class="sk sk-title"></div><div class="sk sk-line"></div>' +
+      '<div class="sk sk-card"></div><div class="sk sk-card"></div></div>';
+  }
+
+  function errorState(id, msg) {
+    var box = document.createElement('div');
+    box.className = 'pane-error';
+    var h = document.createElement('strong');
+    h.textContent = "Couldn't load this investigation";
+    var p = document.createElement('p');
+    p.textContent = msg;
+    var btn = document.createElement('button');
+    btn.className = 'retry';
+    btn.textContent = 'Retry';
+    btn.onclick = function () { select(id); };
+    box.appendChild(h); box.appendChild(p); box.appendChild(btn);
+    pane.innerHTML = '';
+    pane.appendChild(box);
+  }
+
+  function select(id) {
+    if (!id) return;
+    current = id;
+    [].forEach.call(rail.querySelectorAll('.row'), function (r) {
+      r.classList.toggle('active', r.getAttribute('data-id') === id);
+    });
+    skeleton();
+    fetch('detail/' + encodeURIComponent(id) + '.html')
+      .then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.text();
+      })
+      .then(function (html) {
+        if (current !== id) return; // a newer click won
+        pane.innerHTML = html; // server-escaped fragment
+        pane.scrollTop = 0;
+        if (location.hash.slice(1) !== id) {
+          history.replaceState(null, '', '#' + id);
+        }
+      })
+      .catch(function (e) { errorState(id, String(e.message || e)); });
+  }
+
+  rail.addEventListener('click', function (e) {
+    var row = e.target.closest('.row');
+    if (row) select(row.getAttribute('data-id'));
+  });
+
+  window.addEventListener('hashchange', function () {
+    var id = location.hash.slice(1);
+    if (id && id !== current) select(id);
+  });
+
+  // Deep-link on load, else auto-select the newest investigation.
+  var initial = location.hash.slice(1);
+  var first = rail.querySelector('.row');
+  if (initial) select(initial);
+  else if (first) select(first.getAttribute('data-id'));
+})();
+</script>
+</body>
+</html>

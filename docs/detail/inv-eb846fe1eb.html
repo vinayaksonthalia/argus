@@ -1,0 +1,56 @@
+
+<article class="detail">
+  <header class="verdict">
+    <div class="verdict-top">
+      <div class="verdict-badges"><span class="badge badge-degraded">DEGRADED</span>
+        <span class="conf-ring" style="--pct:0">
+          <span class="conf-num">0%</span>
+        </span>
+      </div>
+      <div class="verdict-id mono">inv-eb846fe1eb</div>
+    </div>
+    <h1>GLASSPANE: p75 INP regression by route — unknown</h1>
+    <div class="verdict-meta">
+      <span class="mono">unknown</span>
+      <span class="row-dot">·</span>
+      <span>GLASSPANE: p75 INP regression by route</span>
+      <span class="row-dot">·</span>
+      <span>2026-07-17 21:33 UTC</span>
+    </div>
+  </header>
+
+  <div class="review-banner review-degraded">⚠ Flagged for human review — all hypotheses refuted — evidence-only report.</div>
+
+  <section class="card">
+    <h3>Root cause</h3>
+    <p class="root-cause">No hypothesis survived verification. Evidence-only report; human investigation required.</p>
+  </section>
+
+  <section class="card">
+    <h3>Impact</h3>
+    <p class="impact">p99_latency_ms: 0.0ms before -&gt; 0.0ms after the alert boundary (1.0x); error_rate: 0.0% before -&gt; 0.0% after the alert boundary (1.0x); throughput_per_min: 0.0req/min before -&gt; 0.0req/min after the alert boundary (1.0x)</p>
+  </section>
+
+  <section class="card">
+    <h3>Timeline</h3>
+    <ul class="timeline"><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">21:02:01 UTC — baseline window opens (pre-incident comparison)</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">21:32:01 UTC — alert &#x27;GLASSPANE: p75 INP regression by route&#x27; started firing</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">alert window — p99_latency_ms: 0.0ms before -&gt; 0.0ms after the alert boundary (1.0x)</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">alert window — error_rate: 0.0% before -&gt; 0.0% after the alert boundary (1.0x)</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">alert window — throughput_per_min: 0.0req/min before -&gt; 0.0req/min after the alert boundary (1.0x)</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">21:32:32 UTC — ARGUS investigation inv-eb846fe1eb began</span></li></ul>
+  </section>
+
+  <section class="card">
+    <h3>Hypotheses <span class="chip">verified against telemetry</span></h3>
+    <div class="hyp-list"><div class="hyp hyp-refuted"><div class="hyp-head"><span class="hyp-mark">✗</span><span class="hyp-verdict">REFUTED</span></div><div class="hyp-text">The alert is a false positive/misconfiguration: the description&#x27;s &#x27;Current value: 37.5 ms&#x27; contradicts the firing condition of INP staying above 500ms, and all golden-signal metrics show flat 0.0 values before and after, indicating no real backend or traffic signal is being captured for this route. — count() = 0.00 (need &gt; 0.0)</div></div><div class="hyp hyp-refuted"><div class="hyp-head"><span class="hyp-mark">✗</span><span class="hyp-verdict">REFUTED</span></div><div class="hyp-text">Client-side long tasks (JavaScript main-thread blocking) on the root route &#x27;/&#x27; are causing genuine INP degradation, unrelated to backend latency or errors which remain flat. — &#x27;longtask&#x27; not found in 0 rows</div></div><div class="hyp hyp-refuted"><div class="hyp-head"><span class="hyp-mark">✗</span><span class="hyp-verdict">REFUTED</span></div><div class="hyp-text">The alert pipeline for GLASSPANE RUM metrics is misconfigured or disconnected from the actual telemetry collection for service &#x27;unknown&#x27;, causing the rule engine to fire on stale/empty aggregation windows rather than real INP samples. — count() = 0.00 (need &gt; 0.0)</div></div><div class="hyp hyp-refuted"><div class="hyp-head"><span class="hyp-mark">✗</span><span class="hyp-verdict">REFUTED</span></div><div class="hyp-text">A third-party script or resource (ads, analytics, tag manager) injected on route &#x27;/&#x27; is causing input delay/processing delay spikes that standard longtask instrumentation on this service does not capture under the &#x27;longtask&#x27; label. — &#x27;third-party&#x27; not found in 0 rows</div></div><div class="hyp hyp-refuted"><div class="hyp-head"><span class="hyp-mark">✗</span><span class="hyp-verdict">REFUTED</span></div><div class="hyp-text">The INP regression is driven by a specific slow interaction target (e.g., a large re-render or layout thrash triggered by a particular UI element) on route &#x27;/&#x27;, rather than generic long tasks or backend issues. — &#x27;render&#x27; not found in 0 rows</div></div><div class="hyp hyp-refuted"><div class="hyp-head"><span class="hyp-mark">✗</span><span class="hyp-verdict">REFUTED</span></div><div class="hyp-text">Insufficient or entirely absent RUM instrumentation coverage for route &#x27;/&#x27; means the alert is based on a statistically invalid sample size (e.g., 1-2 sessions), making the p75 value unreliable and not representative of real user experience. — count() = 0.00 (need &gt; 30.0)</div></div></div>
+  </section>
+
+  <section class="card">
+    <h3>Evidence <span class="chip">deep-links into SigNoz</span></h3>
+    <ul class="ev-list"><li class="ev"><span class="ev-text">p99_latency_ms: 0.0ms before -&gt; 0.0ms after the alert boundary (1.0x)</span><a class="ev-link" title="Deep-links resolve on your own SigNoz instance (http://localhost:8080)" href="http://localhost:8080/services/unknown?startTime=1784322121862&amp;endTime=1784323952004" target="_blank" rel="noopener noreferrer">view in SigNoz ↗</a></li><li class="ev"><span class="ev-text">error_rate: 0.0% before -&gt; 0.0% after the alert boundary (1.0x)</span><a class="ev-link" title="Deep-links resolve on your own SigNoz instance (http://localhost:8080)" href="http://localhost:8080/services/unknown?startTime=1784322121862&amp;endTime=1784323952004" target="_blank" rel="noopener noreferrer">view in SigNoz ↗</a></li><li class="ev"><span class="ev-text">throughput_per_min: 0.0req/min before -&gt; 0.0req/min after the alert boundary (1.0x)</span><a class="ev-link" title="Deep-links resolve on your own SigNoz instance (http://localhost:8080)" href="http://localhost:8080/services/unknown?startTime=1784322121862&amp;endTime=1784323952004" target="_blank" rel="noopener noreferrer">view in SigNoz ↗</a></li></ul>
+  </section>
+
+  <section class="card"><h3>Similar past incidents <span class="chip">ARGUS memory</span></h3><ul class="sim-list"><li class="sim">similar to incident inv-8874a6845f (Jul 17, alert &#x27;GLASSPANE: p75 LCP above 4s&#x27;, service unknown, similarity 77%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.</li><li class="sim">similar to incident inv-4cfa29706d (Jul 17, alert &#x27;GLASSPANE: p75 LCP above 4s&#x27;, service unknown, similarity 77%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.</li><li class="sim">similar to incident inv-51d73b1d78 (Jul 17, alert &#x27;ARGUS LLM spend rate&#x27;, service argus, similarity 71%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.</li></ul></section>
+  <section class="card"><h3>Actions taken</h3><ul class="link-list"><li><a href="http://localhost:8080/dashboard/019f71ff-6314-75b9-a6ce-22a9525ba482" target="_blank" rel="noopener noreferrer">incident evidence dashboard auto-created ↗</a></li></ul></section>
+
+  <footer class="cost-footer">
+    <div class="cost-title">Investigation cost</div>
+    <div class="cost-grid"><div class="cost-cell"><div class="cost-val mono">claude-haiku-4-5-20251001 (live)</div><div class="cost-label">model</div></div><div class="cost-cell"><div class="cost-val mono">8,763 / 2,673</div><div class="cost-label">tokens in / out</div></div><div class="cost-cell"><div class="cost-val mono">$0.0593</div><div class="cost-label">est. cost</div></div><div class="cost-cell"><div class="cost-val mono">20 SigNoz queries · 0 rows / 0.0 MB scanned · 127 ms query time</div><div class="cost-label">SigNoz query footprint</div></div></div>
+  </footer>
+</article>

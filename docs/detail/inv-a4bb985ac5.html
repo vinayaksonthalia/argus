@@ -1,0 +1,57 @@
+
+<article class="detail">
+  <header class="verdict">
+    <div class="verdict-top">
+      <div class="verdict-badges"><span class="badge badge-review">NEEDS REVIEW</span>
+        <span class="conf-ring" style="--pct:25">
+          <span class="conf-num">25%</span>
+        </span>
+      </div>
+      <div class="verdict-id mono">inv-a4bb985ac5</div>
+    </div>
+    <h1>GLASSPANE: p75 INP regression by route — unknown</h1>
+    <div class="verdict-meta">
+      <span class="mono">unknown</span>
+      <span class="row-dot">·</span>
+      <span>GLASSPANE: p75 INP regression by route</span>
+      <span class="row-dot">·</span>
+      <span>2026-07-17 21:07 UTC</span>
+    </div>
+  </header>
+
+  <div class="review-banner review-review">⚠ Flagged for human review — confidence 25% is below the 75% verification threshold.</div>
+
+  <section class="card">
+    <h3>Root cause</h3>
+    <p class="root-cause">The alert is a false positive caused by insufficient sample size (low traffic) on route &#x27;/&#x27;, where a small number of slow interactions skewed the p75 calculation. — With low throughput, percentile calculations are highly sensitive to individual outlier samples; a handful of slow interactions from a single user/session could push p75 over threshold without indicating a systemic regression. (verified: count() = 0.00 (need &lt; 20.0)) [Incident memory: similar to past incident inv-8874a6845f (similarity 77%) — see &#x27;Similar past incidents&#x27;.]</p>
+  </section>
+
+  <section class="card">
+    <h3>Impact</h3>
+    <p class="impact">p99_latency_ms: 0.0ms before -&gt; 0.0ms after the alert boundary (1.0x); error_rate: 0.0% before -&gt; 0.0% after the alert boundary (1.0x); throughput_per_min: 0.0req/min before -&gt; 0.0req/min after the alert boundary (1.0x)</p>
+  </section>
+
+  <section class="card">
+    <h3>Timeline</h3>
+    <ul class="timeline"><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">20:36:47 UTC — baseline window opens (pre-incident comparison)</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">21:06:47 UTC — alert &#x27;GLASSPANE: p75 INP regression by route&#x27; started firing</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">alert window — p99_latency_ms: 0.0ms before -&gt; 0.0ms after the alert boundary (1.0x)</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">alert window — error_rate: 0.0% before -&gt; 0.0% after the alert boundary (1.0x)</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">alert window — throughput_per_min: 0.0req/min before -&gt; 0.0req/min after the alert boundary (1.0x)</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">21:07:18 UTC — ARGUS investigation inv-a4bb985ac5 began</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">21:07:55 UTC — hypothesis CONFIRMED: The alert is a false positive caused by insufficient sample size (low traffic) on route &#x27;/&#x27;, where a small number of slow interactions skewed the p75 calculation.</span></li></ul>
+  </section>
+
+  <section class="card">
+    <h3>Hypotheses <span class="chip">verified against telemetry</span></h3>
+    <div class="hyp-list"><div class="hyp hyp-confirmed"><div class="hyp-head"><span class="hyp-mark">✓</span><span class="hyp-verdict">CONFIRMED</span></div><div class="hyp-text">The alert is a false positive caused by insufficient sample size (low traffic) on route &#x27;/&#x27;, where a small number of slow interactions skewed the p75 calculation. — With low throughput, percentile calculations are highly sensitive to individual outlier samples; a handful of slow interactions from a single user/session could push p75 over threshold without indicating a systemic regression. (verified: count() = 0.00 (need &lt; 20.0)) [Incident memory: similar to past incident inv-8874a6845f (similarity 77%) — see &#x27;Similar past incidents&#x27;.]</div></div><div class="hyp hyp-refuted"><div class="hyp-head"><span class="hyp-mark">✗</span><span class="hyp-verdict">REFUTED</span></div><div class="hyp-text">The alert fired with an empty/undefined &#x27;page.route&#x27; label (route shown as blank), pointing to a metric-labeling or instrumentation bug in the GLASSPANE frontend collector rather than a real performance regression. — &#x27;route&#x27; not found in 0 rows</div></div><div class="hyp hyp-error"><div class="hyp-head"><span class="hyp-mark">!</span><span class="hyp-verdict">ERROR</span></div><div class="hyp-text">The alert is a stale/self-resolved firing artifact: current INP value (85ms) is far below the 500ms threshold, indicating the alerting rule evaluated a transient spike but did not re-evaluate or auto-resolve before notification dispatch.</div><div class="hyp-detail">verification failed to run: verification aggregation &#x27;p75(duration)&#x27; not in whitelist</div></div><div class="hyp hyp-error"><div class="hyp-head"><span class="hyp-mark">!</span><span class="hyp-verdict">ERROR</span></div><div class="hyp-text">A specific heavy client-side interaction handler (e.g., a large synchronous script execution or layout thrash tied to route &#x27;/&#x27;) caused transient INP degradation that has since resolved.</div><div class="hyp-detail">verification failed to run: Client error &#x27;400 Bad Request&#x27; for url &#x27;http://localhost:8080/api/v5/query_range&#x27;
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400</div></div></div>
+  </section>
+
+  <section class="card">
+    <h3>Evidence <span class="chip">deep-links into SigNoz</span></h3>
+    <ul class="ev-list"><li class="ev"><span class="ev-text">p99_latency_ms: 0.0ms before -&gt; 0.0ms after the alert boundary (1.0x)</span><a class="ev-link" title="Deep-links resolve on your own SigNoz instance (http://localhost:8080)" href="http://localhost:8080/services/unknown?startTime=1784320607924&amp;endTime=1784322438036" target="_blank" rel="noopener noreferrer">view in SigNoz ↗</a></li><li class="ev"><span class="ev-text">error_rate: 0.0% before -&gt; 0.0% after the alert boundary (1.0x)</span><a class="ev-link" title="Deep-links resolve on your own SigNoz instance (http://localhost:8080)" href="http://localhost:8080/services/unknown?startTime=1784320607924&amp;endTime=1784322438036" target="_blank" rel="noopener noreferrer">view in SigNoz ↗</a></li><li class="ev"><span class="ev-text">throughput_per_min: 0.0req/min before -&gt; 0.0req/min after the alert boundary (1.0x)</span><a class="ev-link" title="Deep-links resolve on your own SigNoz instance (http://localhost:8080)" href="http://localhost:8080/services/unknown?startTime=1784320607924&amp;endTime=1784322438036" target="_blank" rel="noopener noreferrer">view in SigNoz ↗</a></li></ul>
+  </section>
+
+  <section class="card"><h3>Similar past incidents <span class="chip">ARGUS memory</span></h3><ul class="sim-list"><li class="sim">similar to incident inv-8874a6845f (Jul 17, alert &#x27;GLASSPANE: p75 LCP above 4s&#x27;, service unknown, similarity 77%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.</li><li class="sim">similar to incident inv-51d73b1d78 (Jul 17, alert &#x27;ARGUS LLM spend rate&#x27;, service argus, similarity 71%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.</li><li class="sim">similar to incident inv-8fcd8347ee (Jul 17, alert &#x27;[DRAFT · ARGUS] catalog: A specific slow child span (e.g., a database query) inside catalog&#x27;s handling of&#x27;, service unknown, similarity 53%): root cause was: Reduced throughput and any latency figures observed are symptomatic of client-side backoff, not caused by catalog-side errors. — If clients or the load balancer back off/retry after slow responses, throughput drops, but this doesn&#x27;t reflect a server-side failure since error rate remains 0%; this hypothesis is a check to rule out timeout/502-driven explanations for the pattern. (verified: count() =</li></ul></section>
+  <section class="card"><h3>Actions taken</h3><ul class="link-list"><li><a href="http://localhost:8080/dashboard/019f71e8-448c-7b43-94ca-2e75c39b0925" target="_blank" rel="noopener noreferrer">incident evidence dashboard auto-created ↗</a></li><li><a href="http://localhost:8080/alerts/edit?ruleId=019f71e8-44a5-75a4-afff-eee546d9f660" target="_blank" rel="noopener noreferrer">DRAFT follow-up alert rule proposed (disabled — review &amp; enable) ↗</a></li></ul></section>
+
+  <footer class="cost-footer">
+    <div class="cost-title">Investigation cost</div>
+    <div class="cost-grid"><div class="cost-cell"><div class="cost-val mono">claude-haiku-4-5-20251001 (live)</div><div class="cost-label">model</div></div><div class="cost-cell"><div class="cost-val mono">8,865 / 2,147</div><div class="cost-label">tokens in / out</div></div><div class="cost-cell"><div class="cost-val mono">$0.0521</div><div class="cost-label">est. cost</div></div><div class="cost-cell"><div class="cost-val mono">16 SigNoz queries · 770 rows / 0.3 MB scanned · 99 ms query time</div><div class="cost-label">SigNoz query footprint</div></div></div>
+  </footer>
+</article>

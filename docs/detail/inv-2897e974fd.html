@@ -1,0 +1,56 @@
+
+<article class="detail">
+  <header class="verdict">
+    <div class="verdict-top">
+      <div class="verdict-badges"><span class="badge badge-review">NEEDS REVIEW</span>
+        <span class="conf-ring" style="--pct:60">
+          <span class="conf-num">60%</span>
+        </span>
+      </div>
+      <div class="verdict-id mono">inv-2897e974fd</div>
+    </div>
+    <h1>[DRAFT · ARGUS] meridian-web: A frontend deploy (service.version 1.4.2) introduced a code path that calls .map — unknown</h1>
+    <div class="verdict-meta">
+      <span class="mono">unknown</span>
+      <span class="row-dot">·</span>
+      <span>[DRAFT · ARGUS] meridian-web: A frontend deploy (service.version 1.4.2) introduced a code path that calls .map</span>
+      <span class="row-dot">·</span>
+      <span>2026-07-17 21:36 UTC</span>
+    </div>
+  </header>
+
+  <div class="review-banner review-review">⚠ Flagged for human review — confidence 60% is below the 75% verification threshold.</div>
+
+  <section class="card">
+    <h3>Root cause</h3>
+    <p class="root-cause">The meridian-web frontend deploy at version 1.4.2 calls .map() on an API response that is not an array, causing uncaught TypeErrors in the browser. — A new code path in 1.4.2 assumes an API endpoint always returns an array and calls .map() on the response directly; when the API instead returns null/undefined/an object (e.g. error payload or empty-state response), this throws &#x27;map is not a function&#x27;, surfacing as a browser-side JS exception and log spike. (verified: found &#x27;map is not a function&#x27; in 40 matching rows) [Incident memory: similar to past incident inv-51d73b1d78 (similarity 71%) — see &#x27;Similar past incidents&#x27;.]</p>
+  </section>
+
+  <section class="card">
+    <h3>Impact</h3>
+    <p class="impact">p99_latency_ms: 0.0ms before -&gt; 0.0ms after the alert boundary (1.0x); error_rate: 0.0% before -&gt; 0.0% after the alert boundary (1.0x); throughput_per_min: 0.0req/min before -&gt; 0.0req/min after the alert boundary (1.0x)</p>
+  </section>
+
+  <section class="card">
+    <h3>Timeline</h3>
+    <ul class="timeline"><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">21:05:58 UTC — baseline window opens (pre-incident comparison)</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">21:35:58 UTC — alert &#x27;[DRAFT · ARGUS] meridian-web: A frontend deploy (service.version 1.4.2) introduced a code path that calls .map&#x27; started firing</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">alert window — p99_latency_ms: 0.0ms before -&gt; 0.0ms after the alert boundary (1.0x)</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">alert window — error_rate: 0.0% before -&gt; 0.0% after the alert boundary (1.0x)</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">alert window — throughput_per_min: 0.0req/min before -&gt; 0.0req/min after the alert boundary (1.0x)</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">21:36:28 UTC — ARGUS investigation inv-2897e974fd began</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">21:36:47 UTC — hypothesis CONFIRMED: The meridian-web frontend deploy at version 1.4.2 calls .map() on an API response that is not an array, causing uncaught TypeErrors in the browser.</span></li><li class="tl-item"><span class="tl-dot"></span><span class="tl-text">21:36:47 UTC — hypothesis CONFIRMED: The alert is a false/premature draft — the underlying golden-signal metrics show no measurable change, meaning the .map() errors (if any) are not impacting real traffic or are misattributed.</span></li></ul>
+  </section>
+
+  <section class="card">
+    <h3>Hypotheses <span class="chip">verified against telemetry</span></h3>
+    <div class="hyp-list"><div class="hyp hyp-confirmed"><div class="hyp-head"><span class="hyp-mark">✓</span><span class="hyp-verdict">CONFIRMED</span></div><div class="hyp-text">The meridian-web frontend deploy at version 1.4.2 calls .map() on an API response that is not an array, causing uncaught TypeErrors in the browser. — A new code path in 1.4.2 assumes an API endpoint always returns an array and calls .map() on the response directly; when the API instead returns null/undefined/an object (e.g. error payload or empty-state response), this throws &#x27;map is not a function&#x27;, surfacing as a browser-side JS exception and log spike. (verified: found &#x27;map is not a function&#x27; in 40 matching rows) [Incident memory: similar to past incident inv-51d73b1d78 (similarity 71%) — see &#x27;Similar past incidents&#x27;.]</div></div><div class="hyp hyp-refuted"><div class="hyp-head"><span class="hyp-mark">✗</span><span class="hyp-verdict">REFUTED</span></div><div class="hyp-text">The .map() TypeErrors are concentrated in requests/sessions tagged with service.version 1.4.2, confirming the new deploy introduced the faulty code path rather than a pre-existing bug. — &#x27;map is not a function&#x27; not found in 0 rows</div></div><div class="hyp hyp-refuted"><div class="hyp-head"><span class="hyp-mark">✗</span><span class="hyp-verdict">REFUTED</span></div><div class="hyp-text">A specific backend API endpoint consumed by meridian-web changed its response shape (e.g. from array to paginated object) in a way that is incompatible with the frontend&#x27;s .map() call, and this is the true root cause upstream of the frontend deploy. — &#x27;map is not a function&#x27; not found in 0 rows</div></div></div>
+  </section>
+
+  <section class="card">
+    <h3>Evidence <span class="chip">deep-links into SigNoz</span></h3>
+    <ul class="ev-list"><li class="ev"><span class="ev-text">p99_latency_ms: 0.0ms before -&gt; 0.0ms after the alert boundary (1.0x)</span><a class="ev-link" title="Deep-links resolve on your own SigNoz instance (http://localhost:8080)" href="http://localhost:8080/services/unknown?startTime=1784322358431&amp;endTime=1784324188527" target="_blank" rel="noopener noreferrer">view in SigNoz ↗</a></li><li class="ev"><span class="ev-text">error_rate: 0.0% before -&gt; 0.0% after the alert boundary (1.0x)</span><a class="ev-link" title="Deep-links resolve on your own SigNoz instance (http://localhost:8080)" href="http://localhost:8080/services/unknown?startTime=1784322358431&amp;endTime=1784324188527" target="_blank" rel="noopener noreferrer">view in SigNoz ↗</a></li><li class="ev"><span class="ev-text">throughput_per_min: 0.0req/min before -&gt; 0.0req/min after the alert boundary (1.0x)</span><a class="ev-link" title="Deep-links resolve on your own SigNoz instance (http://localhost:8080)" href="http://localhost:8080/services/unknown?startTime=1784322358431&amp;endTime=1784324188527" target="_blank" rel="noopener noreferrer">view in SigNoz ↗</a></li></ul>
+  </section>
+
+  <section class="card"><h3>Similar past incidents <span class="chip">ARGUS memory</span></h3><ul class="sim-list"><li class="sim">similar to incident inv-51d73b1d78 (Jul 17, alert &#x27;ARGUS LLM spend rate&#x27;, service argus, similarity 71%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.</li><li class="sim">similar to incident inv-ebc62d8028 (Jul 17, alert &#x27;GLASSPANE: browser error spike&#x27;, service unknown, similarity 70%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.</li><li class="sim">similar to incident inv-8874a6845f (Jul 17, alert &#x27;GLASSPANE: p75 LCP above 4s&#x27;, service unknown, similarity 67%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.</li></ul></section>
+  <section class="card"><h3>Actions taken</h3><ul class="link-list"><li><a href="http://localhost:8080/dashboard/019f7202-b3ca-7cfc-b621-bbdf95aa1f6a" target="_blank" rel="noopener noreferrer">incident evidence dashboard auto-created ↗</a></li><li><a href="http://localhost:8080/alerts/edit?ruleId=019f7202-b3e7-72d4-b228-b90972d21cb2" target="_blank" rel="noopener noreferrer">DRAFT follow-up alert rule proposed (disabled — review &amp; enable) ↗</a></li></ul></section>
+
+  <footer class="cost-footer">
+    <div class="cost-title">Investigation cost</div>
+    <div class="cost-grid"><div class="cost-cell"><div class="cost-val mono">claude-haiku-4-5-20251001 (live)</div><div class="cost-label">model</div></div><div class="cost-cell"><div class="cost-val mono">5,234 / 1,192</div><div class="cost-label">tokens in / out</div></div><div class="cost-cell"><div class="cost-val mono">$0.0334</div><div class="cost-label">est. cost</div></div><div class="cost-cell"><div class="cost-val mono">18 SigNoz queries · 146,741 rows / 16.1 MB scanned · 161 ms query time</div><div class="cost-label">SigNoz query footprint</div></div></div>
+  </footer>
+</article>
