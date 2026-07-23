@@ -1,0 +1,78 @@
+{
+    "status": "success",
+    "data": {
+        "id": "019f6d3c-a4d0-7985-b507-9b2f04483e26",
+        "state": "inactive",
+        "alert": "[DRAFT \u00b7 ARGUS] catalog: The catalog service's /products endpoint is consistently slow due to an ineffici",
+        "alertType": "TRACES_BASED_ALERT",
+        "ruleType": "threshold_rule",
+        "condition": {
+            "compositeQuery": {
+                "queries": [
+                    {
+                        "type": "builder_query",
+                        "spec": {
+                            "name": "A",
+                            "stepInterval": 60,
+                            "signal": "traces",
+                            "source": "",
+                            "aggregations": [
+                                {
+                                    "expression": "count()"
+                                }
+                            ],
+                            "filter": {
+                                "expression": "service.name = 'catalog' AND name contains 'products' AND name CONTAINS 'db'"
+                            },
+                            "legend": "[DRAFT \u00b7 ARGUS] catalog: The catalog service's /products endpoint is consistently slow due to an ineffici"
+                        }
+                    }
+                ],
+                "panelType": "graph",
+                "queryType": "builder"
+            },
+            "selectedQueryName": "A",
+            "thresholds": {
+                "kind": "basic",
+                "spec": [
+                    {
+                        "name": "critical",
+                        "target": 0,
+                        "targetUnit": "",
+                        "recoveryTarget": null,
+                        "matchType": "at_least_once",
+                        "op": "above",
+                        "channels": [
+                            "argus-webhook"
+                        ]
+                    }
+                ]
+            }
+        },
+        "labels": {
+            "argus.draft": "true",
+            "argus.investigation_id": "inv-5736466ee5",
+            "owner": "argus",
+            "severity": "warning"
+        },
+        "annotations": {
+            "description": "Draft leading-indicator rule auto-proposed by ARGUS investigation inv-5736466ee5 (alert 'Faultline catalog p99 latency > 1s'). Root-cause claim: The catalog service's /products endpoint is consistently slow due to an inefficient downstream call or query, independent of load, causing sustained ~2.3s p99 latency. \u2014 review the threshold and ENABLE manually. ARGUS never enables rules on its own.",
+            "summary": "[DRAFT \u00b7 ARGUS] catalog: The catalog service's /products endpoint is consistently slow due to an ineffici"
+        },
+        "disabled": true,
+        "version": "v5",
+        "evaluation": {
+            "kind": "rolling",
+            "spec": {
+                "evalWindow": "5m",
+                "frequency": "1m"
+            }
+        },
+        "schemaVersion": "v2alpha1",
+        "notificationSettings": {},
+        "createdAt": "2026-07-16T23:21:58.736622Z",
+        "updatedAt": "2026-07-16T23:21:58.736622Z",
+        "createdBy": "argus@signozserviceaccount.com",
+        "updatedBy": "argus@signozserviceaccount.com"
+    }
+}

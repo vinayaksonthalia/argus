@@ -1,0 +1,6 @@
+== traces by service (last 15m, env=faultline) ==
+{"status":"success","data":{"type":"scalar","meta":{"rowsScanned":8685,"bytesScanned":1549067,"durationMs":21,"stepIntervals":{"A":60}},"data":{"results":[{"queryName":"A","columns":[{"name":"service.name","queryName":"A","aggregationIndex":0,"meta":{},"columnType":"group"},{"name":"__result_0","queryName":"A","aggregationIndex":0,"meta":{},"columnType":"aggregation"}],"data":[["gateway",3095],["catalog",1890],["orders",1425],["payments",938]]}]}}}
+== logs by service (last 15m) ==
+{"status":"success","data":{"type":"scalar","meta":{"rowsScanned":1176,"bytesScanned":210579,"durationMs":10,"stepIntervals":{"A":60}},"data":{"results":[{"queryName":"A","columns":[{"name":"service.name","queryName":"A","aggregationIndex":0,"meta":{},"columnType":"group"},{"name":"__result_0","queryName":"A","aggregationIndex":0,"meta":{},"columnType":"aggregation"}],"data":[["gateway",731],["orders",252],["payments",13],["catalog",3]]}]}}}
+== metrics: http.server.duration exists? ==
+{"status":"success","data":{"type":"scalar","meta":{"rowsScanned":15951,"bytesScanned":355317,"durationMs":23,"stepIntervals":{"A":60}},"data":{"results":[{"queryName":"A","aggregations":null}]}}}

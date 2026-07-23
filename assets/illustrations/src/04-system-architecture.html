@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="sketch.css">
+</head>
+<body>
+  <div class="title" style="left:60px; top:40px;">how ARGUS hangs together</div>
+  <div class="subtitle" style="left:64px; top:112px;">alert in, verified RCA out &mdash; and it traces itself doing it</div>
+
+  <!-- LEFT FLOW: signoz -> argus server -> investigation graph -->
+  <div class="box" id="signoz" style="left:70px; top:310px; width:230px; height:130px;">
+    <div class="label" style="font-size:26px;">SigNoz</div>
+    <div class="sub">alert webhook fires</div>
+  </div>
+
+  <div class="box thick" id="argus" style="left:380px; top:300px; width:250px; height:150px;">
+    <div class="label" style="font-size:26px;">ARGUS server</div>
+    <div class="sub">FastAPI &middot; dedup by<br>fingerprint + window</div>
+  </div>
+
+  <div class="box" id="graph" style="left:710px; top:280px; width:440px; height:210px;">
+    <div class="label" style="font-size:25px;">the investigation graph</div>
+    <div class="sub" style="font-size:19px; line-height:1.55;">
+      triage &rarr; signals &rarr; trace dive &rarr;<br>
+      logs &rarr; memory recall &rarr;<br>
+      hypothesize &#8646; verify (&le;2 loops) &rarr; report
+    </div>
+  </div>
+
+  <!-- LLM seam below the graph -->
+  <div class="box" id="llm" style="left:710px; top:560px; width:440px; height:110px;">
+    <div class="label" style="font-size:23px;">LLM provider seam</div>
+    <div class="sub">claude&#8209;cli &middot; groq &middot; replay</div>
+  </div>
+
+  <!-- OUTPUTS: stacked right column -->
+  <div class="box" id="out1" style="left:1250px; top:250px; width:290px; height:120px;">
+    <div class="label" style="font-size:23px;">Slack RCA</div>
+    <div class="sub">deep links into SigNoz</div>
+  </div>
+  <div class="box" id="out2" style="left:1250px; top:400px; width:290px; height:120px;">
+    <div class="label" style="font-size:23px;">postmortem</div>
+    <div class="sub">markdown, evidence-linked</div>
+  </div>
+  <div class="box" id="out3" style="left:1250px; top:550px; width:290px; height:130px;">
+    <div class="label" style="font-size:21px;">evidence dashboard<br>&amp; draft rule</div>
+    <div class="sub">what it found, what to add</div>
+  </div>
+
+  <div class="note" id="note" style="left:70px; top:560px; width:470px; text-align:left;">
+    its own gen_ai.* spans flow<br>
+    back into the SAME SigNoz &mdash;<br>
+    tokens + $ per investigation
+  </div>
+
+  <div class="caption" style="bottom:28px;">one alert, one traced investigation, honest outputs</div>
+
+<script src="sketch.js"></script>
+<script>
+window.addEventListener("load", () => {
+  Sketch.init();
+  Sketch.underline(".title");
+
+  // main left-to-right flow (no labels on arrows)
+  Sketch.arrow(300, 375, 374, 375, { seed: 11 });          // signoz -> argus
+  Sketch.arrow(630, 380, 704, 380, { seed: 22 });          // argus -> graph
+  Sketch.arrow(930, 490, 930, 554, { seed: 33 });          // graph -> llm seam (short vertical)
+
+  // graph -> three outputs, fanning from the right edge
+  Sketch.arrow(1150, 330, 1244, 310, { curve: -8, seed: 41 });
+  Sketch.arrow(1150, 385, 1244, 460, { curve: 6, seed: 42 });
+  Sketch.arrow(1150, 440, 1244, 615, { curve: -18, seed: 43 });
+
+  // coral self-telemetry loop: ARGUS server -> back into SigNoz, dipping below
+  Sketch.arrow(470, 452, 200, 442, { color: "var(--red)", dotted: true, curve: -60, seed: 55, width: 2.8, head: 15 });
+
+  window.__sketchDone = true;
+});
+</script>
+</body>
+</html>

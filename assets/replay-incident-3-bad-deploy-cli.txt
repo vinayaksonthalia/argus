@@ -1,0 +1,116 @@
+╭──────────────────────────────────────────────────────────────────────────────╮
+│ ARGUS — autonomous SRE investigator                                          │
+│ replay investigation (recorded telemetry + recorded LLM) ·                   │
+│ fixtures/incident-3                                                          │
+╰──────────────────────────────────────────────────────────────────────────────╯
+  · triage                   0.00s
+  · golden_signals           0.00s
+  · trace_dive               0.00s
+  · log_corr                 0.00s
+  · infra                    0.00s
+  · change_corr              0.00s
+  · hypothesize              0.00s
+  · verify                   0.00s
+  · report                   0.00s
+  · act                      0.00s
+
+╭─────── RCA — Faultline orders latency + errors after deploy — orders ────────╮
+│ ROOT CAUSE VERIFIED  ·  confidence 75%                                       │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭───────────────────────────────── Root cause ─────────────────────────────────╮
+│ A newly deployed orders service release (rc1) introduced a regression that   │
+│ fails to null-check order payloads, causing NoneType.sku errors during       │
+│ payload normalization. — The rc1 build changed order payload handling but    │
+│ does not guard against missing/None fields; when 'sku' is absent or the      │
+│ object is None, normalization throws an unhandled exception, aborting        │
+│ request processing and causing 502s to propagate upstream to gateway and     │
+│ payment steps. (verified: found 'normalizing order payload' in 13 matching   │
+│ rows)                                                                        │
+╰──────────────────────────────────────────────────────────────────────────────╯
+Hypotheses                                                                      
+Verdict   ┃ Claim                      ┃ Confidence ┃ Verification detail       
+━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CONFIRMED │ A newly deployed orders    │        75% │ found 'normalizing order  
+          │ service release (rc1)      │            │ payload' in 13 matching   
+          │ introduced a regression    │            │ rows                      
+          │ that fails to null-check   │            │                           
+          │ order payloads, causing    │            │                           
+          │ NoneType.sku errors during │            │                           
+          │ payload normalization.     │            │                           
+REFUTED   │ The orders service is      │        60% │ count() after/before ratio
+          │ returning 5xx errors on    │            │ = 0.00 (need > 5.0)       
+          │ order processing, which    │            │                           
+          │ cascades into checkout     │            │                           
+          │ payment failures and       │            │                           
+          │ gateway 502s.              │            │                           
+REFUTED   │ Gateway's checkout         │        55% │ 'orders' not found in 20  
+          │ endpoint is failing due to │            │ rows                      
+          │ an upstream orders service │            │                           
+          │ outage, evidenced by 502s  │            │                           
+          │ specifically on the 'http  │            │                           
+          │ send' span to orders.      │            │                           
+CONFIRMED │ A downstream payment       │        30% │ found 'HTTP' in 11        
+          │ service dependency is      │            │ matching rows             
+          │ intermittently rejecting   │            │                           
+          │ requests, independent of   │            │                           
+          │ the orders payload bug,    │            │                           
+          │ contributing to the        │            │                           
+          │ observed error rate.       │            │                           
+Timeline                                                                        
+• 21:53:44 UTC — baseline window opens (pre-incident comparison)                
+• 22:23:44 UTC — alert 'Faultline orders latency + errors after deploy' started 
+firing                                                                          
+• alert window — p99_latency_ms: 0.0ms before -> 188.8ms after the alert        
+boundary (from ~zero)                                                           
+• alert window — error_rate: 0.0% before -> 3.2% after the alert boundary (from 
+~zero)                                                                          
+• alert window — throughput_per_min: 0.0req/min before -> 46.6req/min after the 
+alert boundary (from ~zero)                                                     
+• 22:33:14 UTC — ARGUS investigation inv-da272d1be1 began                       
+• 22:33:14 UTC — hypothesis CONFIRMED: A newly deployed orders service release  
+(rc1) introduced a regression that fails to null-check order payloads, causing  
+NoneType.sku errors during payload normalization.                               
+• 22:33:14 UTC — hypothesis CONFIRMED: A downstream payment service dependency  
+is intermittently rejecting requests, independent of the orders payload bug,    
+contributing to the observed error rate.                                        
+Evidence (each claim deep-links into SigNoz)                                    
+• p99_latency_ms: 0.0ms before -> 188.8ms after the alert boundary (from ~zero) 
+(<http://localhost:8080/services/orders?startTime=1784238824000&endTime=1784241…
+in SigNoz>)                                                                     
+• error_rate: 0.0% before -> 3.2% after the alert boundary (from ~zero)         
+(<http://localhost:8080/services/orders?startTime=1784238824000&endTime=1784241…
+in SigNoz>)                                                                     
+• throughput_per_min: 0.0req/min before -> 46.6req/min after the alert boundary 
+(from ~zero)                                                                    
+(<http://localhost:8080/services/orders?startTime=1784238824000&endTime=1784241…
+in SigNoz>)                                                                     
+• exemplar trace af461c7d4f67db01…: culprit span 'POST /api/checkout http send' 
+(service=gateway, 0ms, error=True) | http.status_code=502                       
+(<http://localhost:8080/trace/af461c7d4f67db01df1fcbad67b764b6?spanId=98b8e9ee0…
+in SigNoz>)                                                                     
+• exemplar trace 1f0774fb3f53fc4b…: culprit span 'POST /api/checkout http send' 
+(service=gateway, 0ms, error=True) | http.status_code=502                       
+(<http://localhost:8080/trace/1f0774fb3f53fc4bf25f52dc2aedc7f1?spanId=2b9824603…
+in SigNoz>)                                                                     
+• exemplar trace 8919378b55e82bd2…: culprit span 'POST /api/checkout http send' 
+(service=gateway, 0ms, error=True) | http.status_code=502                       
+(<http://localhost:8080/trace/8919378b55e82bd2d1cc792fec075099?spanId=d382b6dc3…
+in SigNoz>)                                                                     
+• log signature x16 (novel vs prior hour): NoneType has no attribute 'sku' while
+normalizing order payload (introduced in <*>.<*>-rc1)                           
+(<http://localhost:8080/logs/logs-explorer?startTime=1784238824000&endTime=1784…
+in SigNoz>)                                                                     
+• log signature x11 (novel vs prior hour): payment failed for order <*>: HTTP   
+<*>                                                                             
+(<http://localhost:8080/logs/logs-explorer?startTime=1784238824000&endTime=1784…
+in SigNoz>)                                                                     
+• log signature x3 (novel vs prior hour): upstream http://orders:<*>/orders     
+returned HTTP <*>                                                               
+(<http://localhost:8080/logs/logs-explorer?startTime=1784238824000&endTime=1784…
+in SigNoz>)                                                                     
+LLM: replay:claude-haiku-4-5-20251001 (RECORDED — replayed LLM output, not a 
+live call) · 1 calls · 4199+1080 tokens · est. $0.0288 · 23 SigNoz queries · 
+146,864 rows / 34.7 MB scanned · 203 ms query time
+INFO argus.slack: SLACK dry-run (no token): 10 blocks built
+Slack: dry-run (blocks logged; set SLACK_BOT_TOKEN to post)
+Postmortem: postmortems/inv-da272d1be1.md

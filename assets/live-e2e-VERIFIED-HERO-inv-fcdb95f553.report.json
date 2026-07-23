@@ -1,0 +1,149 @@
+{
+  "title": "Faultline catalog p99 latency > 1s — catalog",
+  "root_cause": "An injected/artificial pg_sleep(2.5) call embedded in the products SELECT statement is directly causing the ~2.5s query latency that drives the p99 breach. — The exact SQL text executed contains 'pg_sleep(2.5)' concatenated into the products query, forcing Postgres to block for 2.5s per call regardless of load; since this is synchronous within the request path, it fully explains the ~2.5s span duration and consequent p99 latency jump, with error_rate unaffected because the query still succeeds. (verified: found 'pg_sleep' in 20 matching rows) [Incident memory: similar to past incident inv-4f5067e229 (similarity 59%) — see 'Similar past incidents'.]",
+  "confidence": 0.9,
+  "impact": "p99_latency_ms: 0.0ms before -> 420.1ms after the alert boundary (from ~zero); error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x); throughput_per_min: 0.0req/min before -> 363.2req/min after the alert boundary (from ~zero)",
+  "timeline": [
+    "20:32:07 UTC — baseline window opens (pre-incident comparison)",
+    "21:02:07 UTC — alert 'Faultline catalog p99 latency > 1s' started firing",
+    "alert window — p99_latency_ms: 0.0ms before -> 420.1ms after the alert boundary (from ~zero)",
+    "alert window — error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x)",
+    "alert window — throughput_per_min: 0.0req/min before -> 363.2req/min after the alert boundary (from ~zero)",
+    "21:02:38 UTC — ARGUS investigation inv-fcdb95f553 began",
+    "21:02:57 UTC — hypothesis CONFIRMED: An injected/artificial pg_sleep(2.5) call embedded in the products SELECT statement is directly causing the ~2.5s query latency that drives the p99 breach."
+  ],
+  "evidence_bullets": [
+    "p99_latency_ms: 0.0ms before -> 420.1ms after the alert boundary (from ~zero) (<http://localhost:8080/services/catalog?startTime=1784320327961&endTime=1784322158082|view in SigNoz>)",
+    "error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x) (<http://localhost:8080/services/catalog?startTime=1784320327961&endTime=1784322158082|view in SigNoz>)",
+    "throughput_per_min: 0.0req/min before -> 363.2req/min after the alert boundary (from ~zero) (<http://localhost:8080/services/catalog?startTime=1784320327961&endTime=1784322158082|view in SigNoz>)",
+    "exemplar trace 17ee59ee7d36ef3d…: culprit span 'SELECT' (service=catalog, 2507ms, error=False) | db.statement=SELECT id, name, price_cents FROM products, pg_sleep(2.5) WHERE id = %s; db.system=postgresql (<http://localhost:8080/trace/17ee59ee7d36ef3d52d91c6026b8f2f7?spanId=7234a56140805a64|view in SigNoz>)",
+    "exemplar trace 37c23624f830ebc1…: culprit span 'SELECT' (service=catalog, 2507ms, error=False) | db.statement=SELECT id, name, price_cents FROM products, pg_sleep(2.5) WHERE id = %s; db.system=postgresql (<http://localhost:8080/trace/37c23624f830ebc1a690124f889f5bf0?spanId=400ce82e012a0168|view in SigNoz>)",
+    "exemplar trace 08c1b9698f1c6e43…: culprit span 'SELECT' (service=catalog, 2506ms, error=False) | db.statement=SELECT id, name, price_cents FROM products, pg_sleep(2.5) ORDER BY id LIMIT 20; db.system=postgresql (<http://localhost:8080/trace/08c1b9698f1c6e437dd5d02f1889aea1?spanId=f416931cad922b21|view in SigNoz>)",
+    "log signature x2 (novel vs prior hour): HTTP Request: GET http://catalog:<*>/products/<*> \"HTTP/<*> <*> OK\" (<http://localhost:8080/logs/logs-explorer?startTime=1784320327961&endTime=1784322158082&filter=%7B%22expression%22%3A%20%22service.name%20%3D%20%27catalog%27%20AND%20severity_text%20IN%20%28%27ERROR%27%2C%27FATAL%27%29%22%7D|view in SigNoz>)",
+    "log signature x1 (novel vs prior hour): HTTP Request: GET http://catalog:<*>/products \"HTTP/<*> <*> OK\" (<http://localhost:8080/logs/logs-explorer?startTime=1784320327961&endTime=1784322158082&filter=%7B%22expression%22%3A%20%22service.name%20%3D%20%27catalog%27%20AND%20severity_text%20IN%20%28%27ERROR%27%2C%27FATAL%27%29%22%7D|view in SigNoz>)",
+    "similar to incident inv-4f5067e229 (Jul 17, alert 'Faultline catalog p99 latency > 1s', service catalog, similarity 59%): root cause was: A specific slow child span (e.g., a database query) inside catalog's handling of GET /products is the bottleneck causing the p99 breach. — Within the catalog service's trace, one child span (likely a DB call) dominates total request duration; this would explain why gateway-observed latency for /api/products and /api/products/{id} is ~2.5s while error rate remains 0%, since the request completes su",
+    "similar to incident inv-58c6674b76 (Jul 16, alert 'Faultline catalog p99 latency > 1s', service catalog, similarity 47%): root cause was: Reduced throughput is a symptom (clients/load balancer backing off or timing out) rather than a cause, and error rate staying flat at 0% rules out timeout/502-driven explanations seen in prior similar incidents. — Because error_rate remained 0.0% before and after (no 502s), the gateway is not aborting due to timeout thresholds being exceeded, distinguishing this incident from the two lower-similar",
+    "similar to incident inv-5736466ee5 (Jul 16, alert 'Faultline catalog p99 latency > 1s', service catalog, similarity 46%): root cause was: The catalog service's /products endpoint is consistently slow due to an inefficient downstream call or query, independent of load, causing sustained ~2.3s p99 latency. — A fixed-cost slow operation (e.g., unindexed DB query, slow dependency call) on the /products path adds ~2s latency to every request; since latency stayed flat (2278ms->2306ms) even as throughput halved, the slowness is not load-d",
+    "incident evidence dashboard auto-created: http://localhost:8080/dashboard/019f71e3-bb43-7d9f-bd05-2271da14a26b",
+    "DRAFT follow-up alert rule proposed (disabled — review & enable): http://localhost:8080/alerts/edit?ruleId=019f71e3-bb57-7c53-8def-90a5ba9fa3cd"
+  ],
+  "refuted": [
+    "The slow DB span dominates total request duration for GET /products and /products/{id}, making the query the fixed-cost bottleneck rather than gateway/network overhead. — verification failed to run: Client error '404 Not Found' for url 'http://localhost:8080/api/v5/query_range'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404",
+    "Latency degradation is load-independent (a fixed-cost slow operation), not caused by increased throughput or resource contention. — verification failed to run: Client error '404 Not Found' for url 'http://localhost:8080/api/v5/query_range'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404",
+    "The novel HTTP log signatures for GET /products and /products/{id} indicate these are newly-active (previously idle) endpoints whose first invocations surface the pre-existing slow query path. — '/products' not found in 0 rows"
+  ],
+  "links": [
+    "http://localhost:8080/dashboard/019f71e3-bb43-7d9f-bd05-2271da14a26b",
+    "http://localhost:8080/services/catalog?startTime=1784320327961&endTime=1784322158082",
+    "http://localhost:8080/services/catalog?startTime=1784320327961&endTime=1784322158082",
+    "http://localhost:8080/services/catalog?startTime=1784320327961&endTime=1784322158082",
+    "http://localhost:8080/trace/17ee59ee7d36ef3d52d91c6026b8f2f7?spanId=7234a56140805a64",
+    "http://localhost:8080/trace/37c23624f830ebc1a690124f889f5bf0?spanId=400ce82e012a0168",
+    "http://localhost:8080/trace/08c1b9698f1c6e437dd5d02f1889aea1?spanId=f416931cad922b21",
+    "http://localhost:8080/logs/logs-explorer?startTime=1784320327961&endTime=1784322158082&filter=%7B%22expression%22%3A%20%22service.name%20%3D%20%27catalog%27%20AND%20severity_text%20IN%20%28%27ERROR%27%2C%27FATAL%27%29%22%7D",
+    "http://localhost:8080/logs/logs-explorer?startTime=1784320327961&endTime=1784322158082&filter=%7B%22expression%22%3A%20%22service.name%20%3D%20%27catalog%27%20AND%20severity_text%20IN%20%28%27ERROR%27%2C%27FATAL%27%29%22%7D",
+    "http://localhost:8080/alerts/edit?ruleId=019f71e3-bb57-7c53-8def-90a5ba9fa3cd"
+  ],
+  "slack_blocks": [
+    {
+      "type": "header",
+      "text": {
+        "type": "plain_text",
+        "text": "🔴 RCA: Faultline catalog p99 latency > 1s — catalog"
+      }
+    },
+    {
+      "type": "section",
+      "fields": [
+        {
+          "type": "mrkdwn",
+          "text": "*Severity:*  Critical"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Status:*  Root cause verified"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Started:*  21:02 UTC"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Duration:*  20s to RCA"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Service:*  catalog"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Confidence:*  90%"
+        }
+      ]
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Root cause:*\nAn injected/artificial pg_sleep(2.5) call embedded in the products SELECT statement is directly causing the ~2.5s query latency that drives the p99 breach. — The exact SQL text executed contains 'pg_sleep(2.5)' concatenated into the products query, forcing Postgres to block for 2.5s per call regardless of load; since this is synchronous within the request path, it fully explains the ~2.5s span duration and consequent p99 latency jump, with error_rate unaffected because the query still succeeds. (verified: found 'pg_sleep' in 20 matching rows) [Incident memory: similar to past incident inv-4f5067e229 (similarity 59%) — see 'Similar past incidents'.]"
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Evidence:*\n• p99_latency_ms: 0.0ms before -> 420.1ms after the alert boundary (from ~zero) (<http://localhost:8080/services/catalog?startTime=1784320327961&endTime=1784322158082|view in SigNoz>)\n• error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x) (<http://localhost:8080/services/catalog?startTime=1784320327961&endTime=1784322158082|view in SigNoz>)\n• throughput_per_min: 0.0req/min before -> 363.2req/min after the alert boundary (from ~zero) (<http://localhost:8080/services/catalog?startTime=1784320327961&endTime=1784322158082|view in SigNoz>)\n• exemplar trace 17ee59ee7d36ef3d…: culprit span 'SELECT' (service=catalog, 2507ms, error=False) | db.statement=SELECT id, name, price_cents FROM products, pg_sleep(2.5) WHERE id = %s; db.system=postgresql (<http://localhost:8080/trace/17ee59ee7d36ef3d52d91c6026b8f2f7?spanId=7234a56140805a64|view in SigNoz>)\n• exemplar trace 37c23624f830ebc1…: culprit span 'SELECT' (service=catalog, 2507ms, error=False) | db.statement=SELECT id, name, price_cents FROM products, pg_sleep(2.5) WHERE id = %s; db.system=postgresql (<http://localhost:8080/trace/37c23624f830ebc1a690124f889f5bf0?spanId=400ce82e012a0168|view in SigNoz>)\n• exemplar trace 08c1b9698f1c6e43…: culprit span 'SELECT' (service=catalog, 2506ms, error=False) | db.statement=SELECT id, name, price_cents FROM products, pg_sleep(2.5) ORDER BY id LIMIT 20; db.system=postgresql (<http://localhost:8080/trace/08c1b9698f1c6e437dd5d02f1889aea1?spanId=f416931cad922b21|view in SigNoz>)\n• log signature x2 (novel vs prior hour): HTTP Request: GET http://catalog:<*>/products/<*> \"HTTP/<*> <*> OK\" (<http://localhost:8080/logs/logs-explorer?startTime=1784320327961&endTime=1784322158082&filter=%7B%22expression%22%3A%20%22service.name%20%3D%20%27catalog%27%20AND%20severity_text%20IN%20%28%27ERROR%27%2C%27FATAL%27%29%22%7D|view in SigNoz>)\n• log signature x1 (novel vs prior hour): HTTP Request: GET http://catalog:<*>/products \"HTTP/<*> <*> OK\" (<http://localhost:8080/logs/logs-explorer?startTime=1784320327961&endTime=1784322158082&filter=%7B%22expression%22%3A%20%22service.name%20%3D%20%27catalog%27%20AND%20severity_text%20IN%20%28%27ERROR%27%2C%27FATAL%27%29%22%7D|view in SigNoz>)"
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Timeline:*\n• 20:32:07 UTC — baseline window opens (pre-incident comparison)\n• 21:02:07 UTC — alert 'Faultline catalog p99 latency > 1s' started firing\n• alert window — p99_latency_ms: 0.0ms before -> 420.1ms after the alert boundary (from ~zero)\n• alert window — error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x)\n• alert window — throughput_per_min: 0.0req/min before -> 363.2req/min after the alert boundary (from ~zero)\n• 21:02:38 UTC — ARGUS investigation inv-fcdb95f553 began"
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Ruled out by verification queries:*\n• ~The slow DB span dominates total request duration for GET /products and /products/{id}, making the query the fixed-cost bottleneck rather than gateway/network overhead. — verification failed to run: Client error '404 Not Found' for url 'http://localhost:8080/api/v5/query_range'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404~\n• ~Latency degradation is load-independent (a fixed-cost slow operation), not caused by increased throughput or resource contention. — verification failed to run: Client error '404 Not Found' for url 'http://localhost:8080/api/v5/query_range'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404~\n• ~The novel HTTP log signatures for GET /products and /products/{id} indicate these are newly-active (previously idle) endpoints whose first invocations surface the pre-existing slow query path. — '/products' not found in 0 rows~"
+      }
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "context",
+      "elements": [
+        {
+          "type": "mrkdwn",
+          "text": "🤖 Drafted by ARGUS · `inv-fcdb95f553` · LLM: claude-haiku-4-5-20251001 (live)"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "1/4 hypotheses verified · 1 LLM calls · 7170 tokens · est. $0.0407 · 22 SigNoz queries · 306,252 rows / 33.8 MB scanned · 151 ms query time"
+        }
+      ]
+    },
+    {
+      "type": "actions",
+      "elements": [
+        {
+          "type": "button",
+          "text": {
+            "type": "plain_text",
+            "text": "View in SigNoz"
+          },
+          "url": "http://localhost:8080/services/catalog?startTime=1784320327961&endTime=1784322158082"
+        }
+      ]
+    }
+  ],
+  "degraded": false,
+  "needs_review": false,
+  "llm_label": "claude-haiku-4-5-20251001 (live)",
+  "query_stats": "22 SigNoz queries · 306,252 rows / 33.8 MB scanned · 151 ms query time"
+}

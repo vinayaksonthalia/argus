@@ -1,0 +1,26 @@
+
+ARGUS eval scorecard
+============================================================
+[PASS] fixtures/incident-1  (0.0s, 3796 tok, $0.0187)
+    ok   root_cause_keywords
+    ok   service_identified
+    ok   hypotheses_confirmed
+    ok   report_produced
+    ok   links_present
+    ok   cost_within_budget
+[PASS] fixtures/incident-2  (0.0s, 5457 tok, $0.0314)
+    ok   root_cause_keywords
+    ok   service_identified
+    ok   hypotheses_confirmed
+    ok   report_produced
+    ok   links_present
+    ok   cost_within_budget
+[PASS] fixtures/incident-3  (0.0s, 5279 tok, $0.0288)
+    ok   root_cause_keywords
+    ok   service_identified
+    ok   hypotheses_confirmed
+    ok   report_produced
+    ok   links_present
+    ok   cost_within_budget
+============================================================
+3/3 cases passed

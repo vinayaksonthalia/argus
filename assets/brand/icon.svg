@@ -1,0 +1,21 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ARGUS">
+  <defs>
+    <linearGradient id="ar-sweep" x1="30.4" y1="26" x2="37.1" y2="28.4" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#8B5CF6" stop-opacity="0"/>
+      <stop offset="1" stop-color="#8B5CF6" stop-opacity="0.8"/>
+    </linearGradient>
+  </defs>
+  <g stroke="#8B5CF6" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <!-- broken outer radar ring -->
+    <path d="M32 12.5 A19.5 19.5 0 0 1 51.5 32" stroke-width="2.5" opacity="0.34"/>
+    <path d="M32 51.5 A19.5 19.5 0 0 1 12.5 32" stroke-width="2.5" opacity="0.34"/>
+    <!-- geometric eye -->
+    <path d="M8 32 C18 18 46 18 56 32 C46 46 18 46 8 32 Z" stroke-width="4"/>
+    <!-- iris scope ring -->
+    <circle cx="32" cy="32" r="8" stroke-width="3.5"/>
+  </g>
+  <!-- radar sweep beam inside the iris (the scanning aperture) -->
+  <path d="M32 32 L30.4 26.0 A6.2 6.2 0 0 1 37.1 28.44 Z" fill="url(#ar-sweep)"/>
+  <path d="M32 32 L37.1 28.44" stroke="#8B5CF6" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="32" cy="32" r="2.6" fill="#8B5CF6"/>
+</svg>

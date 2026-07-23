@@ -1,0 +1,98 @@
+[
+  {
+    "type": "header",
+    "text": {
+      "type": "plain_text",
+      "text": "\ud83d\udd34 RCA: Faultline catalog p99 latency > 1s \u2014 catalog"
+    }
+  },
+  {
+    "type": "section",
+    "fields": [
+      {
+        "type": "mrkdwn",
+        "text": "*Severity:*  Critical"
+      },
+      {
+        "type": "mrkdwn",
+        "text": "*Status:*  Needs human review"
+      },
+      {
+        "type": "mrkdwn",
+        "text": "*Started:*  22:19 UTC"
+      },
+      {
+        "type": "mrkdwn",
+        "text": "*Duration:*  38s to RCA"
+      },
+      {
+        "type": "mrkdwn",
+        "text": "*Service:*  catalog"
+      },
+      {
+        "type": "mrkdwn",
+        "text": "*Confidence:*  30%"
+      }
+    ]
+  },
+  {
+    "type": "divider"
+  },
+  {
+    "type": "section",
+    "text": {
+      "type": "mrkdwn",
+      "text": "*Root cause (draft \u2014 flagged for review):*\nA recent deployment or configuration change to the catalog service introduced a regression (e.g. new synchronous blocking call, misconfigured timeout, or resource limit) that started immediately at the alert boundary. \u2014 The step-change from near-zero traffic/latency to instant high p99 latency and 502s suggests a deploy or config rollout at that exact boundary, not gradual degradation from load, pointing to a code/config regression rather than organic traffic-driven saturation. (verified: found 'deploy' in 100 matching rows)"
+    }
+  },
+  {
+    "type": "section",
+    "text": {
+      "type": "mrkdwn",
+      "text": "*Evidence:*\n\u2022 p99_latency_ms: 0.0ms before -> 3632.0ms after the alert boundary (from ~zero) (<http://localhost:8080/services/catalog?startTime=1784238547961&endTime=1784240378118|view in SigNoz>)\n\u2022 error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x) (<http://localhost:8080/services/catalog?startTime=1784238547961&endTime=1784240378118|view in SigNoz>)\n\u2022 throughput_per_min: 0.0req/min before -> 52.8req/min after the alert boundary (from ~zero) (<http://localhost:8080/services/catalog?startTime=1784238547961&endTime=1784240378118|view in SigNoz>)\n\u2022 exemplar trace 20b567758df5c978\u2026: culprit span 'GET /api/products http send' (service=gateway, 0ms, error=True) | http.status_code=502 (<http://localhost:8080/trace/20b567758df5c978938500f1ee147d40?spanId=0ab53ca105ac487d|view in SigNoz>)\n\u2022 exemplar trace a6f5f04a659f8f4a\u2026: culprit span 'GET /api/products http send' (service=gateway, 0ms, error=True) | http.status_code=502 (<http://localhost:8080/trace/a6f5f04a659f8f4a610e758c0c32454d?spanId=a0dbfeabd504cb0c|view in SigNoz>)\n\u2022 exemplar trace 20b567758df5c978\u2026: culprit span 'GET /api/products http send' (service=gateway, 0ms, error=True) | http.status_code=502 (<http://localhost:8080/trace/20b567758df5c978938500f1ee147d40?spanId=0ab53ca105ac487d|view in SigNoz>)\n\u2022 log signature x3 (novel vs prior hour): upstream call http://catalog:<*>/products failed: timed out (<http://localhost:8080/logs/logs-explorer?startTime=1784238547961&endTime=1784240378118&filter=%7B%22expression%22%3A%20%22service.name%20%3D%20%27catalog%27%20AND%20severity_text%20IN%20%28%27ERROR%27%2C%27FATAL%27%29%22%7D|view in SigNoz>)"
+    }
+  },
+  {
+    "type": "section",
+    "text": {
+      "type": "mrkdwn",
+      "text": "*Timeline:*\n\u2022 21:49:07 UTC \u2014 baseline window opens (pre-incident comparison)\n\u2022 22:19:07 UTC \u2014 alert 'Faultline catalog p99 latency > 1s' started firing\n\u2022 alert window \u2014 p99_latency_ms: 0.0ms before -> 3632.0ms after the alert boundary (from ~zero)\n\u2022 alert window \u2014 error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x)\n\u2022 alert window \u2014 throughput_per_min: 0.0req/min before -> 52.8req/min after the alert boundary (from ~zero)\n\u2022 22:19:38 UTC \u2014 ARGUS investigation inv-4199347358 began"
+    }
+  },
+  {
+    "type": "section",
+    "text": {
+      "type": "mrkdwn",
+      "text": "*Ruled out by verification queries:*\n\u2022 ~The catalog service's upstream dependency call to /products is timing out, causing gateway requests to stall and eventually return 502s while p99 latency spikes. \u2014 0 rows (need > 0.0)~\n\u2022 ~Network-level connectivity issue (DNS resolution failure or connection refusal) between catalog and its upstream host is causing connection attempts to hang until timeout. \u2014 'timeout' not found in 20 rows~\n\u2022 ~Catalog service itself is saturated or blocked internally (e.g. thread pool exhaustion, GC pause, or lock contention) rather than a downstream network issue, causing requests to queue until the gateway's timeout fires and returns 502. \u2014 verification failed to run: Client error '400 Bad Request' for url 'http://localhost:8080/api/v5/query_range'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400~\n\u2022 ~A downstream dependency of catalog (e.g. its database or a third-party API) is slow/unresponsive, and catalog itself is blocking on that call, propagating latency upstream to gateway. \u2014 verification failed to run: Client error '400 Bad Request' for url 'http://localhost:8080/api/v5/query_range'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400~"
+    }
+  },
+  {
+    "type": "divider"
+  },
+  {
+    "type": "context",
+    "elements": [
+      {
+        "type": "mrkdwn",
+        "text": "\ud83e\udd16 Drafted by ARGUS \u00b7 `inv-4199347358` \u00b7 LLM: claude-haiku-4-5-20251001 (live)"
+      },
+      {
+        "type": "mrkdwn",
+        "text": "1/6 hypotheses verified \u00b7 2 LLM calls \u00b7 12033 tokens \u00b7 est. $0.0805 \u00b7 20 SigNoz queries \u00b7 109,588 rows / 25.1 MB scanned \u00b7 335 ms query time"
+      }
+    ]
+  },
+  {
+    "type": "actions",
+    "elements": [
+      {
+        "type": "button",
+        "text": {
+          "type": "plain_text",
+          "text": "View in SigNoz"
+        },
+        "url": "http://localhost:8080/services/catalog?startTime=1784238547961&endTime=1784240378118"
+      }
+    ]
+  }
+]

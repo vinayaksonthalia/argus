@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="sketch.css">
+</head>
+<body>
+  <div class="title" style="left:60px; top:44px;">the watched watcher</div>
+  <div class="subtitle" style="left:64px; top:118px;">ARGUS investigates SigNoz &mdash; and is traced by the very same SigNoz</div>
+
+  <div class="box" id="svc" style="left:90px; top:230px; width:310px; height:180px;">
+    <div class="label">your services</div>
+    <div class="sub">faultline: gateway &middot; catalog<br>&middot; orders &middot; payments</div>
+  </div>
+
+  <div class="box thick" id="signoz" style="left:1120px; top:210px; width:390px; height:230px;">
+    <div class="label">SigNoz</div>
+    <div class="sub">one observability brain<br>metrics &middot; traces &middot; logs<br>&mdash; yours AND the agent's</div>
+  </div>
+
+  <div class="box" id="argus" style="left:590px; top:490px; width:330px; height:190px;">
+    <div class="label">ARGUS</div>
+    <div class="sub">the AI investigator<br>one OTel span per step</div>
+  </div>
+
+  <div class="small-gray" id="l1" style="left:530px; top:245px; width:300px;">OTel telemetry</div>
+  <div class="small-gray" id="l2" style="left:640px; top:378px; width:200px;">alert fires</div>
+  <div class="small-gray" id="l3" style="left:930px; top:508px; width:240px;">queries the evidence</div>
+
+  <div class="note" id="note" style="left:120px; top:585px; width:400px;">
+    its own gen_ai.* spans flow<br>into the SAME SigNoz &mdash;<br>tokens + $ per investigation
+  </div>
+
+  <div class="caption" style="bottom:44px;">the agent that watches your services, watched by the same SigNoz</div>
+
+<script src="sketch.js"></script>
+<script>
+window.addEventListener("load", () => {
+  Sketch.init();
+  Sketch.underline(".title");
+  // services -> SigNoz (telemetry)
+  Sketch.connect("#svc", "#signoz", { from: "right", to: "left", fromOffset: -30, toOffset: -40, curve: -14, seed: 11 });
+  // SigNoz -> ARGUS (alert webhook): down-left diagonal
+  Sketch.connect("#signoz", "#argus", { from: "left", to: "topleft", fromOffset: 70, curve: 20, seed: 22 });
+  // ARGUS -> SigNoz (queries): up-right diagonal, roughly parallel
+  Sketch.connect("#argus", "#signoz", { from: "topright", to: "bottomleft", curve: 16, seed: 33 });
+  // red dotted callback: ARGUS's own spans back into the SAME SigNoz, swinging low
+  const s = document.getElementById("signoz").getBoundingClientRect();
+  Sketch.arrow(545, 645, s.right - 105, s.bottom + 8,
+    { color: "var(--red)", dotted: true, curve: 170, seed: 44, width: 2.8, head: 16 });
+  window.__sketchDone = true;
+});
+</script>
+</body>
+</html>

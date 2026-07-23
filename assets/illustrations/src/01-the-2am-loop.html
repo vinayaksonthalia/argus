@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="sketch.css">
+</head>
+<body>
+  <div class="title" style="left:60px; top:44px;">the 2 a.m. loop</div>
+  <div class="subtitle" style="left:64px; top:118px;">an alert fires. nobody is awake. that's fine. &mdash; ARGUS</div>
+
+  <div class="small-gray" style="right:70px; top:50px; text-align:right; font-size:30px;">z&nbsp; z&nbsp; z</div>
+
+  <div class="box" id="b1" style="left:75px;  top:320px; width:280px; height:180px;">
+    <div class="label">alert fires</div>
+    <div class="sub">catalog p99 &gt; 1s<br>&mdash; SigNoz rule</div>
+  </div>
+
+  <div class="box" id="b2" style="left:465px; top:320px; width:290px; height:180px;">
+    <div class="label">ARGUS wakes</div>
+    <div class="sub">webhook trigger<br>dedup + single-flight</div>
+  </div>
+
+  <div class="box" id="b3" style="left:865px; top:320px; width:300px; height:180px;">
+    <div class="label">reads the evidence</div>
+    <div class="sub">golden signals &middot; traces<br>&middot; logs &middot; deploys</div>
+  </div>
+
+  <div class="box thick" id="b4" style="left:1280px; top:302px; width:260px; height:216px;">
+    <div class="label">RCA in Slack</div>
+    <div class="sub">every claim deep-links<br>back into SigNoz</div>
+  </div>
+
+  <div class="note" id="note" style="left:420px; top:648px; width:420px;">
+    no human typed anything
+  </div>
+
+  <div class="caption" style="bottom:48px;">alert &rarr; verified root cause &rarr; postmortem, while you sleep</div>
+
+<script src="sketch.js"></script>
+<script>
+window.addEventListener("load", () => {
+  Sketch.init();
+  Sketch.underline(".title");
+  Sketch.connect("#b1", "#b2", { seed: 21 });
+  Sketch.connect("#b2", "#b3", { seed: 32 });
+  Sketch.connect("#b3", "#b4", { seed: 43 });
+  // red dotted callback from the note up to the pipeline
+  const n = document.getElementById("note").getBoundingClientRect();
+  Sketch.arrow(n.left + n.width / 2 - 60, n.top - 8, 610, 512, { color: "var(--red)", dotted: true, curve: -46, seed: 91, width: 2.8 });
+  window.__sketchDone = true;
+});
+</script>
+</body>
+</html>

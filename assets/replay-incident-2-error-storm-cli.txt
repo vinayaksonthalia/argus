@@ -1,0 +1,112 @@
+╭──────────────────────────────────────────────────────────────────────────────╮
+│ ARGUS — autonomous SRE investigator                                          │
+│ replay investigation (recorded telemetry + recorded LLM) ·                   │
+│ fixtures/incident-2                                                          │
+╰──────────────────────────────────────────────────────────────────────────────╯
+  · triage                   0.00s
+  · golden_signals           0.00s
+  · trace_dive               0.00s
+  · log_corr                 0.00s
+  · infra                    0.00s
+  · change_corr              0.00s
+  · hypothesize              0.00s
+  · verify                   0.00s
+  · report                   0.00s
+  · act                      0.00s
+
+╭──────────── RCA — Faultline payments error rate spike — payments ────────────╮
+│ NEEDS HUMAN REVIEW  ·  confidence 60%                                        │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭───────────────────────────────── Root cause ─────────────────────────────────╮
+│ The payment provider gateway upstream is failing with 502 Bad Gateway due to │
+│ connection resets, causing checkout requests to error out. — Upstream        │
+│ connection reset by peer on the payment provider gateway causes checkout     │
+│ requests from gateway/payments to fail with 502, propagating errors into the │
+│ payments error rate metric. (verified: found 'upstream connection reset by   │
+│ peer' in 11 matching rows)                                                   │
+╰──────────────────────────────────────────────────────────────────────────────╯
+Hypotheses                                                                      
+Verdict   ┃ Claim                      ┃ Confidence ┃ Verification detail       
+━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CONFIRMED │ The payment provider       │        60% │ found 'upstream connection
+          │ gateway upstream is        │            │ reset by peer' in 11      
+          │ failing with 502 Bad       │            │ matching rows             
+          │ Gateway due to connection  │            │                           
+          │ resets, causing checkout   │            │                           
+          │ requests to error out.     │            │                           
+CONFIRMED │ The orders service is      │        35% │ 11 rows (need > 0.0)      
+          │ returning 502s to          │            │                           
+          │ payments/gateway callers,  │            │                           
+          │ contributing to the        │            │                           
+          │ checkout failure chain.    │            │                           
+CONFIRMED │ The checkout endpoint at   │        40% │ 11 rows (need > 0.0)      
+          │ the gateway is the primary │            │                           
+          │ failure surface,           │            │                           
+          │ independent of a deeper    │            │                           
+          │ payments-service-internal  │            │                           
+          │ bug.                       │            │                           
+REFUTED   │ The error rate spike is a  │        25% │ count() after/before ratio
+          │ transient burst tied to a  │            │ = 0.00 (need > 1.5)       
+          │ small number of novel      │            │                           
+          │ error signatures rather    │            │                           
+          │ than a sustained systemic  │            │                           
+          │ outage.                    │            │                           
+Timeline                                                                        
+• 21:51:28 UTC — baseline window opens (pre-incident comparison)                
+• 22:21:28 UTC — alert 'Faultline payments error rate spike' started firing     
+• alert window — p99_latency_ms: 0.0ms before -> 46.6ms after the alert boundary
+(from ~zero)                                                                    
+• alert window — error_rate: 0.0% before -> 2.2% after the alert boundary (from 
+~zero)                                                                          
+• alert window — throughput_per_min: 0.0req/min before -> 24.2req/min after the 
+alert boundary (from ~zero)                                                     
+• 22:33:14 UTC — ARGUS investigation inv-7e22118cf0 began                       
+• 22:33:14 UTC — hypothesis CONFIRMED: The payment provider gateway upstream is 
+failing with 502 Bad Gateway due to connection resets, causing checkout requests
+to error out.                                                                   
+• 22:33:14 UTC — hypothesis CONFIRMED: The orders service is returning 502s to  
+payments/gateway callers, contributing to the checkout failure chain.           
+• 22:33:14 UTC — hypothesis CONFIRMED: The checkout endpoint at the gateway is  
+the primary failure surface, independent of a deeper payments-service-internal  
+bug.                                                                            
+Evidence (each claim deep-links into SigNoz)                                    
+• p99_latency_ms: 0.0ms before -> 46.6ms after the alert boundary (from ~zero)  
+(<http://localhost:8080/services/payments?startTime=1784238688000&endTime=17842…
+in SigNoz>)                                                                     
+• error_rate: 0.0% before -> 2.2% after the alert boundary (from ~zero)         
+(<http://localhost:8080/services/payments?startTime=1784238688000&endTime=17842…
+in SigNoz>)                                                                     
+• throughput_per_min: 0.0req/min before -> 24.2req/min after the alert boundary 
+(from ~zero)                                                                    
+(<http://localhost:8080/services/payments?startTime=1784238688000&endTime=17842…
+in SigNoz>)                                                                     
+• exemplar trace 79240f4aec1ac91b…: culprit span 'POST /api/checkout http send' 
+(service=gateway, 0ms, error=True) | http.status_code=502                       
+(<http://localhost:8080/trace/79240f4aec1ac91b64724d5e5b4bcabb?spanId=3e19e680b…
+in SigNoz>)                                                                     
+• exemplar trace fa77e2f106075f46…: culprit span 'POST /api/checkout http send' 
+(service=gateway, 0ms, error=True) | http.status_code=502                       
+(<http://localhost:8080/trace/fa77e2f106075f46cd1e74fbd51be0d1?spanId=045d1be9b…
+in SigNoz>)                                                                     
+• exemplar trace eddc14fb3344b8eb…: culprit span 'POST /orders http send'       
+(service=orders, 0ms, error=True) | http.status_code=502                        
+(<http://localhost:8080/trace/eddc14fb3344b8ebed9a0683b9dc8693?spanId=442cc3ffd…
+in SigNoz>)                                                                     
+• log signature x14 (novel vs prior hour): payment provider gateway returned <*>
+Bad Gateway for order <*> (upstream connection reset by peer)                   
+(<http://localhost:8080/logs/logs-explorer?startTime=1784238688000&endTime=1784…
+in SigNoz>)                                                                     
+• log signature x3 (novel vs prior hour): upstream http://orders:<*>/orders     
+returned HTTP <*>                                                               
+(<http://localhost:8080/logs/logs-explorer?startTime=1784238688000&endTime=1784…
+in SigNoz>)                                                                     
+• log signature x3 (novel vs prior hour): HTTP Request: POST                    
+http://orders:<*>/orders "HTTP/<*> <*> Bad Gateway"                             
+(<http://localhost:8080/logs/logs-explorer?startTime=1784238688000&endTime=1784…
+in SigNoz>)                                                                     
+LLM: replay:claude-haiku-4-5-20251001 (RECORDED — replayed LLM output, not a 
+live call) · 1 calls · 4202+1255 tokens · est. $0.0314 · 23 SigNoz queries · 
+152,910 rows / 37.0 MB scanned · 178 ms query time
+INFO argus.slack: SLACK dry-run (no token): 10 blocks built
+Slack: dry-run (blocks logged; set SLACK_BOT_TOKEN to post)
+Postmortem: postmortems/inv-7e22118cf0.md

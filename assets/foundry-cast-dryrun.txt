@@ -1,0 +1,41 @@
+# Foundry single-cast packaging — dry-run validation (July 17, 2026)
+# casting file: argus/deploy/casting.yaml (SigNoz + ARGUS + Faultline via jsonpatch patches)
+
+$ foundryctl gauge -f casting.yaml   (exit 0 — all prereqs present)
+exit: 0
+
+$ foundryctl forge -f casting.yaml   (generates pours/ WITHOUT deploying — dry run)
+
+
+exit: 0
+
+$ generated pours/deployment/compose.yaml services:
+ - argus
+ - faultline-catalog
+ - faultline-gateway
+ - faultline-loadgen
+ - faultline-orders
+ - faultline-payments
+ - faultline-postgres
+ - ingester
+ - signoz-mcp
+ - signoz-metastore-postgres-0
+ - signoz-signoz-0
+ - signoz-telemetrykeeper-clickhousekeeper-0
+ - signoz-telemetrystore-clickhouse-0-0
+ - signoz-telemetrystore-clickhouse-user-scripts
+ - signoz-telemetrystore-migrator
+volumes: ['argus-data', 'signoz-metastore-postgres-0-data', 'signoz-telemetrykeeper-0-data', 'signoz-telemetrystore-0-0-data', 'signoz-telemetrystore-user-scripts']
+
+$ docker compose config --quiet  (compose validity)
+COMPOSE VALID
+
+$ docker build -f deploy/Dockerfile . -> argus:latest (built OK, sha 4bcaed7f1580...)
+$ docker run argus:latest (no key) -> NFR-5 refusal:
+   config error: Refusing to start: ... SIGNOZ_API_KEY ...
+$ docker run -e SIGNOZ_API_KEY=... argus:latest -> GET /healthz = {"status":"ok"}
+
+# NOTE: full 'foundryctl cast' NOT run on this machine — it would collide with
+# the already-running SigNoz deployment (ports 8080/4317/4318/8000). Run
+# steps are documented in the casting.yaml header; forge output above proves
+# the cast generates a valid one-command stack.

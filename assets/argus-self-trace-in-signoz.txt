@@ -1,0 +1,59 @@
+ARGUS self-observation spans found in SigNoz: 41
+    1  argus.investigation
+    1  argus.node.act
+    1  argus.node.change_corr
+    1  argus.node.golden_signals
+    2  argus.node.hypothesize
+    1  argus.node.infra
+    1  argus.node.log_corr
+    1  argus.node.report
+    1  argus.node.trace_dive
+    1  argus.node.triage
+    2  argus.node.verify
+    2  gen_ai.chat sonnet
+    1  signoz.query_range.changes.deployments
+    1  signoz.query_range.golden.error_rate.after
+    1  signoz.query_range.golden.error_rate.before
+    1  signoz.query_range.golden.p99.after
+    1  signoz.query_range.golden.p99.before
+    1  signoz.query_range.golden.throughput.after
+    1  signoz.query_range.golden.throughput.before
+    1  signoz.query_range.infra.k8s_container_memory_usage
+    1  signoz.query_range.logs.errors.current
+    1  signoz.query_range.logs.errors.prior
+    1  signoz.query_range.logs.trace.0
+    1  signoz.query_range.logs.trace.1
+    1  signoz.query_range.logs.trace.2
+    1  signoz.query_range.traces.detail.0
+    1  signoz.query_range.traces.detail.1
+    1  signoz.query_range.traces.detail.2
+    1  signoz.query_range.traces.search
+    1  signoz.query_range.traces.search.slow
+    1  signoz.query_range.verify.1.0
+    1  signoz.query_range.verify.1.1.before
+    1  signoz.query_range.verify.1.2
+    1  signoz.query_range.verify.1.3.after
+    1  signoz.query_range.verify.2.0.before
+    1  signoz.query_range.verify.2.1
+    1  signoz.query_range.verify.2.2
+    1  signoz.query_range.verify.2.3
+
+gen_ai span: gen_ai.chat sonnet trace: 5e28247d3a803bd6f0fac149b7564ac1
+    argus.cost.usd = 0.0482
+    argus.llm.provider = claude-cli
+    argus.llm.tag = hypothesize.1
+    gen_ai.operation.name = chat
+    gen_ai.request.model = sonnet
+    gen_ai.system = anthropic
+    gen_ai.usage.input_tokens = 4714
+    gen_ai.usage.output_tokens = 1203
+
+gen_ai span: gen_ai.chat sonnet trace: 5e28247d3a803bd6f0fac149b7564ac1
+    argus.cost.usd = 0.0323
+    argus.llm.provider = claude-cli
+    argus.llm.tag = hypothesize.2
+    gen_ai.operation.name = chat
+    gen_ai.request.model = sonnet
+    gen_ai.system = anthropic
+    gen_ai.usage.input_tokens = 4911
+    gen_ai.usage.output_tokens = 1205

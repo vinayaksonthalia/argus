@@ -1,0 +1,98 @@
+╭──────────────────────────────────────────────────────────────────────────────╮
+│ ARGUS — autonomous SRE investigator                                          │
+│ replay investigation (recorded telemetry + recorded LLM) ·                   │
+│ fixtures/incident-1                                                          │
+╰──────────────────────────────────────────────────────────────────────────────╯
+  · triage                   0.00s
+  · golden_signals           0.00s
+  · trace_dive               0.00s
+  · log_corr                 0.00s
+  · infra                    0.00s
+  · change_corr              0.00s
+  · hypothesize              0.00s
+  · verify                   0.00s
+  · report                   0.00s
+  · act                      0.00s
+
+╭────────────────── RCA — CatalogP99LatencyAnomaly — catalog ──────────────────╮
+│ ROOT CAUSE VERIFIED  ·  confidence 90%                                       │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭───────────────────────────────── Root cause ─────────────────────────────────╮
+│ Catalog's PostgreSQL product queries became pathologically slow (an injected │
+│ pg_sleep(2.5) in the SELECT), driving p99 latency and statement timeouts —   │
+│ Every /products request runs the slow SELECT; at ~650 req/min the connection │
+│ pool saturates, requests queue past the 3000 ms statement timeout and fail   │
+│ with 500s, which matches the p99 jump and error-rate rise at the alert       │
+│ boundary (verified: p99(duration_nano) after/before ratio = 42.99 (need >    │
+│ 3.0))                                                                        │
+╰──────────────────────────────────────────────────────────────────────────────╯
+Hypotheses                                                                      
+Verdict   ┃ Claim                      ┃ Confidence ┃ Verification detail       
+━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CONFIRMED │ Catalog's PostgreSQL       │        90% │ p99(duration_nano)        
+          │ product queries became     │            │ after/before ratio = 42.99
+          │ pathologically slow (an    │            │ (need > 3.0)              
+          │ injected pg_sleep(2.5) in  │            │                           
+          │ the SELECT), driving p99   │            │                           
+          │ latency and statement      │            │                           
+          │ timeouts                   │            │                           
+REFUTED   │ A downstream dependency    │        35% │ '502' not found in 0 rows 
+          │ (payments) is returning    │            │                           
+          │ 502s, cascading errors     │            │                           
+          │ into catalog               │            │                           
+REFUTED   │ The catalog container is   │        20% │ avg(k8s.container.memory.…
+          │ under memory pressure      │            │ = 0.00 (need >            
+          │ causing GC pauses and slow │            │ 400000000.0)              
+          │ responses                  │            │                           
+Timeline                                                                        
+• 01:42:00 UTC — baseline window opens (pre-incident comparison)                
+• 02:12:00 UTC — alert 'CatalogP99LatencyAnomaly' started firing                
+• alert window — p99_latency_ms: 120.8ms before -> 1790.0ms after the alert     
+boundary (14.8x)                                                                
+• alert window — error_rate: 0.1% before -> 17.5% after the alert boundary      
+(340.7x)                                                                        
+• alert window — throughput_per_min: 65.0req/min before -> 0.8req/min after the 
+alert boundary (0.0x)                                                           
+• 22:33:14 UTC — ARGUS investigation inv-1433bb5d90 began                       
+• 22:33:14 UTC — hypothesis CONFIRMED: Catalog's PostgreSQL product queries     
+became pathologically slow (an injected pg_sleep(2.5) in the SELECT), driving   
+p99 latency and statement timeouts                                              
+Evidence (each claim deep-links into SigNoz)                                    
+• p99_latency_ms: 120.8ms before -> 1790.0ms after the alert boundary (14.8x)   
+(<http://localhost:8080/services/catalog?startTime=1783993320000&endTime=178424…
+in SigNoz>)                                                                     
+• error_rate: 0.1% before -> 17.5% after the alert boundary (340.7x)            
+(<http://localhost:8080/services/catalog?startTime=1783993320000&endTime=178424…
+in SigNoz>)                                                                     
+• throughput_per_min: 65.0req/min before -> 0.8req/min after the alert boundary 
+(0.0x)                                                                          
+(<http://localhost:8080/services/catalog?startTime=1783993320000&endTime=178424…
+in SigNoz>)                                                                     
+• exemplar trace 7f3a9c1e5b2d48a6…: culprit span 'SELECT products'              
+(service=catalog, 2980ms, error=True) | db.statement=SELECT *, pg_sleep(2.5)    
+FROM products WHERE category = $1; db.system=postgresql;                        
+exception.message=canceling statement due to statement timeout;                 
+exception.type=QueryCanceledError                                               
+(<http://localhost:8080/trace/7f3a9c1e5b2d48a6b1c9d0e2f4a67788?spanId=b1b1b1b1b…
+in SigNoz>)                                                                     
+• exemplar trace 1c8e2b4d6f9a3057…: culprit span 'SELECT products'              
+(service=catalog, 2790ms, error=True) | db.statement=SELECT *, pg_sleep(2.5)    
+FROM products WHERE category = $1; db.system=postgresql;                        
+exception.message=canceling statement due to statement timeout;                 
+exception.type=QueryCanceledError                                               
+(<http://localhost:8080/trace/1c8e2b4d6f9a3057c2d4e6f8a0b1c2d3?spanId=d3d3d3d3d…
+in SigNoz>)                                                                     
+• log signature x5 (novel vs prior hour): db query timeout after <*> ms         
+executing SELECT products (statement timeout)                                   
+(<http://localhost:8080/logs/logs-explorer?startTime=1783993320000&endTime=1784…
+in SigNoz>)                                                                     
+• log signature x2 (novel vs prior hour): connection pool exhausted: <*>/<*>    
+connections busy for <*> ms                                                     
+(<http://localhost:8080/logs/logs-explorer?startTime=1783993320000&endTime=1784…
+in SigNoz>)                                                                     
+LLM: replay:claude-sonnet-4-5 (RECORDED — replayed LLM output, not a live call) 
+· 1 calls · 3184+612 tokens · est. $0.0187 · 17 SigNoz queries · 7,000 rows / 
+0.1 MB scanned · 84 ms query time
+INFO argus.slack: SLACK dry-run (no token): 10 blocks built
+Slack: dry-run (blocks logged; set SLACK_BOT_TOKEN to post)
+Postmortem: postmortems/inv-1433bb5d90.md

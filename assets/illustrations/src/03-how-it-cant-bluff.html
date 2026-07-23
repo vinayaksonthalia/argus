@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="sketch.css">
+</head>
+<body>
+  <div class="title" style="left:60px; top:44px;">how it can't bluff</div>
+  <div class="subtitle" style="left:64px; top:118px;">every hypothesis must survive a real query against your telemetry</div>
+
+  <div class="box" id="h1" style="left:70px; top:240px; width:360px; height:120px;">
+    <div class="label" style="font-size:25px;">"pg_sleep in catalog's SELECT"</div>
+    <div class="sub">hypothesis 1</div>
+  </div>
+  <div class="box" id="h2" style="left:70px; top:410px; width:360px; height:120px;">
+    <div class="label" style="font-size:25px;">"payments error storm"</div>
+    <div class="sub">hypothesis 2</div>
+  </div>
+  <div class="box" id="h3" style="left:70px; top:580px; width:360px; height:120px;">
+    <div class="label" style="font-size:25px;">"bad deploy on orders"</div>
+    <div class="sub">hypothesis 3</div>
+  </div>
+
+  <div class="box thick" id="mid" style="left:610px; top:380px; width:330px; height:180px;">
+    <div class="label">each gets a real query</div>
+    <div class="sub">a falsifiable spec, executed<br>against SigNoz &mdash; not vibes</div>
+  </div>
+
+  <div class="box" id="r1" style="left:1130px; top:250px; width:390px; height:110px; transform:rotate(-2deg);">
+    <div class="label stamp" style="font-size:33px;">CONFIRMED &#10003;</div>
+    <div class="sub">the telemetry agrees &mdash; 90%</div>
+  </div>
+  <div class="box red" id="r2" style="left:1130px; top:420px; width:390px; height:110px; transform:rotate(1.5deg);">
+    <div class="label stamp red-ink" style="font-size:33px;">REFUTED &#10007;</div>
+    <div class="sub">error rate was flat. dropped.</div>
+  </div>
+  <div class="box red" id="r3" style="left:1130px; top:590px; width:390px; height:110px; transform:rotate(-1.5deg);">
+    <div class="label stamp red-ink" style="font-size:33px;">REFUTED &#10007;</div>
+    <div class="sub">no deploy in the window. dropped.</div>
+  </div>
+
+  <div class="note" id="note" style="left:520px; top:680px; width:520px;">
+    below 75% confidence?<br>it flags itself for human review
+  </div>
+
+<script src="sketch.js"></script>
+<script>
+window.addEventListener("load", () => {
+  Sketch.init();
+  Sketch.underline(".title");
+  Sketch.connect("#h1", "#mid", { from: "right", to: "topleft", curve: -18, seed: 12 });
+  Sketch.connect("#h2", "#mid", { from: "right", to: "left", seed: 23 });
+  Sketch.connect("#h3", "#mid", { from: "right", to: "bottomleft", curve: 18, seed: 34 });
+  Sketch.connect("#mid", "#r1", { from: "topright", to: "left", curve: 30, seed: 45 });
+  Sketch.connect("#mid", "#r2", { from: "right", to: "left", seed: 56 });
+  Sketch.connect("#mid", "#r3", { from: "bottomright", to: "left", curve: -30, seed: 67 });
+  // red dotted callback from the note up to the mid box
+  Sketch.arrow(760, 672, 770, 575, { color: "var(--red)", dotted: true, curve: 26, seed: 78, width: 2.8 });
+  window.__sketchDone = true;
+});
+</script>
+</body>
+</html>
