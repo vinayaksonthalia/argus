@@ -1,0 +1,139 @@
+{
+  "title": "ARGUS LLM spend rate — argus",
+  "root_cause": "No hypothesis survived verification. Evidence-only report; human investigation required.",
+  "confidence": 0.0,
+  "impact": "p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x); error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x); throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x)",
+  "timeline": [
+    "20:10:03 UTC — baseline window opens (pre-incident comparison)",
+    "20:40:03 UTC — alert 'ARGUS LLM spend rate' started firing",
+    "alert window — p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x)",
+    "alert window — error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x)",
+    "alert window — throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x)",
+    "20:40:33 UTC — ARGUS investigation inv-51d73b1d78 began"
+  ],
+  "evidence_bullets": [
+    "p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x) (<http://localhost:8080/services/argus?startTime=1784319003876&endTime=1784320833972|view in SigNoz>)",
+    "error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x) (<http://localhost:8080/services/argus?startTime=1784319003876&endTime=1784320833972|view in SigNoz>)",
+    "throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x) (<http://localhost:8080/services/argus?startTime=1784319003876&endTime=1784320833972|view in SigNoz>)",
+    "similar to incident inv-8fcd8347ee (Jul 17, alert '[DRAFT · ARGUS] catalog: A specific slow child span (e.g., a database query) inside catalog's handling of', service unknown, similarity 57%): root cause was: Reduced throughput and any latency figures observed are symptomatic of client-side backoff, not caused by catalog-side errors. — If clients or the load balancer back off/retry after slow responses, throughput drops, but this doesn't reflect a server-side failure since error rate remains 0%; this hypothesis is a check to rule out timeout/502-driven explanations for the pattern. (verified: count() =",
+    "similar to incident inv-a2a0b2e215 (Jul 16, alert 'ARGUS LLM spend rate', service argus, similarity 30%): root cause was: ARGUS's own self-query to the 'changes.deployments' query_range API is malformed, causing repeated failed 400 requests that retry and inflate both throughput and LLM investigation spend. — Each investigation triggers a query_range call for deployment changes; a bad request parameter (e.g. invalid time range or filter syntax) causes a 400 Bad Request. ARGUS likely retries or re-invokes the LLM to r",
+    "similar to incident inv-58c6674b76 (Jul 16, alert 'Faultline catalog p99 latency > 1s', service catalog, similarity 23%): root cause was: Reduced throughput is a symptom (clients/load balancer backing off or timing out) rather than a cause, and error rate staying flat at 0% rules out timeout/502-driven explanations seen in prior similar incidents. — Because error_rate remained 0.0% before and after (no 502s), the gateway is not aborting due to timeout thresholds being exceeded, distinguishing this incident from the two lower-similar",
+    "incident evidence dashboard auto-created: http://localhost:8080/dashboard/019f71cf-cc27-7c05-9862-cb9ba870d342"
+  ],
+  "refuted": [
+    "A malformed self-query from ARGUS to its own query_range API (e.g. for deployment changes) is failing with repeated 400 errors, causing retries that inflate LLM investigation spend. — 0 rows (need > 0.0)",
+    "The spend spike is driven by a high volume of unrelated low-signal alerts each triggering a full-cost ARGUS investigation, rather than any single malfunction. — count() after/before ratio = 0.00 (need > 2.0)",
+    "argus.cost.usd is being emitted multiple times per single investigation due to a metric double-emission bug, not an actual increase in LLM calls. — 0 rows (need > 1.0)",
+    "A single investigation (or small set) is running away with excessive LLM calls per investigation—e.g. an unbounded retry/self-recursive loop in ARGUS's own reasoning chain—driving argus.cost.usd up without any change in HTTP throughput or errors. — count() after/before ratio = 0.00 (need > 2.0)",
+    "ARGUS is using an unusually large prompt/context size per LLM call (e.g. bloated conversation history or oversized telemetry payloads included in the prompt), inflating per-call token cost even though call count and request volume are unchanged. — 'prompt_tokens' not found in 0 rows",
+    "A specific investigation type or hypothesis-generation path (e.g. the 'memory.recall' similarity search step) is being invoked redundantly per investigation, each redundant invocation an independent billed LLM call, inflating cost without affecting external golden signals. — 'memory.recall' not found in 0 rows"
+  ],
+  "links": [
+    "http://localhost:8080/dashboard/019f71cf-cc27-7c05-9862-cb9ba870d342",
+    "http://localhost:8080/services/argus?startTime=1784319003876&endTime=1784320833972",
+    "http://localhost:8080/services/argus?startTime=1784319003876&endTime=1784320833972",
+    "http://localhost:8080/services/argus?startTime=1784319003876&endTime=1784320833972"
+  ],
+  "slack_blocks": [
+    {
+      "type": "header",
+      "text": {
+        "type": "plain_text",
+        "text": "🟡 RCA: ARGUS LLM spend rate — argus"
+      }
+    },
+    {
+      "type": "section",
+      "fields": [
+        {
+          "type": "mrkdwn",
+          "text": "*Severity:*  Warning"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Status:*  Needs human review"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Started:*  20:40 UTC"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Duration:*  37s to RCA"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Service:*  argus"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Confidence:*  0%"
+        }
+      ]
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Root cause (draft — flagged for review):*\nNo hypothesis survived verification. Evidence-only report; human investigation required."
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Evidence:*\n• p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x) (<http://localhost:8080/services/argus?startTime=1784319003876&endTime=1784320833972|view in SigNoz>)\n• error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x) (<http://localhost:8080/services/argus?startTime=1784319003876&endTime=1784320833972|view in SigNoz>)\n• throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x) (<http://localhost:8080/services/argus?startTime=1784319003876&endTime=1784320833972|view in SigNoz>)\n• similar to incident inv-8fcd8347ee (Jul 17, alert '[DRAFT · ARGUS] catalog: A specific slow child span (e.g., a database query) inside catalog's handling of', service unknown, similarity 57%): root cause was: Reduced throughput and any latency figures observed are symptomatic of client-side backoff, not caused by catalog-side errors. — If clients or the load balancer back off/retry after slow responses, throughput drops, but this doesn't reflect a server-side failure since error rate remains 0%; this hypothesis is a check to rule out timeout/502-driven explanations for the pattern. (verified: count() =\n• similar to incident inv-a2a0b2e215 (Jul 16, alert 'ARGUS LLM spend rate', service argus, similarity 30%): root cause was: ARGUS's own self-query to the 'changes.deployments' query_range API is malformed, causing repeated failed 400 requests that retry and inflate both throughput and LLM investigation spend. — Each investigation triggers a query_range call for deployment changes; a bad request parameter (e.g. invalid time range or filter syntax) causes a 400 Bad Request. ARGUS likely retries or re-invokes the LLM to r\n• similar to incident inv-58c6674b76 (Jul 16, alert 'Faultline catalog p99 latency > 1s', service catalog, similarity 23%): root cause was: Reduced throughput is a symptom (clients/load balancer backing off or timing out) rather than a cause, and error rate staying flat at 0% rules out timeout/502-driven explanations seen in prior similar incidents. — Because error_rate remained 0.0% before and after (no 502s), the gateway is not aborting due to timeout thresholds being exceeded, distinguishing this incident from the two lower-similar"
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Timeline:*\n• 20:10:03 UTC — baseline window opens (pre-incident comparison)\n• 20:40:03 UTC — alert 'ARGUS LLM spend rate' started firing\n• alert window — p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x)\n• alert window — error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x)\n• alert window — throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x)\n• 20:40:33 UTC — ARGUS investigation inv-51d73b1d78 began"
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Ruled out by verification queries:*\n• ~A malformed self-query from ARGUS to its own query_range API (e.g. for deployment changes) is failing with repeated 400 errors, causing retries that inflate LLM investigation spend. — 0 rows (need > 0.0)~\n• ~The spend spike is driven by a high volume of unrelated low-signal alerts each triggering a full-cost ARGUS investigation, rather than any single malfunction. — count() after/before ratio = 0.00 (need > 2.0)~\n• ~argus.cost.usd is being emitted multiple times per single investigation due to a metric double-emission bug, not an actual increase in LLM calls. — 0 rows (need > 1.0)~\n• ~A single investigation (or small set) is running away with excessive LLM calls per investigation—e.g. an unbounded retry/self-recursive loop in ARGUS's own reasoning chain—driving argus.cost.usd up without any change in HTTP throughput or errors. — count() after/before ratio = 0.00 (need > 2.0)~"
+      }
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "context",
+      "elements": [
+        {
+          "type": "mrkdwn",
+          "text": "🤖 Drafted by ARGUS · `inv-51d73b1d78` · LLM: claude-haiku-4-5-20251001 (live)"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "0/6 hypotheses verified · 2 LLM calls · 11891 tokens · est. $0.0787 · 21 SigNoz queries · 8,306 rows / 0.1 MB scanned · 127 ms query time"
+        }
+      ]
+    },
+    {
+      "type": "actions",
+      "elements": [
+        {
+          "type": "button",
+          "text": {
+            "type": "plain_text",
+            "text": "View in SigNoz"
+          },
+          "url": "http://localhost:8080/services/argus?startTime=1784319003876&endTime=1784320833972"
+        }
+      ]
+    }
+  ],
+  "degraded": true,
+  "needs_review": true,
+  "llm_label": "claude-haiku-4-5-20251001 (live)",
+  "query_stats": "21 SigNoz queries · 8,306 rows / 0.1 MB scanned · 127 ms query time"
+}

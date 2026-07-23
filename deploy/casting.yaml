@@ -1,0 +1,153 @@
+# ARGUS single-cast install: SigNoz + ARGUS + the
+# Faultline demo stack in ONE `foundryctl cast`.
+#
+#   cd argus/deploy
+#   foundryctl gauge          # verify docker etc. are present
+#   foundryctl cast           # SigNoz pours/ generated + whole stack up
+#
+# How it works: Foundry generates the standard SigNoz docker-compose "pours",
+# then the `patches` below (jsonpatch driver, RFC 6902 — see the Foundry
+# casting-file reference) add ARGUS and Faultline as extra services on the
+# same compose file / network. `foundryctl forge` regenerates pours/ without
+# deploying (dry-run).
+#
+# Post-cast (one-time, same as any fresh SigNoz):
+#   1. open http://localhost:8080 and complete the first-run signup
+#      (until then the collector accepts no OTLP — verified quirk),
+#   2. create an API key (Settings -> API Keys, role Editor) and put it in
+#      pours/deployment/.env as  SIGNOZ_API_KEY=<key>
+#      (optional: ANTHROPIC_API_KEY / GROQ_API_KEY + ARGUS_LLM_PROVIDER for a
+#       real LLM; the default `heuristic` provider needs no key at all),
+#   3. `docker compose -f pours/deployment/compose.yaml up -d argus` to
+#      restart ARGUS with the key, then seed the demo alert + webhook:
+#      `uv run python ../scripts/setup_live.py` (ARGUS_WEBHOOK_URL=http://argus:7331/webhook/signoz)
+#   4. break something: `../services/faultline/faultctl inject slow-query`
+apiVersion: v1alpha1
+kind: Installation
+metadata:
+  name: signoz
+spec:
+  deployment:
+    mode: docker
+    flavor: compose
+  mcp:
+    spec:
+      enabled: true
+  patches:
+    - target: deployment/compose.yaml
+      type: jsonpatch
+      operations:
+        # ---------------------------------------------------------- ARGUS
+        - op: add
+          path: /services/argus
+          value:
+            build:
+              context: ../../..
+              dockerfile: deploy/Dockerfile
+            container_name: argus
+            environment:
+              SIGNOZ_URL: http://signoz-signoz-0:8080
+              SIGNOZ_API_KEY: ${SIGNOZ_API_KEY:-}
+              OTEL_EXPORTER_OTLP_ENDPOINT: http://signoz-ingester:4318
+              ARGUS_LLM_PROVIDER: ${ARGUS_LLM_PROVIDER:-heuristic}
+              ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+              GROQ_API_KEY: ${GROQ_API_KEY:-}
+              ARGUS_TRANSPORT: ${ARGUS_TRANSPORT:-rest}
+              ARGUS_MCP_URL: http://signoz-mcp:8000/mcp
+            ports: ["7331:7331"]
+            networks: [signoz-network]
+            restart: unless-stopped
+            volumes:
+              - argus-data:/data
+        - op: add
+          path: /volumes/argus-data
+          value: {}
+        # ------------------------------------------------------- Faultline
+        - op: add
+          path: /services/faultline-postgres
+          value:
+            image: postgres:16-alpine
+            environment:
+              POSTGRES_USER: faultline
+              POSTGRES_PASSWORD: faultline
+              POSTGRES_DB: faultline
+            volumes:
+              - ../../../services/faultline/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+            networks: [signoz-network]
+            healthcheck:
+              test: ["CMD-SHELL", "pg_isready -U faultline"]
+              interval: 3s
+              timeout: 3s
+              retries: 10
+        - op: add
+          path: /services/faultline-catalog
+          value:
+            build: ../../../services/faultline
+            environment: &faultline-env
+              OTEL_EXPORTER_OTLP_ENDPOINT: http://signoz-ingester:4317
+              OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+              OTEL_TRACES_EXPORTER: otlp
+              OTEL_METRICS_EXPORTER: otlp
+              OTEL_LOGS_EXPORTER: otlp
+              OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED: "true"
+              OTEL_PYTHON_LOG_CORRELATION: "true"
+              OTEL_RESOURCE_ATTRIBUTES: deployment.environment=faultline
+              SERVICE: catalog
+              PORT: "8091"
+              OTEL_SERVICE_NAME: catalog
+              DATABASE_URL: postgresql://faultline:faultline@faultline-postgres:5432/faultline
+            ports: ["8091:8091"]
+            networks: [signoz-network]
+            depends_on:
+              faultline-postgres: { condition: service_healthy }
+        - op: add
+          path: /services/faultline-payments
+          value:
+            build: ../../../services/faultline
+            environment:
+              <<: *faultline-env
+              SERVICE: payments
+              PORT: "8092"
+              OTEL_SERVICE_NAME: payments
+            ports: ["8092:8092"]
+            networks: [signoz-network]
+        - op: add
+          path: /services/faultline-orders
+          value:
+            build: ../../../services/faultline
+            environment:
+              <<: *faultline-env
+              SERVICE: orders
+              PORT: "8093"
+              OTEL_SERVICE_NAME: orders
+              PAYMENTS_URL: http://faultline-payments:8092
+            ports: ["8093:8093"]
+            networks: [signoz-network]
+            depends_on:
+              faultline-postgres: { condition: service_healthy }
+        - op: add
+          path: /services/faultline-gateway
+          value:
+            build: ../../../services/faultline
+            environment:
+              <<: *faultline-env
+              SERVICE: gateway
+              PORT: "8090"
+              OTEL_SERVICE_NAME: gateway
+              CATALOG_URL: http://faultline-catalog:8091
+              ORDERS_URL: http://faultline-orders:8093
+            ports: ["8090:8090"]
+            networks: [signoz-network]
+            depends_on: [faultline-catalog, faultline-orders, faultline-payments]
+        - op: add
+          path: /services/faultline-loadgen
+          value:
+            image: python:3.12-slim
+            command: ["python", "/loadgen.py", "--rps", "1", "--duration", "0"]
+            environment:
+              FAULTLINE_GATEWAY: http://faultline-gateway:8090
+            volumes:
+              - ../../../services/faultline/loadgen.py:/loadgen.py:ro
+            networks: [signoz-network]
+            depends_on: [faultline-gateway]
+            restart: unless-stopped

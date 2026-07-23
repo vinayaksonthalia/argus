@@ -1,0 +1,344 @@
+name: signoz
+networks:
+  signoz-network:
+    name: signoz-network
+services:
+  argus:
+    build:
+      context: ../../..
+      dockerfile: deploy/Dockerfile
+    container_name: argus
+    environment:
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ARGUS_LLM_PROVIDER: ${ARGUS_LLM_PROVIDER:-heuristic}
+      ARGUS_MCP_URL: http://signoz-mcp:8000/mcp
+      ARGUS_TRANSPORT: ${ARGUS_TRANSPORT:-rest}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://signoz-ingester:4318
+      SIGNOZ_API_KEY: ${SIGNOZ_API_KEY:-}
+      SIGNOZ_URL: http://signoz-signoz-0:8080
+    networks:
+    - signoz-network
+    ports:
+    - 7331:7331
+    restart: unless-stopped
+    volumes:
+    - argus-data:/data
+  faultline-catalog:
+    build: ../../../services/faultline
+    depends_on:
+      faultline-postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://faultline:faultline@faultline-postgres:5432/faultline
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://signoz-ingester:4317
+      OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+      OTEL_LOGS_EXPORTER: otlp
+      OTEL_METRICS_EXPORTER: otlp
+      OTEL_PYTHON_LOG_CORRELATION: "true"
+      OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED: "true"
+      OTEL_RESOURCE_ATTRIBUTES: deployment.environment=faultline
+      OTEL_SERVICE_NAME: catalog
+      OTEL_TRACES_EXPORTER: otlp
+      PORT: "8091"
+      SERVICE: catalog
+    networks:
+    - signoz-network
+    ports:
+    - 8091:8091
+  faultline-gateway:
+    build: ../../../services/faultline
+    depends_on:
+    - faultline-catalog
+    - faultline-orders
+    - faultline-payments
+    environment:
+      CATALOG_URL: http://faultline-catalog:8091
+      DATABASE_URL: postgresql://faultline:faultline@faultline-postgres:5432/faultline
+      ORDERS_URL: http://faultline-orders:8093
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://signoz-ingester:4317
+      OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+      OTEL_LOGS_EXPORTER: otlp
+      OTEL_METRICS_EXPORTER: otlp
+      OTEL_PYTHON_LOG_CORRELATION: "true"
+      OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED: "true"
+      OTEL_RESOURCE_ATTRIBUTES: deployment.environment=faultline
+      OTEL_SERVICE_NAME: gateway
+      OTEL_TRACES_EXPORTER: otlp
+      PORT: "8090"
+      SERVICE: gateway
+    networks:
+    - signoz-network
+    ports:
+    - 8090:8090
+  faultline-loadgen:
+    command:
+    - python
+    - /loadgen.py
+    - --rps
+    - "1"
+    - --duration
+    - "0"
+    depends_on:
+    - faultline-gateway
+    environment:
+      FAULTLINE_GATEWAY: http://faultline-gateway:8090
+    image: python:3.12-slim
+    networks:
+    - signoz-network
+    restart: unless-stopped
+    volumes:
+    - ../../../services/faultline/loadgen.py:/loadgen.py:ro
+  faultline-orders:
+    build: ../../../services/faultline
+    depends_on:
+      faultline-postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://faultline:faultline@faultline-postgres:5432/faultline
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://signoz-ingester:4317
+      OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+      OTEL_LOGS_EXPORTER: otlp
+      OTEL_METRICS_EXPORTER: otlp
+      OTEL_PYTHON_LOG_CORRELATION: "true"
+      OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED: "true"
+      OTEL_RESOURCE_ATTRIBUTES: deployment.environment=faultline
+      OTEL_SERVICE_NAME: orders
+      OTEL_TRACES_EXPORTER: otlp
+      PAYMENTS_URL: http://faultline-payments:8092
+      PORT: "8093"
+      SERVICE: orders
+    networks:
+    - signoz-network
+    ports:
+    - 8093:8093
+  faultline-payments:
+    build: ../../../services/faultline
+    environment:
+      DATABASE_URL: postgresql://faultline:faultline@faultline-postgres:5432/faultline
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://signoz-ingester:4317
+      OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+      OTEL_LOGS_EXPORTER: otlp
+      OTEL_METRICS_EXPORTER: otlp
+      OTEL_PYTHON_LOG_CORRELATION: "true"
+      OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED: "true"
+      OTEL_RESOURCE_ATTRIBUTES: deployment.environment=faultline
+      OTEL_SERVICE_NAME: payments
+      OTEL_TRACES_EXPORTER: otlp
+      PORT: "8092"
+      SERVICE: payments
+    networks:
+    - signoz-network
+    ports:
+    - 8092:8092
+  faultline-postgres:
+    environment:
+      POSTGRES_DB: faultline
+      POSTGRES_PASSWORD: faultline
+      POSTGRES_USER: faultline
+    healthcheck:
+      interval: 3s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready -U faultline
+      timeout: 3s
+    image: postgres:16-alpine
+    networks:
+    - signoz-network
+    volumes:
+    - ../../../services/faultline/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+  ingester:
+    command:
+    - -c
+    - |
+      /signoz-otel-collector migrate sync check &&
+      /signoz-otel-collector --config=/etc/otel-collector-config.yaml --manager-config=/etc/opamp-config.yaml --copy-path=/var/tmp/collector-config.yaml
+    entrypoint:
+    - /bin/sh
+    environment:
+    - SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN=tcp://signoz-telemetrystore-clickhouse-0-0:9000
+    - SIGNOZ_OTEL_COLLECTOR_TIMEOUT=10m
+    image: signoz/signoz-otel-collector:latest
+    networks:
+      signoz-network:
+        aliases:
+        - signoz-ingester
+    ports:
+    - 4317:4317
+    - 4318:4318
+    restart: unless-stopped
+    volumes:
+    - ./ingester/ingester.yaml:/etc/otel-collector-config.yaml:ro
+    - ./ingester/opamp.yaml:/etc/opamp-config.yaml:ro
+  signoz-mcp:
+    container_name: signoz-mcp
+    environment:
+    - MCP_SERVER_PORT=8000
+    - SIGNOZ_URL=http://signoz-signoz-0:8080
+    - TRANSPORT_MODE=http
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 30s
+      test:
+      - CMD
+      - wget
+      - --spider
+      - -q
+      - http://localhost:8000/livez
+      timeout: 10s
+    image: signoz/signoz-mcp-server:latest
+    networks:
+    - signoz-network
+    ports:
+    - 8000:8000
+    restart: unless-stopped
+  signoz-metastore-postgres-0:
+    container_name: signoz-metastore-postgres-0
+    environment:
+    - POSTGRES_DB=signoz
+    - POSTGRES_PASSWORD=signoz
+    - POSTGRES_USER=signoz
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 30s
+      test:
+      - CMD-SHELL
+      - pg_isready -U signoz -d signoz
+      timeout: 10s
+    image: postgres:16
+    networks:
+    - signoz-network
+    restart: unless-stopped
+    volumes:
+    - signoz-metastore-postgres-0-data:/var/lib/postgresql/data
+  signoz-signoz-0:
+    container_name: signoz-signoz-0
+    environment:
+    - SIGNOZ_SQLSTORE_POSTGRES_DSN=postgres://signoz:signoz@signoz-metastore-postgres-0:5432/signoz?sslmode=disable
+    - SIGNOZ_SQLSTORE_PROVIDER=postgres
+    - SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN=tcp://signoz-telemetrystore-clickhouse-0-0:9000
+    - SIGNOZ_TELEMETRYSTORE_PROVIDER=clickhouse
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 60s
+      test:
+      - CMD
+      - wget
+      - --spider
+      - -q
+      - http://localhost:8080/api/v1/health
+      timeout: 10s
+    image: signoz/signoz:latest
+    networks:
+    - signoz-network
+    ports:
+    - 8080:8080
+    restart: unless-stopped
+  signoz-telemetrykeeper-clickhousekeeper-0:
+    container_name: signoz-telemetrykeeper-clickhousekeeper-0
+    entrypoint:
+    - /usr/bin/clickhouse-keeper
+    - --config-file=/etc/clickhouse-keeper/keeper.yaml
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 40s
+      test:
+      - CMD
+      - clickhouse-keeper-client
+      - -h
+      - localhost
+      - -p
+      - "9181"
+      - -q
+      - ls
+      timeout: 10s
+    image: clickhouse/clickhouse-keeper:25.12.5
+    networks:
+    - signoz-network
+    restart: unless-stopped
+    volumes:
+    - signoz-telemetrykeeper-0-data:/var/lib/clickhouse-keeper
+    - ./telemetrykeeper/clickhousekeeper/keeper-0.yaml:/etc/clickhouse-keeper/keeper.yaml:ro
+  signoz-telemetrystore-clickhouse-0-0:
+    container_name: signoz-telemetrystore-clickhouse-0-0
+    depends_on:
+      signoz-telemetrykeeper-clickhousekeeper-0:
+        condition: service_healthy
+      signoz-telemetrystore-clickhouse-user-scripts:
+        condition: service_completed_successfully
+    environment:
+    - CLICKHOUSE_SKIP_USER_SETUP=1
+    - CLICKHOUSE_CONFIG=/etc/clickhouse-server/config.yaml
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 40s
+      test:
+      - CMD
+      - wget
+      - --spider
+      - -q
+      - http://localhost:8123/ping
+      timeout: 10s
+    image: clickhouse/clickhouse-server:25.12.5
+    networks:
+    - signoz-network
+    restart: unless-stopped
+    volumes:
+    - signoz-telemetrystore-0-0-data:/var/lib/clickhouse
+    - signoz-telemetrystore-user-scripts:/var/lib/clickhouse/user_scripts:ro
+    - ./telemetrystore/clickhouse/config-0-0.yaml:/etc/clickhouse-server/config.yaml:ro
+    - ./telemetrystore/clickhouse/functions.yaml:/etc/clickhouse-server/functions.yaml:ro
+  signoz-telemetrystore-clickhouse-user-scripts:
+    command:
+    - bash
+    - -c
+    - |-
+      version="v0.0.1"
+      node_os=$$(uname -s | tr '[:upper:]' '[:lower:]')
+      node_arch=$$(uname -m | sed s/aarch64/arm64/ | sed s/x86_64/amd64/)
+      echo "Fetching histogram-binary for $${node_os}/$${node_arch}"
+      cd /tmp
+      wget -O histogram-quantile.tar.gz "https://github.com/SigNoz/signoz/releases/download/histogram-quantile%2F$${version}/histogram-quantile_$${node_os}_$${node_arch}.tar.gz"
+      tar -xvzf histogram-quantile.tar.gz
+      mv histogram-quantile /var/lib/clickhouse/user_scripts/histogramQuantile
+    container_name: signoz-telemetrystore-clickhouse-user-scripts
+    image: clickhouse/clickhouse-server:25.12.5
+    networks:
+    - signoz-network
+    restart: on-failure
+    volumes:
+    - signoz-telemetrystore-user-scripts:/var/lib/clickhouse/user_scripts
+  signoz-telemetrystore-migrator:
+    command:
+    - -c
+    - |
+      /signoz-otel-collector migrate ready &&
+      /signoz-otel-collector migrate bootstrap &&
+      /signoz-otel-collector migrate sync up &&
+      /signoz-otel-collector migrate async up
+    container_name: signoz-telemetrystore-migrator
+    entrypoint:
+    - /bin/sh
+    environment:
+    - SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN=tcp://signoz-telemetrystore-clickhouse-0-0:9000
+    - SIGNOZ_OTEL_COLLECTOR_TIMEOUT=10m
+    image: signoz/signoz-otel-collector:latest
+    networks:
+    - signoz-network
+    restart: on-failure
+volumes:
+  argus-data: {}
+  signoz-metastore-postgres-0-data:
+    name: signoz-metastore-postgres-0-data
+  signoz-telemetrykeeper-0-data:
+    name: signoz-telemetrykeeper-0-data
+  signoz-telemetrystore-0-0-data:
+    name: signoz-telemetrystore-0-0-data
+  signoz-telemetrystore-user-scripts:
+    name: signoz-telemetrystore-user-scripts

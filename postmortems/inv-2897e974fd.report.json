@@ -1,0 +1,139 @@
+{
+  "title": "[DRAFT · ARGUS] meridian-web: A frontend deploy (service.version 1.4.2) introduced a code path that calls .map — unknown",
+  "root_cause": "The meridian-web frontend deploy at version 1.4.2 calls .map() on an API response that is not an array, causing uncaught TypeErrors in the browser. — A new code path in 1.4.2 assumes an API endpoint always returns an array and calls .map() on the response directly; when the API instead returns null/undefined/an object (e.g. error payload or empty-state response), this throws 'map is not a function', surfacing as a browser-side JS exception and log spike. (verified: found 'map is not a function' in 40 matching rows) [Incident memory: similar to past incident inv-51d73b1d78 (similarity 71%) — see 'Similar past incidents'.]",
+  "confidence": 0.6,
+  "impact": "p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x); error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x); throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x)",
+  "timeline": [
+    "21:05:58 UTC — baseline window opens (pre-incident comparison)",
+    "21:35:58 UTC — alert '[DRAFT · ARGUS] meridian-web: A frontend deploy (service.version 1.4.2) introduced a code path that calls .map' started firing",
+    "alert window — p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x)",
+    "alert window — error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x)",
+    "alert window — throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x)",
+    "21:36:28 UTC — ARGUS investigation inv-2897e974fd began",
+    "21:36:47 UTC — hypothesis CONFIRMED: The meridian-web frontend deploy at version 1.4.2 calls .map() on an API response that is not an array, causing uncaught TypeErrors in the browser.",
+    "21:36:47 UTC — hypothesis CONFIRMED: The alert is a false/premature draft — the underlying golden-signal metrics show no measurable change, meaning the .map() errors (if any) are not impacting real traffic or are misattributed."
+  ],
+  "evidence_bullets": [
+    "p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784322358431&endTime=1784324188527|view in SigNoz>)",
+    "error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784322358431&endTime=1784324188527|view in SigNoz>)",
+    "throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784322358431&endTime=1784324188527|view in SigNoz>)",
+    "similar to incident inv-51d73b1d78 (Jul 17, alert 'ARGUS LLM spend rate', service argus, similarity 71%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.",
+    "similar to incident inv-ebc62d8028 (Jul 17, alert 'GLASSPANE: browser error spike', service unknown, similarity 70%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.",
+    "similar to incident inv-8874a6845f (Jul 17, alert 'GLASSPANE: p75 LCP above 4s', service unknown, similarity 67%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.",
+    "incident evidence dashboard auto-created: http://localhost:8080/dashboard/019f7202-b3ca-7cfc-b621-bbdf95aa1f6a",
+    "DRAFT follow-up alert rule proposed (disabled — review & enable): http://localhost:8080/alerts/edit?ruleId=019f7202-b3e7-72d4-b228-b90972d21cb2"
+  ],
+  "refuted": [
+    "The .map() TypeErrors are concentrated in requests/sessions tagged with service.version 1.4.2, confirming the new deploy introduced the faulty code path rather than a pre-existing bug. — 'map is not a function' not found in 0 rows",
+    "A specific backend API endpoint consumed by meridian-web changed its response shape (e.g. from array to paginated object) in a way that is incompatible with the frontend's .map() call, and this is the true root cause upstream of the frontend deploy. — 'map is not a function' not found in 0 rows"
+  ],
+  "links": [
+    "http://localhost:8080/dashboard/019f7202-b3ca-7cfc-b621-bbdf95aa1f6a",
+    "http://localhost:8080/services/unknown?startTime=1784322358431&endTime=1784324188527",
+    "http://localhost:8080/services/unknown?startTime=1784322358431&endTime=1784324188527",
+    "http://localhost:8080/services/unknown?startTime=1784322358431&endTime=1784324188527",
+    "http://localhost:8080/alerts/edit?ruleId=019f7202-b3e7-72d4-b228-b90972d21cb2"
+  ],
+  "slack_blocks": [
+    {
+      "type": "header",
+      "text": {
+        "type": "plain_text",
+        "text": "🟡 RCA: [DRAFT · ARGUS] meridian-web: A frontend deploy (service.version 1.4.2) introduced a code path that calls .map — unknown"
+      }
+    },
+    {
+      "type": "section",
+      "fields": [
+        {
+          "type": "mrkdwn",
+          "text": "*Severity:*  Warning"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Status:*  Needs human review"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Started:*  21:35 UTC"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Duration:*  19s to RCA"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Service:*  unknown"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Confidence:*  60%"
+        }
+      ]
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Root cause (draft — flagged for review):*\nThe meridian-web frontend deploy at version 1.4.2 calls .map() on an API response that is not an array, causing uncaught TypeErrors in the browser. — A new code path in 1.4.2 assumes an API endpoint always returns an array and calls .map() on the response directly; when the API instead returns null/undefined/an object (e.g. error payload or empty-state response), this throws 'map is not a function', surfacing as a browser-side JS exception and log spike. (verified: found 'map is not a function' in 40 matching rows) [Incident memory: similar to past incident inv-51d73b1d78 (similarity 71%) — see 'Similar past incidents'.]"
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Evidence:*\n• p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784322358431&endTime=1784324188527|view in SigNoz>)\n• error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784322358431&endTime=1784324188527|view in SigNoz>)\n• throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784322358431&endTime=1784324188527|view in SigNoz>)\n• similar to incident inv-51d73b1d78 (Jul 17, alert 'ARGUS LLM spend rate', service argus, similarity 71%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.\n• similar to incident inv-ebc62d8028 (Jul 17, alert 'GLASSPANE: browser error spike', service unknown, similarity 70%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.\n• similar to incident inv-8874a6845f (Jul 17, alert 'GLASSPANE: p75 LCP above 4s', service unknown, similarity 67%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required."
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Timeline:*\n• 21:05:58 UTC — baseline window opens (pre-incident comparison)\n• 21:35:58 UTC — alert '[DRAFT · ARGUS] meridian-web: A frontend deploy (service.version 1.4.2) introduced a code path that calls .map' started firing\n• alert window — p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x)\n• alert window — error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x)\n• alert window — throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x)\n• 21:36:28 UTC — ARGUS investigation inv-2897e974fd began"
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Ruled out by verification queries:*\n• ~The .map() TypeErrors are concentrated in requests/sessions tagged with service.version 1.4.2, confirming the new deploy introduced the faulty code path rather than a pre-existing bug. — 'map is not a function' not found in 0 rows~\n• ~A specific backend API endpoint consumed by meridian-web changed its response shape (e.g. from array to paginated object) in a way that is incompatible with the frontend's .map() call, and this is the true root cause upstream of the frontend deploy. — 'map is not a function' not found in 0 rows~"
+      }
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "context",
+      "elements": [
+        {
+          "type": "mrkdwn",
+          "text": "🤖 Drafted by ARGUS · `inv-2897e974fd` · LLM: claude-haiku-4-5-20251001 (live)"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "2/4 hypotheses verified · 1 LLM calls · 6426 tokens · est. $0.0334 · 18 SigNoz queries · 146,741 rows / 16.1 MB scanned · 161 ms query time"
+        }
+      ]
+    },
+    {
+      "type": "actions",
+      "elements": [
+        {
+          "type": "button",
+          "text": {
+            "type": "plain_text",
+            "text": "View in SigNoz"
+          },
+          "url": "http://localhost:8080/services/unknown?startTime=1784322358431&endTime=1784324188527"
+        }
+      ]
+    }
+  ],
+  "degraded": false,
+  "needs_review": true,
+  "llm_label": "claude-haiku-4-5-20251001 (live)",
+  "query_stats": "18 SigNoz queries · 146,741 rows / 16.1 MB scanned · 161 ms query time"
+}

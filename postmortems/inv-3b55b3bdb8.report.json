@@ -1,0 +1,146 @@
+{
+  "title": "ARGUS LLM spend rate — argus",
+  "root_cause": "Individual gen_ai.chat 'sonnet' spans are taking ~22-25s each, indicating oversized prompts/context (e.g. large tool outputs or verbose retrieval payloads) are being sent to the model, driving both latency and token-cost spend per call. — Large input token counts increase both LLM processing time and per-call cost; a single 23s span with no error suggests the call succeeded but processed an unusually large payload, so cost-per-investigation is inflated even at low request volume. (verified: found 'gen_ai.usage.input_tokens' in 10 matching rows)",
+  "confidence": 0.45,
+  "impact": "p99_latency_ms: 0.0ms before -> 25397.6ms after the alert boundary (from ~zero); error_rate: 0.0% before -> 6.7% after the alert boundary (from ~zero); throughput_per_min: 0.0req/min before -> 3.2req/min after the alert boundary (from ~zero)",
+  "timeline": [
+    "20:10:03 UTC — baseline window opens (pre-incident comparison)",
+    "20:40:03 UTC — alert 'ARGUS LLM spend rate' started firing",
+    "alert window — p99_latency_ms: 0.0ms before -> 25397.6ms after the alert boundary (from ~zero)",
+    "alert window — error_rate: 0.0% before -> 6.7% after the alert boundary (from ~zero)",
+    "alert window — throughput_per_min: 0.0req/min before -> 3.2req/min after the alert boundary (from ~zero)",
+    "21:15:33 UTC — ARGUS investigation inv-3b55b3bdb8 began",
+    "21:16:11 UTC — hypothesis CONFIRMED: Individual gen_ai.chat 'sonnet' spans are taking ~22-25s each, indicating oversized prompts/context (e.g. large tool outputs or verbose retrieval payloads) are being sent to the model, driving both latency and token-cost spend per call."
+  ],
+  "evidence_bullets": [
+    "p99_latency_ms: 0.0ms before -> 25397.6ms after the alert boundary (from ~zero) (<http://localhost:8080/services/argus?startTime=1784319003876&endTime=1784322933978|view in SigNoz>)",
+    "error_rate: 0.0% before -> 6.7% after the alert boundary (from ~zero) (<http://localhost:8080/services/argus?startTime=1784319003876&endTime=1784322933978|view in SigNoz>)",
+    "throughput_per_min: 0.0req/min before -> 3.2req/min after the alert boundary (from ~zero) (<http://localhost:8080/services/argus?startTime=1784319003876&endTime=1784322933978|view in SigNoz>)",
+    "exemplar trace 09837f2bc0744d0d…: culprit span 'gen_ai.chat sonnet' (service=argus, 23345ms, error=False) (<http://localhost:8080/trace/09837f2bc0744d0db3dfd18bd3adc86a?spanId=8c3e1927b774e4b4|view in SigNoz>)",
+    "exemplar trace b63c810b4de1a99b…: culprit span 'gen_ai.chat sonnet' (service=argus, 21995ms, error=False) (<http://localhost:8080/trace/b63c810b4de1a99b8b0e17357be7f233?spanId=0d7949c476259001|view in SigNoz>)",
+    "exemplar trace 09837f2bc0744d0d…: culprit span 'gen_ai.chat sonnet' (service=argus, 23345ms, error=False) (<http://localhost:8080/trace/09837f2bc0744d0db3dfd18bd3adc86a?spanId=8c3e1927b774e4b4|view in SigNoz>)",
+    "similar to incident inv-51d73b1d78 (Jul 17, alert 'ARGUS LLM spend rate', service argus, similarity 44%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.",
+    "similar to incident inv-fcdb95f553 (Jul 17, alert 'Faultline catalog p99 latency > 1s', service catalog, similarity 42%): root cause was: An injected/artificial pg_sleep(2.5) call embedded in the products SELECT statement is directly causing the ~2.5s query latency that drives the p99 breach. — The exact SQL text executed contains 'pg_sleep(2.5)' concatenated into the products query, forcing Postgres to block for 2.5s per call regardless of load; since this is synchronous within the request path, it fully explains the ~2.5s span dur",
+    "similar to incident inv-a2a0b2e215 (Jul 16, alert 'ARGUS LLM spend rate', service argus, similarity 42%): root cause was: ARGUS's own self-query to the 'changes.deployments' query_range API is malformed, causing repeated failed 400 requests that retry and inflate both throughput and LLM investigation spend. — Each investigation triggers a query_range call for deployment changes; a bad request parameter (e.g. invalid time range or filter syntax) causes a 400 Bad Request. ARGUS likely retries or re-invokes the LLM to r",
+    "incident evidence dashboard auto-created: http://localhost:8080/dashboard/019f71ef-d89a-73e6-9305-6888b64a54e1",
+    "DRAFT follow-up alert rule proposed (disabled — review & enable): http://localhost:8080/alerts/edit?ruleId=019f71ef-d8b3-7215-a009-d12bee854c03"
+  ],
+  "refuted": [
+    "A malformed self-query from ARGUS to the changes.deployments query_range API is causing repeated 400 errors, triggering retries that re-invoke the LLM and inflate spend (recurrence of inv-a2a0b2e215). — 0 rows (need > 0.0)",
+    "Investigation throughput itself (3.2 req/min, each triggering an LLM call) is simply higher than the budget assumes, i.e., volume-driven overspend rather than any single call anomaly. — count() = 10.00 (need > 150.0)",
+    "The 6.7% error rate reflects a subset of investigations retrying the LLM call after failure (e.g. timeout or malformed tool response), so each retried investigation incurs 2x+ LLM cost, inflating total spend without inflating raw throughput. — count() = 0.00 (need > 1.0)",
+    "ARGUS is invoking a more expensive/larger model variant (sonnet with extended reasoning or larger max_tokens) than the budget assumes, so cost-per-call — not call count or errors — exceeds threshold. — 'gen_ai.request.max_tokens' not found in 10 rows"
+  ],
+  "links": [
+    "http://localhost:8080/dashboard/019f71ef-d89a-73e6-9305-6888b64a54e1",
+    "http://localhost:8080/services/argus?startTime=1784319003876&endTime=1784322933978",
+    "http://localhost:8080/services/argus?startTime=1784319003876&endTime=1784322933978",
+    "http://localhost:8080/services/argus?startTime=1784319003876&endTime=1784322933978",
+    "http://localhost:8080/trace/09837f2bc0744d0db3dfd18bd3adc86a?spanId=8c3e1927b774e4b4",
+    "http://localhost:8080/trace/b63c810b4de1a99b8b0e17357be7f233?spanId=0d7949c476259001",
+    "http://localhost:8080/trace/09837f2bc0744d0db3dfd18bd3adc86a?spanId=8c3e1927b774e4b4",
+    "http://localhost:8080/alerts/edit?ruleId=019f71ef-d8b3-7215-a009-d12bee854c03"
+  ],
+  "slack_blocks": [
+    {
+      "type": "header",
+      "text": {
+        "type": "plain_text",
+        "text": "🟡 RCA: ARGUS LLM spend rate — argus"
+      }
+    },
+    {
+      "type": "section",
+      "fields": [
+        {
+          "type": "mrkdwn",
+          "text": "*Severity:*  Warning"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Status:*  Needs human review"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Started:*  20:40 UTC"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Duration:*  38s to RCA"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Service:*  argus"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Confidence:*  45%"
+        }
+      ]
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Root cause (draft — flagged for review):*\nIndividual gen_ai.chat 'sonnet' spans are taking ~22-25s each, indicating oversized prompts/context (e.g. large tool outputs or verbose retrieval payloads) are being sent to the model, driving both latency and token-cost spend per call. — Large input token counts increase both LLM processing time and per-call cost; a single 23s span with no error suggests the call succeeded but processed an unusually large payload, so cost-per-investigation is inflated even at low request volume. (verified: found 'gen_ai.usage.input_tokens' in 10 matching rows)"
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Evidence:*\n• p99_latency_ms: 0.0ms before -> 25397.6ms after the alert boundary (from ~zero) (<http://localhost:8080/services/argus?startTime=1784319003876&endTime=1784322933978|view in SigNoz>)\n• error_rate: 0.0% before -> 6.7% after the alert boundary (from ~zero) (<http://localhost:8080/services/argus?startTime=1784319003876&endTime=1784322933978|view in SigNoz>)\n• throughput_per_min: 0.0req/min before -> 3.2req/min after the alert boundary (from ~zero) (<http://localhost:8080/services/argus?startTime=1784319003876&endTime=1784322933978|view in SigNoz>)\n• exemplar trace 09837f2bc0744d0d…: culprit span 'gen_ai.chat sonnet' (service=argus, 23345ms, error=False) (<http://localhost:8080/trace/09837f2bc0744d0db3dfd18bd3adc86a?spanId=8c3e1927b774e4b4|view in SigNoz>)\n• exemplar trace b63c810b4de1a99b…: culprit span 'gen_ai.chat sonnet' (service=argus, 21995ms, error=False) (<http://localhost:8080/trace/b63c810b4de1a99b8b0e17357be7f233?spanId=0d7949c476259001|view in SigNoz>)\n• exemplar trace 09837f2bc0744d0d…: culprit span 'gen_ai.chat sonnet' (service=argus, 23345ms, error=False) (<http://localhost:8080/trace/09837f2bc0744d0db3dfd18bd3adc86a?spanId=8c3e1927b774e4b4|view in SigNoz>)\n• similar to incident inv-51d73b1d78 (Jul 17, alert 'ARGUS LLM spend rate', service argus, similarity 44%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.\n• similar to incident inv-fcdb95f553 (Jul 17, alert 'Faultline catalog p99 latency > 1s', service catalog, similarity 42%): root cause was: An injected/artificial pg_sleep(2.5) call embedded in the products SELECT statement is directly causing the ~2.5s query latency that drives the p99 breach. — The exact SQL text executed contains 'pg_sleep(2.5)' concatenated into the products query, forcing Postgres to block for 2.5s per call regardless of load; since this is synchronous within the request path, it fully explains the ~2.5s span dur"
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Timeline:*\n• 20:10:03 UTC — baseline window opens (pre-incident comparison)\n• 20:40:03 UTC — alert 'ARGUS LLM spend rate' started firing\n• alert window — p99_latency_ms: 0.0ms before -> 25397.6ms after the alert boundary (from ~zero)\n• alert window — error_rate: 0.0% before -> 6.7% after the alert boundary (from ~zero)\n• alert window — throughput_per_min: 0.0req/min before -> 3.2req/min after the alert boundary (from ~zero)\n• 21:15:33 UTC — ARGUS investigation inv-3b55b3bdb8 began"
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Ruled out by verification queries:*\n• ~A malformed self-query from ARGUS to the changes.deployments query_range API is causing repeated 400 errors, triggering retries that re-invoke the LLM and inflate spend (recurrence of inv-a2a0b2e215). — 0 rows (need > 0.0)~\n• ~Investigation throughput itself (3.2 req/min, each triggering an LLM call) is simply higher than the budget assumes, i.e., volume-driven overspend rather than any single call anomaly. — count() = 10.00 (need > 150.0)~\n• ~The 6.7% error rate reflects a subset of investigations retrying the LLM call after failure (e.g. timeout or malformed tool response), so each retried investigation incurs 2x+ LLM cost, inflating total spend without inflating raw throughput. — count() = 0.00 (need > 1.0)~\n• ~ARGUS is invoking a more expensive/larger model variant (sonnet with extended reasoning or larger max_tokens) than the budget assumes, so cost-per-call — not call count or errors — exceeds threshold. — 'gen_ai.request.max_tokens' not found in 10 rows~"
+      }
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "context",
+      "elements": [
+        {
+          "type": "mrkdwn",
+          "text": "🤖 Drafted by ARGUS · `inv-3b55b3bdb8` · LLM: claude-haiku-4-5-20251001 (live)"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "1/5 hypotheses verified · 2 LLM calls · 12192 tokens · est. $0.0636 · 24 SigNoz queries · 233,925 rows / 21.3 MB scanned · 164 ms query time"
+        }
+      ]
+    },
+    {
+      "type": "actions",
+      "elements": [
+        {
+          "type": "button",
+          "text": {
+            "type": "plain_text",
+            "text": "View in SigNoz"
+          },
+          "url": "http://localhost:8080/services/argus?startTime=1784319003876&endTime=1784322933978"
+        }
+      ]
+    }
+  ],
+  "degraded": false,
+  "needs_review": true,
+  "llm_label": "claude-haiku-4-5-20251001 (live)",
+  "query_stats": "24 SigNoz queries · 233,925 rows / 21.3 MB scanned · 164 ms query time"
+}

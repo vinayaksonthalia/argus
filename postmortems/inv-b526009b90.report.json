@@ -1,0 +1,139 @@
+{
+  "title": "[DRAFT · ARGUS] unknown: The meridian-web frontend deploy at version 1.4.2 calls .map() on an API respons — unknown",
+  "root_cause": "The meridian-web 1.4.2 frontend deploy calls .map() on an API response payload that is not an array, causing uncaught 'map is not a function' TypeErrors in the browser. — A backend response shape change (e.g., object/error wrapper instead of array, or paginated envelope) was not matched by frontend code, so array methods like .map() throw when invoked on non-array data, surfacing as client-side JS exceptions logged from the browser. (verified: found 'map is not a function' in 40 matching rows) [Incident memory: similar to past incident inv-ebc62d8028 (similarity 71%) — see 'Similar past incidents'.]",
+  "confidence": 0.55,
+  "impact": "p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x); error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x); throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x)",
+  "timeline": [
+    "21:07:16 UTC — baseline window opens (pre-incident comparison)",
+    "21:37:16 UTC — alert '[DRAFT · ARGUS] unknown: The meridian-web frontend deploy at version 1.4.2 calls .map() on an API respons' started firing",
+    "alert window — p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x)",
+    "alert window — error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x)",
+    "alert window — throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x)",
+    "21:37:46 UTC — ARGUS investigation inv-b526009b90 began",
+    "21:38:12 UTC — hypothesis CONFIRMED: The meridian-web 1.4.2 frontend deploy calls .map() on an API response payload that is not an array, causing uncaught 'map is not a function' TypeErrors in the browser.",
+    "21:38:12 UTC — hypothesis CONFIRMED: The golden-signal metrics (p99 latency, error rate, throughput) are all reporting 0.0 because they are not scoped to the 'unknown'/meridian-web service, meaning the alert's own metric evidence is inconclusive/misconfigured rather than confirming or refuting the .map() claim.",
+    "21:38:12 UTC — hypothesis CONFIRMED: This is a duplicate/false-positive pattern consistent with prior unresolved GLASSPANE browser-error-spike investigations (inv-ebc62d8028, inv-8874a6845f), suggesting a recurring, unverified browser-error alerting issue rather than a new confirmed root cause."
+  ],
+  "evidence_bullets": [
+    "p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784322436442&endTime=1784324266576|view in SigNoz>)",
+    "error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784322436442&endTime=1784324266576|view in SigNoz>)",
+    "throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784322436442&endTime=1784324266576|view in SigNoz>)",
+    "similar to incident inv-ebc62d8028 (Jul 17, alert 'GLASSPANE: browser error spike', service unknown, similarity 71%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.",
+    "similar to incident inv-51d73b1d78 (Jul 17, alert 'ARGUS LLM spend rate', service argus, similarity 70%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.",
+    "similar to incident inv-8874a6845f (Jul 17, alert 'GLASSPANE: p75 LCP above 4s', service unknown, similarity 68%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.",
+    "incident evidence dashboard auto-created: http://localhost:8080/dashboard/019f7203-fee3-7539-8579-9ec77f929baf",
+    "DRAFT follow-up alert rule proposed (disabled — review & enable): http://localhost:8080/alerts/edit?ruleId=019f7203-fefb-7038-848c-bc1637c6ae46"
+  ],
+  "refuted": [
+    "The error rate is elevated specifically for requests/sessions tagged with service.version 1.4.2, isolating the regression to that deploy. — count() = 0.00 (need > 0.0)"
+  ],
+  "links": [
+    "http://localhost:8080/dashboard/019f7203-fee3-7539-8579-9ec77f929baf",
+    "http://localhost:8080/services/unknown?startTime=1784322436442&endTime=1784324266576",
+    "http://localhost:8080/services/unknown?startTime=1784322436442&endTime=1784324266576",
+    "http://localhost:8080/services/unknown?startTime=1784322436442&endTime=1784324266576",
+    "http://localhost:8080/alerts/edit?ruleId=019f7203-fefb-7038-848c-bc1637c6ae46"
+  ],
+  "slack_blocks": [
+    {
+      "type": "header",
+      "text": {
+        "type": "plain_text",
+        "text": "🟡 RCA: [DRAFT · ARGUS] unknown: The meridian-web frontend deploy at version 1.4.2 calls .map() on an API respons — unknown"
+      }
+    },
+    {
+      "type": "section",
+      "fields": [
+        {
+          "type": "mrkdwn",
+          "text": "*Severity:*  Warning"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Status:*  Needs human review"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Started:*  21:37 UTC"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Duration:*  26s to RCA"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Service:*  unknown"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Confidence:*  55%"
+        }
+      ]
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Root cause (draft — flagged for review):*\nThe meridian-web 1.4.2 frontend deploy calls .map() on an API response payload that is not an array, causing uncaught 'map is not a function' TypeErrors in the browser. — A backend response shape change (e.g., object/error wrapper instead of array, or paginated envelope) was not matched by frontend code, so array methods like .map() throw when invoked on non-array data, surfacing as client-side JS exceptions logged from the browser. (verified: found 'map is not a function' in 40 matching rows) [Incident memory: similar to past incident inv-ebc62d8028 (similarity 71%) — see 'Similar past incidents'.]"
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Evidence:*\n• p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784322436442&endTime=1784324266576|view in SigNoz>)\n• error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784322436442&endTime=1784324266576|view in SigNoz>)\n• throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784322436442&endTime=1784324266576|view in SigNoz>)\n• similar to incident inv-ebc62d8028 (Jul 17, alert 'GLASSPANE: browser error spike', service unknown, similarity 71%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.\n• similar to incident inv-51d73b1d78 (Jul 17, alert 'ARGUS LLM spend rate', service argus, similarity 70%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.\n• similar to incident inv-8874a6845f (Jul 17, alert 'GLASSPANE: p75 LCP above 4s', service unknown, similarity 68%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required."
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Timeline:*\n• 21:07:16 UTC — baseline window opens (pre-incident comparison)\n• 21:37:16 UTC — alert '[DRAFT · ARGUS] unknown: The meridian-web frontend deploy at version 1.4.2 calls .map() on an API respons' started firing\n• alert window — p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x)\n• alert window — error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x)\n• alert window — throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x)\n• 21:37:46 UTC — ARGUS investigation inv-b526009b90 began"
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Ruled out by verification queries:*\n• ~The error rate is elevated specifically for requests/sessions tagged with service.version 1.4.2, isolating the regression to that deploy. — count() = 0.00 (need > 0.0)~"
+      }
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "context",
+      "elements": [
+        {
+          "type": "mrkdwn",
+          "text": "🤖 Drafted by ARGUS · `inv-b526009b90` · LLM: claude-haiku-4-5-20251001 (live)"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "3/4 hypotheses verified · 1 LLM calls · 6683 tokens · est. $0.0369 · 18 SigNoz queries · 71,820 rows / 15.1 MB scanned · 117 ms query time"
+        }
+      ]
+    },
+    {
+      "type": "actions",
+      "elements": [
+        {
+          "type": "button",
+          "text": {
+            "type": "plain_text",
+            "text": "View in SigNoz"
+          },
+          "url": "http://localhost:8080/services/unknown?startTime=1784322436442&endTime=1784324266576"
+        }
+      ]
+    }
+  ],
+  "degraded": false,
+  "needs_review": true,
+  "llm_label": "claude-haiku-4-5-20251001 (live)",
+  "query_stats": "18 SigNoz queries · 71,820 rows / 15.1 MB scanned · 117 ms query time"
+}

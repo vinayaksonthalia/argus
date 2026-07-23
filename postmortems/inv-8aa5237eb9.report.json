@@ -1,0 +1,138 @@
+{
+  "title": "GLASSPANE: p75 INP regression by route — unknown",
+  "root_cause": "The alert is a false positive caused by low-sample-size skew in the p75 INP calculation on route '/', consistent with a prior confirmed identical incident. — With very low throughput (evidence shows 0.0 req/min), percentile metrics like p75 are dominated by one or two outlier interactions from a single user/session, pushing the value over the 500ms threshold without any systemic backend or frontend regression. The alert's own 'Current value: 85 ms' is already below threshold, supporting transient skew. (verified: count() = 0.00 (need < 20.0)) [Incident memory: similar to past incident inv-8874a6845f (similarity 77%) — see 'Similar past incidents'.]",
+  "confidence": 0.6,
+  "impact": "p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x); error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x); throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x)",
+  "timeline": [
+    "20:38:01 UTC — baseline window opens (pre-incident comparison)",
+    "21:08:01 UTC — alert 'GLASSPANE: p75 INP regression by route' started firing",
+    "alert window — p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x)",
+    "alert window — error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x)",
+    "alert window — throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x)",
+    "21:08:31 UTC — ARGUS investigation inv-8aa5237eb9 began",
+    "21:08:48 UTC — hypothesis CONFIRMED: The alert is a false positive caused by low-sample-size skew in the p75 INP calculation on route '/', consistent with a prior confirmed identical incident."
+  ],
+  "evidence_bullets": [
+    "p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784320681862&endTime=1784322511979|view in SigNoz>)",
+    "error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784320681862&endTime=1784322511979|view in SigNoz>)",
+    "throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784320681862&endTime=1784322511979|view in SigNoz>)",
+    "similar to incident inv-8874a6845f (Jul 17, alert 'GLASSPANE: p75 LCP above 4s', service unknown, similarity 77%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.",
+    "similar to incident inv-51d73b1d78 (Jul 17, alert 'ARGUS LLM spend rate', service argus, similarity 71%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.",
+    "similar to incident inv-a4bb985ac5 (Jul 17, alert 'GLASSPANE: p75 INP regression by route', service unknown, similarity 58%): root cause was: The alert is a false positive caused by insufficient sample size (low traffic) on route '/', where a small number of slow interactions skewed the p75 calculation. — With low throughput, percentile calculations are highly sensitive to individual outlier samples; a handful of slow interactions from a single user/session could push p75 over threshold without indicating a systemic regression. (verifie",
+    "incident evidence dashboard auto-created: http://localhost:8080/dashboard/019f71e9-1485-7c79-8a2e-006ab3910a83",
+    "DRAFT follow-up alert rule proposed (disabled — review & enable): http://localhost:8080/alerts/edit?ruleId=019f71e9-14a1-763f-a610-a64748ff6683"
+  ],
+  "refuted": [
+    "There is no real backend service degradation associated with this alert; golden signals are flat/zero across the boundary. — verification failed to run: Client error '404 Not Found' for url 'http://localhost:8080/api/v5/query_range'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404",
+    "A single slow client-side interaction (e.g., heavy JS execution or long task) on route '/' caused the transient p75 INP spike. — verification failed to run: Client error '400 Bad Request' for url 'http://localhost:8080/api/v5/query_range'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400"
+  ],
+  "links": [
+    "http://localhost:8080/dashboard/019f71e9-1485-7c79-8a2e-006ab3910a83",
+    "http://localhost:8080/services/unknown?startTime=1784320681862&endTime=1784322511979",
+    "http://localhost:8080/services/unknown?startTime=1784320681862&endTime=1784322511979",
+    "http://localhost:8080/services/unknown?startTime=1784320681862&endTime=1784322511979",
+    "http://localhost:8080/alerts/edit?ruleId=019f71e9-14a1-763f-a610-a64748ff6683"
+  ],
+  "slack_blocks": [
+    {
+      "type": "header",
+      "text": {
+        "type": "plain_text",
+        "text": "🔴 RCA: GLASSPANE: p75 INP regression by route — unknown"
+      }
+    },
+    {
+      "type": "section",
+      "fields": [
+        {
+          "type": "mrkdwn",
+          "text": "*Severity:*  Critical"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Status:*  Needs human review"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Started:*  21:08 UTC"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Duration:*  16s to RCA"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Service:*  unknown"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Confidence:*  60%"
+        }
+      ]
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Root cause (draft — flagged for review):*\nThe alert is a false positive caused by low-sample-size skew in the p75 INP calculation on route '/', consistent with a prior confirmed identical incident. — With very low throughput (evidence shows 0.0 req/min), percentile metrics like p75 are dominated by one or two outlier interactions from a single user/session, pushing the value over the 500ms threshold without any systemic backend or frontend regression. The alert's own 'Current value: 85 ms' is already below threshold, supporting transient skew. (verified: count() = 0.00 (need < 20.0)) [Incident memory: similar to past incident inv-8874a6845f (similarity 77%) — see 'Similar past incidents'.]"
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Evidence:*\n• p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784320681862&endTime=1784322511979|view in SigNoz>)\n• error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784320681862&endTime=1784322511979|view in SigNoz>)\n• throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784320681862&endTime=1784322511979|view in SigNoz>)\n• similar to incident inv-8874a6845f (Jul 17, alert 'GLASSPANE: p75 LCP above 4s', service unknown, similarity 77%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.\n• similar to incident inv-51d73b1d78 (Jul 17, alert 'ARGUS LLM spend rate', service argus, similarity 71%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.\n• similar to incident inv-a4bb985ac5 (Jul 17, alert 'GLASSPANE: p75 INP regression by route', service unknown, similarity 58%): root cause was: The alert is a false positive caused by insufficient sample size (low traffic) on route '/', where a small number of slow interactions skewed the p75 calculation. — With low throughput, percentile calculations are highly sensitive to individual outlier samples; a handful of slow interactions from a single user/session could push p75 over threshold without indicating a systemic regression. (verifie"
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Timeline:*\n• 20:38:01 UTC — baseline window opens (pre-incident comparison)\n• 21:08:01 UTC — alert 'GLASSPANE: p75 INP regression by route' started firing\n• alert window — p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x)\n• alert window — error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x)\n• alert window — throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x)\n• 21:08:31 UTC — ARGUS investigation inv-8aa5237eb9 began"
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Ruled out by verification queries:*\n• ~There is no real backend service degradation associated with this alert; golden signals are flat/zero across the boundary. — verification failed to run: Client error '404 Not Found' for url 'http://localhost:8080/api/v5/query_range'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404~\n• ~A single slow client-side interaction (e.g., heavy JS execution or long task) on route '/' caused the transient p75 INP spike. — verification failed to run: Client error '400 Bad Request' for url 'http://localhost:8080/api/v5/query_range'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400~"
+      }
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "context",
+      "elements": [
+        {
+          "type": "mrkdwn",
+          "text": "🤖 Drafted by ARGUS · `inv-8aa5237eb9` · LLM: claude-haiku-4-5-20251001 (live)"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "1/3 hypotheses verified · 1 LLM calls · 5345 tokens · est. $0.0244 · 15 SigNoz queries · 0 rows / 0.0 MB scanned · 89 ms query time"
+        }
+      ]
+    },
+    {
+      "type": "actions",
+      "elements": [
+        {
+          "type": "button",
+          "text": {
+            "type": "plain_text",
+            "text": "View in SigNoz"
+          },
+          "url": "http://localhost:8080/services/unknown?startTime=1784320681862&endTime=1784322511979"
+        }
+      ]
+    }
+  ],
+  "degraded": false,
+  "needs_review": true,
+  "llm_label": "claude-haiku-4-5-20251001 (live)",
+  "query_stats": "15 SigNoz queries · 0 rows / 0.0 MB scanned · 89 ms query time"
+}

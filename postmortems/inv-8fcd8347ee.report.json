@@ -1,0 +1,138 @@
+{
+  "title": "[DRAFT · ARGUS] catalog: A specific slow child span (e.g., a database query) inside catalog's handling of — unknown",
+  "root_cause": "Reduced throughput and any latency figures observed are symptomatic of client-side backoff, not caused by catalog-side errors. — If clients or the load balancer back off/retry after slow responses, throughput drops, but this doesn't reflect a server-side failure since error rate remains 0%; this hypothesis is a check to rule out timeout/502-driven explanations for the pattern. (verified: count() = 0.00 (need < 1.0))",
+  "confidence": 0.15,
+  "impact": "p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x); error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x); throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x)",
+  "timeline": [
+    "12:54:05 UTC — baseline window opens (pre-incident comparison)",
+    "13:24:05 UTC — alert '[DRAFT · ARGUS] catalog: A specific slow child span (e.g., a database query) inside catalog's handling of' started firing",
+    "alert window — p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x)",
+    "alert window — error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x)",
+    "alert window — throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x)",
+    "13:24:35 UTC — ARGUS investigation inv-8fcd8347ee began",
+    "13:24:53 UTC — hypothesis CONFIRMED: Reduced throughput and any latency figures observed are symptomatic of client-side backoff, not caused by catalog-side errors."
+  ],
+  "evidence_bullets": [
+    "p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784292845396&endTime=1784294675530|view in SigNoz>)",
+    "error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784292845396&endTime=1784294675530|view in SigNoz>)",
+    "throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784292845396&endTime=1784294675530|view in SigNoz>)",
+    "similar to incident inv-4f5067e229 (Jul 17, alert 'Faultline catalog p99 latency > 1s', service catalog, similarity 36%): root cause was: A specific slow child span (e.g., a database query) inside catalog's handling of GET /products is the bottleneck causing the p99 breach. — Within the catalog service's trace, one child span (likely a DB call) dominates total request duration; this would explain why gateway-observed latency for /api/products and /api/products/{id} is ~2.5s while error rate remains 0%, since the request completes su",
+    "similar to incident inv-5736466ee5 (Jul 16, alert 'Faultline catalog p99 latency > 1s', service catalog, similarity 29%): root cause was: The catalog service's /products endpoint is consistently slow due to an inefficient downstream call or query, independent of load, causing sustained ~2.3s p99 latency. — A fixed-cost slow operation (e.g., unindexed DB query, slow dependency call) on the /products path adds ~2s latency to every request; since latency stayed flat (2278ms->2306ms) even as throughput halved, the slowness is not load-d",
+    "similar to incident inv-58c6674b76 (Jul 16, alert 'Faultline catalog p99 latency > 1s', service catalog, similarity 28%): root cause was: Reduced throughput is a symptom (clients/load balancer backing off or timing out) rather than a cause, and error rate staying flat at 0% rules out timeout/502-driven explanations seen in prior similar incidents. — Because error_rate remained 0.0% before and after (no 502s), the gateway is not aborting due to timeout thresholds being exceeded, distinguishing this incident from the two lower-similar",
+    "incident evidence dashboard auto-created: http://localhost:8080/dashboard/019f7040-5c12-77cf-82f6-f26782e89b83",
+    "DRAFT follow-up alert rule proposed (disabled — review & enable): http://localhost:8080/alerts/edit?ruleId=019f7040-5c2b-75b8-91df-4fb8a49f3ede"
+  ],
+  "refuted": [
+    "A specific slow child span (e.g., a database query) inside catalog's GET /products handling dominates request duration and causes the p99 breach. — 20 rows (need > 1500.0)",
+    "The slow child span is a fixed-cost inefficient query/dependency call, independent of load, not a load-driven contention issue. — verification failed to run: Client error '404 Not Found' for url 'http://localhost:8080/api/v5/query_range'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404"
+  ],
+  "links": [
+    "http://localhost:8080/dashboard/019f7040-5c12-77cf-82f6-f26782e89b83",
+    "http://localhost:8080/services/unknown?startTime=1784292845396&endTime=1784294675530",
+    "http://localhost:8080/services/unknown?startTime=1784292845396&endTime=1784294675530",
+    "http://localhost:8080/services/unknown?startTime=1784292845396&endTime=1784294675530",
+    "http://localhost:8080/alerts/edit?ruleId=019f7040-5c2b-75b8-91df-4fb8a49f3ede"
+  ],
+  "slack_blocks": [
+    {
+      "type": "header",
+      "text": {
+        "type": "plain_text",
+        "text": "🟡 RCA: [DRAFT · ARGUS] catalog: A specific slow child span (e.g., a database query) inside catalog's handling of — unknown"
+      }
+    },
+    {
+      "type": "section",
+      "fields": [
+        {
+          "type": "mrkdwn",
+          "text": "*Severity:*  Warning"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Status:*  Needs human review"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Started:*  13:24 UTC"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Duration:*  18s to RCA"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Service:*  unknown"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Confidence:*  15%"
+        }
+      ]
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Root cause (draft — flagged for review):*\nReduced throughput and any latency figures observed are symptomatic of client-side backoff, not caused by catalog-side errors. — If clients or the load balancer back off/retry after slow responses, throughput drops, but this doesn't reflect a server-side failure since error rate remains 0%; this hypothesis is a check to rule out timeout/502-driven explanations for the pattern. (verified: count() = 0.00 (need < 1.0))"
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Evidence:*\n• p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784292845396&endTime=1784294675530|view in SigNoz>)\n• error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784292845396&endTime=1784294675530|view in SigNoz>)\n• throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784292845396&endTime=1784294675530|view in SigNoz>)\n• similar to incident inv-4f5067e229 (Jul 17, alert 'Faultline catalog p99 latency > 1s', service catalog, similarity 36%): root cause was: A specific slow child span (e.g., a database query) inside catalog's handling of GET /products is the bottleneck causing the p99 breach. — Within the catalog service's trace, one child span (likely a DB call) dominates total request duration; this would explain why gateway-observed latency for /api/products and /api/products/{id} is ~2.5s while error rate remains 0%, since the request completes su\n• similar to incident inv-5736466ee5 (Jul 16, alert 'Faultline catalog p99 latency > 1s', service catalog, similarity 29%): root cause was: The catalog service's /products endpoint is consistently slow due to an inefficient downstream call or query, independent of load, causing sustained ~2.3s p99 latency. — A fixed-cost slow operation (e.g., unindexed DB query, slow dependency call) on the /products path adds ~2s latency to every request; since latency stayed flat (2278ms->2306ms) even as throughput halved, the slowness is not load-d\n• similar to incident inv-58c6674b76 (Jul 16, alert 'Faultline catalog p99 latency > 1s', service catalog, similarity 28%): root cause was: Reduced throughput is a symptom (clients/load balancer backing off or timing out) rather than a cause, and error rate staying flat at 0% rules out timeout/502-driven explanations seen in prior similar incidents. — Because error_rate remained 0.0% before and after (no 502s), the gateway is not aborting due to timeout thresholds being exceeded, distinguishing this incident from the two lower-similar"
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Timeline:*\n• 12:54:05 UTC — baseline window opens (pre-incident comparison)\n• 13:24:05 UTC — alert '[DRAFT · ARGUS] catalog: A specific slow child span (e.g., a database query) inside catalog's handling of' started firing\n• alert window — p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x)\n• alert window — error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x)\n• alert window — throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x)\n• 13:24:35 UTC — ARGUS investigation inv-8fcd8347ee began"
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Ruled out by verification queries:*\n• ~A specific slow child span (e.g., a database query) inside catalog's GET /products handling dominates request duration and causes the p99 breach. — 20 rows (need > 1500.0)~\n• ~The slow child span is a fixed-cost inefficient query/dependency call, independent of load, not a load-driven contention issue. — verification failed to run: Client error '404 Not Found' for url 'http://localhost:8080/api/v5/query_range'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404~"
+      }
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "context",
+      "elements": [
+        {
+          "type": "mrkdwn",
+          "text": "🤖 Drafted by ARGUS · `inv-8fcd8347ee` · LLM: claude-haiku-4-5-20251001 (live)"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "1/3 hypotheses verified · 1 LLM calls · 6320 tokens · est. $0.0298 · 15 SigNoz queries · 126,531 rows / 9.2 MB scanned · 131 ms query time"
+        }
+      ]
+    },
+    {
+      "type": "actions",
+      "elements": [
+        {
+          "type": "button",
+          "text": {
+            "type": "plain_text",
+            "text": "View in SigNoz"
+          },
+          "url": "http://localhost:8080/services/unknown?startTime=1784292845396&endTime=1784294675530"
+        }
+      ]
+    }
+  ],
+  "degraded": false,
+  "needs_review": true,
+  "llm_label": "claude-haiku-4-5-20251001 (live)",
+  "query_stats": "15 SigNoz queries · 126,531 rows / 9.2 MB scanned · 131 ms query time"
+}

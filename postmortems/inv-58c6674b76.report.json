@@ -1,0 +1,147 @@
+{
+  "title": "Faultline catalog p99 latency > 1s — catalog",
+  "root_cause": "Reduced throughput is a symptom (clients/load balancer backing off or timing out) rather than a cause, and error rate staying flat at 0% rules out timeout/502-driven explanations seen in prior similar incidents. — Because error_rate remained 0.0% before and after (no 502s), the gateway is not aborting due to timeout thresholds being exceeded, distinguishing this incident from the two lower-similarity historical timeout-driven root causes; throughput drop is likely a downstream effect of clients/retries backing off from slow responses. (verified: count() = 0.00 (need < 1.0)) [Incident memory: similar to past incident inv-5736466ee5 (similarity 77%) — see 'Similar past incidents'.]",
+  "confidence": 0.4,
+  "impact": "p99_latency_ms: 2305.2ms before -> 2298.1ms after the alert boundary (1.0x); error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x); throughput_per_min: 105.6req/min before -> 44.5req/min after the alert boundary (0.4x)",
+  "timeline": [
+    "22:56:07 UTC — baseline window opens (pre-incident comparison)",
+    "23:26:07 UTC — alert 'Faultline catalog p99 latency > 1s' started firing",
+    "alert window — p99_latency_ms: 2305.2ms before -> 2298.1ms after the alert boundary (1.0x)",
+    "alert window — error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x)",
+    "alert window — throughput_per_min: 105.6req/min before -> 44.5req/min after the alert boundary (0.4x)",
+    "23:27:08 UTC — ARGUS investigation inv-58c6674b76 began",
+    "23:27:30 UTC — hypothesis CONFIRMED: Reduced throughput is a symptom (clients/load balancer backing off or timing out) rather than a cause, and error rate staying flat at 0% rules out timeout/502-driven explanations seen in prior similar incidents."
+  ],
+  "evidence_bullets": [
+    "p99_latency_ms: 2305.2ms before -> 2298.1ms after the alert boundary (1.0x) (<http://localhost:8080/services/catalog?startTime=1784242567961&endTime=1784244428097|view in SigNoz>)",
+    "error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x) (<http://localhost:8080/services/catalog?startTime=1784242567961&endTime=1784244428097|view in SigNoz>)",
+    "throughput_per_min: 105.6req/min before -> 44.5req/min after the alert boundary (0.4x) (<http://localhost:8080/services/catalog?startTime=1784242567961&endTime=1784244428097|view in SigNoz>)",
+    "exemplar trace f13670a6f1f7d788…: culprit span 'GET /api/products' (service=gateway, 2648ms, error=False) | http.route=/api/products; http.status_code=200; http.url=http://localhost:8090/api/products (<http://localhost:8080/trace/f13670a6f1f7d78807dd7fa31c27aa79?spanId=980164cfbb8d72eb|view in SigNoz>)",
+    "exemplar trace 9b3d6ce0cb5a59ba…: culprit span 'GET /api/products' (service=gateway, 2579ms, error=False) | http.route=/api/products; http.status_code=200; http.url=http://localhost:8090/api/products (<http://localhost:8080/trace/9b3d6ce0cb5a59bab7be697d403e4f9b?spanId=1d842fcfcc31db94|view in SigNoz>)",
+    "exemplar trace 9b3d6ce0cb5a59ba…: culprit span 'GET /api/products' (service=gateway, 2579ms, error=False) | http.route=/api/products; http.status_code=200; http.url=http://localhost:8090/api/products (<http://localhost:8080/trace/9b3d6ce0cb5a59bab7be697d403e4f9b?spanId=1d842fcfcc31db94|view in SigNoz>)",
+    "log signature x3 (novel vs prior hour): HTTP Request: GET http://catalog:<*>/products \"HTTP/<*> <*> OK\" (<http://localhost:8080/logs/logs-explorer?startTime=1784242567961&endTime=1784244428097&filter=%7B%22expression%22%3A%20%22service.name%20%3D%20%27catalog%27%20AND%20severity_text%20IN%20%28%27ERROR%27%2C%27FATAL%27%29%22%7D|view in SigNoz>)",
+    "similar to incident inv-5736466ee5 (Jul 16, alert 'Faultline catalog p99 latency > 1s', service catalog, similarity 77%): root cause was: The catalog service's /products endpoint is consistently slow due to an inefficient downstream call or query, independent of load, causing sustained ~2.3s p99 latency. — A fixed-cost slow operation (e.g., unindexed DB query, slow dependency call) on the /products path adds ~2s latency to every request; since latency stayed flat (2278ms->2306ms) even as throughput halved, the slowness is not load-d",
+    "similar to incident inv-977e5fd4e8 (Jul 16, alert 'Faultline catalog p99 latency > 1s', service catalog, similarity 57%): root cause was: A surge in throughput to catalog (4.6x) overwhelms its capacity, causing catalog to respond slowly enough that the gateway's upstream timeout is exceeded, producing 502s at the gateway. — Increased request volume saturates catalog's processing capacity (e.g., thread pool, DB connections), driving p99 latency past the gateway's fixed upstream timeout; gateway then aborts the call and returns 502 wi",
+    "similar to incident inv-6bde2d57f9 (Jul 16, alert 'Faultline catalog p99 latency > 1s', service catalog, similarity 54%): root cause was: The catalog service is timing out under load, causing the gateway to receive upstream timeouts and return 502s to clients. — Throughput to catalog jumped 5.7x while p99 latency remained elevated (~2.6-4.2s), pushing requests past the gateway's upstream timeout threshold; the gateway logs 'upstream call http://catalog:*/products failed: timed out' and emits 502 http send spans, indicating catalog c",
+    "incident evidence dashboard auto-created: http://localhost:8080/dashboard/019f6d41-b38c-72f0-9f3a-a836e0e89e31",
+    "DRAFT follow-up alert rule proposed (disabled — review & enable): http://localhost:8080/alerts/edit?ruleId=019f6d41-b3a8-7ceb-ad25-9e81c277f859"
+  ],
+  "refuted": [
+    "The catalog service's /products endpoint has a fixed-cost slow downstream call (e.g., unindexed DB query) causing a flat ~2.3s p99 latency independent of load. — verification failed to run: Client error '404 Not Found' for url 'http://localhost:8080/api/v5/query_range'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404",
+    "A specific downstream dependency call (DB query or external service) within catalog's /products handler is the dominant contributor to the ~2.3s latency. — verification failed to run: Client error '400 Bad Request' for url 'http://localhost:8080/api/v5/query_range'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400",
+    "The catalog service is CPU- or connection-pool-bound on a fixed number of workers, causing queuing delay that persists even as external throughput measured drops. — 'pool' not found in 3 rows"
+  ],
+  "links": [
+    "http://localhost:8080/dashboard/019f6d41-b38c-72f0-9f3a-a836e0e89e31",
+    "http://localhost:8080/services/catalog?startTime=1784242567961&endTime=1784244428097",
+    "http://localhost:8080/services/catalog?startTime=1784242567961&endTime=1784244428097",
+    "http://localhost:8080/services/catalog?startTime=1784242567961&endTime=1784244428097",
+    "http://localhost:8080/trace/f13670a6f1f7d78807dd7fa31c27aa79?spanId=980164cfbb8d72eb",
+    "http://localhost:8080/trace/9b3d6ce0cb5a59bab7be697d403e4f9b?spanId=1d842fcfcc31db94",
+    "http://localhost:8080/trace/9b3d6ce0cb5a59bab7be697d403e4f9b?spanId=1d842fcfcc31db94",
+    "http://localhost:8080/logs/logs-explorer?startTime=1784242567961&endTime=1784244428097&filter=%7B%22expression%22%3A%20%22service.name%20%3D%20%27catalog%27%20AND%20severity_text%20IN%20%28%27ERROR%27%2C%27FATAL%27%29%22%7D",
+    "http://localhost:8080/alerts/edit?ruleId=019f6d41-b3a8-7ceb-ad25-9e81c277f859"
+  ],
+  "slack_blocks": [
+    {
+      "type": "header",
+      "text": {
+        "type": "plain_text",
+        "text": "🔴 RCA: Faultline catalog p99 latency > 1s — catalog"
+      }
+    },
+    {
+      "type": "section",
+      "fields": [
+        {
+          "type": "mrkdwn",
+          "text": "*Severity:*  Critical"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Status:*  Needs human review"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Started:*  23:26 UTC"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Duration:*  22s to RCA"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Service:*  catalog"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Confidence:*  40%"
+        }
+      ]
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Root cause (draft — flagged for review):*\nReduced throughput is a symptom (clients/load balancer backing off or timing out) rather than a cause, and error rate staying flat at 0% rules out timeout/502-driven explanations seen in prior similar incidents. — Because error_rate remained 0.0% before and after (no 502s), the gateway is not aborting due to timeout thresholds being exceeded, distinguishing this incident from the two lower-similarity historical timeout-driven root causes; throughput drop is likely a downstream effect of clients/retries backing off from slow responses. (verified: count() = 0.00 (need < 1.0)) [Incident memory: similar to past incident inv-5736466ee5 (similarity 77%) — see 'Similar past incidents'.]"
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Evidence:*\n• p99_latency_ms: 2305.2ms before -> 2298.1ms after the alert boundary (1.0x) (<http://localhost:8080/services/catalog?startTime=1784242567961&endTime=1784244428097|view in SigNoz>)\n• error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x) (<http://localhost:8080/services/catalog?startTime=1784242567961&endTime=1784244428097|view in SigNoz>)\n• throughput_per_min: 105.6req/min before -> 44.5req/min after the alert boundary (0.4x) (<http://localhost:8080/services/catalog?startTime=1784242567961&endTime=1784244428097|view in SigNoz>)\n• exemplar trace f13670a6f1f7d788…: culprit span 'GET /api/products' (service=gateway, 2648ms, error=False) | http.route=/api/products; http.status_code=200; http.url=http://localhost:8090/api/products (<http://localhost:8080/trace/f13670a6f1f7d78807dd7fa31c27aa79?spanId=980164cfbb8d72eb|view in SigNoz>)\n• exemplar trace 9b3d6ce0cb5a59ba…: culprit span 'GET /api/products' (service=gateway, 2579ms, error=False) | http.route=/api/products; http.status_code=200; http.url=http://localhost:8090/api/products (<http://localhost:8080/trace/9b3d6ce0cb5a59bab7be697d403e4f9b?spanId=1d842fcfcc31db94|view in SigNoz>)\n• exemplar trace 9b3d6ce0cb5a59ba…: culprit span 'GET /api/products' (service=gateway, 2579ms, error=False) | http.route=/api/products; http.status_code=200; http.url=http://localhost:8090/api/products (<http://localhost:8080/trace/9b3d6ce0cb5a59bab7be697d403e4f9b?spanId=1d842fcfcc31db94|view in SigNoz>)\n• log signature x3 (novel vs prior hour): HTTP Request: GET http://catalog:<*>/products \"HTTP/<*> <*> OK\" (<http://localhost:8080/logs/logs-explorer?startTime=1784242567961&endTime=1784244428097&filter=%7B%22expression%22%3A%20%22service.name%20%3D%20%27catalog%27%20AND%20severity_text%20IN%20%28%27ERROR%27%2C%27FATAL%27%29%22%7D|view in SigNoz>)\n• similar to incident inv-5736466ee5 (Jul 16, alert 'Faultline catalog p99 latency > 1s', service catalog, similarity 77%): root cause was: The catalog service's /products endpoint is consistently slow due to an inefficient downstream call or query, independent of load, causing sustained ~2.3s p99 latency. — A fixed-cost slow operation (e.g., unindexed DB query, slow dependency call) on the /products path adds ~2s latency to every request; since latency stayed flat (2278ms->2306ms) even as throughput halved, the slowness is not load-d"
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Timeline:*\n• 22:56:07 UTC — baseline window opens (pre-incident comparison)\n• 23:26:07 UTC — alert 'Faultline catalog p99 latency > 1s' started firing\n• alert window — p99_latency_ms: 2305.2ms before -> 2298.1ms after the alert boundary (1.0x)\n• alert window — error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x)\n• alert window — throughput_per_min: 105.6req/min before -> 44.5req/min after the alert boundary (0.4x)\n• 23:27:08 UTC — ARGUS investigation inv-58c6674b76 began"
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Ruled out by verification queries:*\n• ~The catalog service's /products endpoint has a fixed-cost slow downstream call (e.g., unindexed DB query) causing a flat ~2.3s p99 latency independent of load. — verification failed to run: Client error '404 Not Found' for url 'http://localhost:8080/api/v5/query_range'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404~\n• ~A specific downstream dependency call (DB query or external service) within catalog's /products handler is the dominant contributor to the ~2.3s latency. — verification failed to run: Client error '400 Bad Request' for url 'http://localhost:8080/api/v5/query_range'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400~\n• ~The catalog service is CPU- or connection-pool-bound on a fixed number of workers, causing queuing delay that persists even as external throughput measured drops. — 'pool' not found in 3 rows~"
+      }
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "context",
+      "elements": [
+        {
+          "type": "mrkdwn",
+          "text": "🤖 Drafted by ARGUS · `inv-58c6674b76` · LLM: claude-haiku-4-5-20251001 (live)"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "1/4 hypotheses verified · 1 LLM calls · 6987 tokens · est. $0.0386 · 21 SigNoz queries · 31,175,720 rows / 4477.2 MB scanned · 74371 ms query time"
+        }
+      ]
+    },
+    {
+      "type": "actions",
+      "elements": [
+        {
+          "type": "button",
+          "text": {
+            "type": "plain_text",
+            "text": "View in SigNoz"
+          },
+          "url": "http://localhost:8080/services/catalog?startTime=1784242567961&endTime=1784244428097"
+        }
+      ]
+    }
+  ],
+  "degraded": false,
+  "needs_review": true,
+  "llm_label": "claude-haiku-4-5-20251001 (live)",
+  "query_stats": "21 SigNoz queries · 31,175,720 rows / 4477.2 MB scanned · 74371 ms query time"
+}

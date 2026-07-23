@@ -1,0 +1,137 @@
+{
+  "title": "GLASSPANE: p75 LCP above 4s — unknown",
+  "root_cause": "No hypothesis survived verification. Evidence-only report; human investigation required.",
+  "confidence": 0.0,
+  "impact": "p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x); error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x); throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x)",
+  "timeline": [
+    "20:31:12 UTC — baseline window opens (pre-incident comparison)",
+    "21:01:12 UTC — alert 'GLASSPANE: p75 LCP above 4s' started firing",
+    "alert window — p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x)",
+    "alert window — error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x)",
+    "alert window — throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x)",
+    "21:01:42 UTC — ARGUS investigation inv-8874a6845f began"
+  ],
+  "evidence_bullets": [
+    "p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784320272767&endTime=1784322102913|view in SigNoz>)",
+    "error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784320272767&endTime=1784322102913|view in SigNoz>)",
+    "throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784320272767&endTime=1784322102913|view in SigNoz>)",
+    "similar to incident inv-51d73b1d78 (Jul 17, alert 'ARGUS LLM spend rate', service argus, similarity 74%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.",
+    "similar to incident inv-8fcd8347ee (Jul 17, alert '[DRAFT · ARGUS] catalog: A specific slow child span (e.g., a database query) inside catalog's handling of', service unknown, similarity 53%): root cause was: Reduced throughput and any latency figures observed are symptomatic of client-side backoff, not caused by catalog-side errors. — If clients or the load balancer back off/retry after slow responses, throughput drops, but this doesn't reflect a server-side failure since error rate remains 0%; this hypothesis is a check to rule out timeout/502-driven explanations for the pattern. (verified: count() =",
+    "similar to incident inv-58c6674b76 (Jul 16, alert 'Faultline catalog p99 latency > 1s', service catalog, similarity 26%): root cause was: Reduced throughput is a symptom (clients/load balancer backing off or timing out) rather than a cause, and error rate staying flat at 0% rules out timeout/502-driven explanations seen in prior similar incidents. — Because error_rate remained 0.0% before and after (no 502s), the gateway is not aborting due to timeout thresholds being exceeded, distinguishing this incident from the two lower-similar",
+    "incident evidence dashboard auto-created: http://localhost:8080/dashboard/019f71e3-3b25-72e9-ac3b-37ca7b431e3e"
+  ],
+  "refuted": [
+    "The alert is a stale/flapping firing event: current LCP (375ms) is already well below the 4000ms threshold, indicating the underlying condition self-resolved before evidence was collected. — verification failed to run: verification aggregation 'p75(duration)' not in whitelist",
+    "The alert's service label 'unknown' reflects missing service.name attribution in glasspane RUM telemetry, so golden-signal metrics (0.0 across the board) are being computed against the wrong/empty service scope, masking the real signal. — verification failed to run: Client error '400 Bad Request' for url 'http://localhost:8080/api/v5/query_range'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400",
+    "A specific slow client-side resource (large image/font/script) inside the page's critical rendering path caused a temporary LCP spike above 4s, independent of backend service health. — verification failed to run: Client error '400 Bad Request' for url 'http://localhost:8080/api/v5/query_range'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400",
+    "No genuine root cause exists in current evidence; golden signals are entirely flat/zeroed, suggesting a monitoring/data-collection gap rather than a real performance incident. — count() = 0.00 (need > 0.0)"
+  ],
+  "links": [
+    "http://localhost:8080/dashboard/019f71e3-3b25-72e9-ac3b-37ca7b431e3e",
+    "http://localhost:8080/services/unknown?startTime=1784320272767&endTime=1784322102913",
+    "http://localhost:8080/services/unknown?startTime=1784320272767&endTime=1784322102913",
+    "http://localhost:8080/services/unknown?startTime=1784320272767&endTime=1784322102913"
+  ],
+  "slack_blocks": [
+    {
+      "type": "header",
+      "text": {
+        "type": "plain_text",
+        "text": "🟡 RCA: GLASSPANE: p75 LCP above 4s — unknown"
+      }
+    },
+    {
+      "type": "section",
+      "fields": [
+        {
+          "type": "mrkdwn",
+          "text": "*Severity:*  Warning"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Status:*  Needs human review"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Started:*  21:01 UTC"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Duration:*  42s to RCA"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Service:*  unknown"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Confidence:*  0%"
+        }
+      ]
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Root cause (draft — flagged for review):*\nNo hypothesis survived verification. Evidence-only report; human investigation required."
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Evidence:*\n• p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784320272767&endTime=1784322102913|view in SigNoz>)\n• error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784320272767&endTime=1784322102913|view in SigNoz>)\n• throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784320272767&endTime=1784322102913|view in SigNoz>)\n• similar to incident inv-51d73b1d78 (Jul 17, alert 'ARGUS LLM spend rate', service argus, similarity 74%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.\n• similar to incident inv-8fcd8347ee (Jul 17, alert '[DRAFT · ARGUS] catalog: A specific slow child span (e.g., a database query) inside catalog's handling of', service unknown, similarity 53%): root cause was: Reduced throughput and any latency figures observed are symptomatic of client-side backoff, not caused by catalog-side errors. — If clients or the load balancer back off/retry after slow responses, throughput drops, but this doesn't reflect a server-side failure since error rate remains 0%; this hypothesis is a check to rule out timeout/502-driven explanations for the pattern. (verified: count() =\n• similar to incident inv-58c6674b76 (Jul 16, alert 'Faultline catalog p99 latency > 1s', service catalog, similarity 26%): root cause was: Reduced throughput is a symptom (clients/load balancer backing off or timing out) rather than a cause, and error rate staying flat at 0% rules out timeout/502-driven explanations seen in prior similar incidents. — Because error_rate remained 0.0% before and after (no 502s), the gateway is not aborting due to timeout thresholds being exceeded, distinguishing this incident from the two lower-similar"
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Timeline:*\n• 20:31:12 UTC — baseline window opens (pre-incident comparison)\n• 21:01:12 UTC — alert 'GLASSPANE: p75 LCP above 4s' started firing\n• alert window — p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x)\n• alert window — error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x)\n• alert window — throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x)\n• 21:01:42 UTC — ARGUS investigation inv-8874a6845f began"
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Ruled out by verification queries:*\n• ~The alert is a stale/flapping firing event: current LCP (375ms) is already well below the 4000ms threshold, indicating the underlying condition self-resolved before evidence was collected. — verification failed to run: verification aggregation 'p75(duration)' not in whitelist~\n• ~The alert's service label 'unknown' reflects missing service.name attribution in glasspane RUM telemetry, so golden-signal metrics (0.0 across the board) are being computed against the wrong/empty service scope, masking the real signal. — verification failed to run: Client error '400 Bad Request' for url 'http://localhost:8080/api/v5/query_range'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400~\n• ~A specific slow client-side resource (large image/font/script) inside the page's critical rendering path caused a temporary LCP spike above 4s, independent of backend service health. — verification failed to run: Client error '400 Bad Request' for url 'http://localhost:8080/api/v5/query_range'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400~\n• ~No genuine root cause exists in current evidence; golden signals are entirely flat/zeroed, suggesting a monitoring/data-collection gap rather than a real performance incident. — count() = 0.00 (need > 0.0)~"
+      }
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "context",
+      "elements": [
+        {
+          "type": "mrkdwn",
+          "text": "🤖 Drafted by ARGUS · `inv-8874a6845f` · LLM: claude-haiku-4-5-20251001 (live)"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "0/4 hypotheses verified · 2 LLM calls · 11534 tokens · est. $0.0524 · 15 SigNoz queries · 403 rows / 0.2 MB scanned · 82 ms query time"
+        }
+      ]
+    },
+    {
+      "type": "actions",
+      "elements": [
+        {
+          "type": "button",
+          "text": {
+            "type": "plain_text",
+            "text": "View in SigNoz"
+          },
+          "url": "http://localhost:8080/services/unknown?startTime=1784320272767&endTime=1784322102913"
+        }
+      ]
+    }
+  ],
+  "degraded": true,
+  "needs_review": true,
+  "llm_label": "claude-haiku-4-5-20251001 (live)",
+  "query_stats": "15 SigNoz queries · 403 rows / 0.2 MB scanned · 82 ms query time"
+}

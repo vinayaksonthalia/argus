@@ -1,0 +1,140 @@
+{
+  "title": "GLASSPANE: browser error spike — unknown",
+  "root_cause": "No hypothesis survived verification. Evidence-only report; human investigation required.",
+  "confidence": 0.0,
+  "impact": "p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x); error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x); throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x)",
+  "timeline": [
+    "21:02:41 UTC — baseline window opens (pre-incident comparison)",
+    "21:32:41 UTC — alert 'GLASSPANE: browser error spike' started firing",
+    "alert window — p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x)",
+    "alert window — error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x)",
+    "alert window — throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x)",
+    "21:33:11 UTC — ARGUS investigation inv-ebc62d8028 began"
+  ],
+  "evidence_bullets": [
+    "p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784322161696&endTime=1784323991811|view in SigNoz>)",
+    "error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784322161696&endTime=1784323991811|view in SigNoz>)",
+    "throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784322161696&endTime=1784323991811|view in SigNoz>)",
+    "similar to incident inv-eb846fe1eb (Jul 17, alert 'GLASSPANE: p75 INP regression by route', service unknown, similarity 78%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.",
+    "similar to incident inv-8874a6845f (Jul 17, alert 'GLASSPANE: p75 LCP above 4s', service unknown, similarity 76%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.",
+    "similar to incident inv-4cfa29706d (Jul 17, alert 'GLASSPANE: p75 LCP above 4s', service unknown, similarity 76%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.",
+    "incident evidence dashboard auto-created: http://localhost:8080/dashboard/019f71ff-f967-7010-ab21-362e6f16b592"
+  ],
+  "refuted": [
+    "A new frontend deployment (service.version) introduced a JS error affecting a specific error.group_id, causing the browser error rate to spike. — 'error.group_id' not found in 0 rows",
+    "A third-party script or CDN dependency is failing to load/execute, generating browser-side errors independent of backend health. — 'TypeError' not found in 0 rows",
+    "This is a continuation of unresolved frontend performance regressions (INP/LCP) from the prior day, now manifesting as JS errors (e.g., timeouts or resource exhaustion) rather than pure latency. — count() after/before ratio = 0.00 (need > 2.0)",
+    "The alert is a false positive / instrumentation artifact since all golden signals show flat 1.0x ratios with zero values, suggesting the underlying data source for 'unknown' service may be misconfigured or sparse. — 0 rows (need > 0.0)",
+    "The 'browser.errors.count' metric is emitted by a RUM/frontend agent that is not tagged with service.name, so it lives outside the traces/logs pipelines queried so far and the spike is real but invisible to service-scoped golden-signal queries. — verification failed to run: Client error '400 Bad Request' for url 'http://localhost:8080/api/v5/query_range'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400",
+    "A specific browser feature/route began throwing uncaught exceptions due to a client-side data-shape mismatch (e.g., unexpected null/undefined from an API response), not tied to a version rollout or third-party script. — 'Cannot read propert' not found in 0 rows",
+    "The spike is driven by a small number of browser sessions retrying a failing action in a tight loop (e.g., a broken retry/polling handler), inflating the per-minute error count without any backend signal changes. — count() after/before ratio = 0.00 (need > 2.0)"
+  ],
+  "links": [
+    "http://localhost:8080/dashboard/019f71ff-f967-7010-ab21-362e6f16b592",
+    "http://localhost:8080/services/unknown?startTime=1784322161696&endTime=1784323991811",
+    "http://localhost:8080/services/unknown?startTime=1784322161696&endTime=1784323991811",
+    "http://localhost:8080/services/unknown?startTime=1784322161696&endTime=1784323991811"
+  ],
+  "slack_blocks": [
+    {
+      "type": "header",
+      "text": {
+        "type": "plain_text",
+        "text": "🔴 RCA: GLASSPANE: browser error spike — unknown"
+      }
+    },
+    {
+      "type": "section",
+      "fields": [
+        {
+          "type": "mrkdwn",
+          "text": "*Severity:*  Critical"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Status:*  Needs human review"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Started:*  21:32 UTC"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Duration:*  37s to RCA"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Service:*  unknown"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Confidence:*  0%"
+        }
+      ]
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Root cause (draft — flagged for review):*\nNo hypothesis survived verification. Evidence-only report; human investigation required."
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Evidence:*\n• p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784322161696&endTime=1784323991811|view in SigNoz>)\n• error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784322161696&endTime=1784323991811|view in SigNoz>)\n• throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784322161696&endTime=1784323991811|view in SigNoz>)\n• similar to incident inv-eb846fe1eb (Jul 17, alert 'GLASSPANE: p75 INP regression by route', service unknown, similarity 78%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.\n• similar to incident inv-8874a6845f (Jul 17, alert 'GLASSPANE: p75 LCP above 4s', service unknown, similarity 76%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.\n• similar to incident inv-4cfa29706d (Jul 17, alert 'GLASSPANE: p75 LCP above 4s', service unknown, similarity 76%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required."
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Timeline:*\n• 21:02:41 UTC — baseline window opens (pre-incident comparison)\n• 21:32:41 UTC — alert 'GLASSPANE: browser error spike' started firing\n• alert window — p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x)\n• alert window — error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x)\n• alert window — throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x)\n• 21:33:11 UTC — ARGUS investigation inv-ebc62d8028 began"
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Ruled out by verification queries:*\n• ~A new frontend deployment (service.version) introduced a JS error affecting a specific error.group_id, causing the browser error rate to spike. — 'error.group_id' not found in 0 rows~\n• ~A third-party script or CDN dependency is failing to load/execute, generating browser-side errors independent of backend health. — 'TypeError' not found in 0 rows~\n• ~This is a continuation of unresolved frontend performance regressions (INP/LCP) from the prior day, now manifesting as JS errors (e.g., timeouts or resource exhaustion) rather than pure latency. — count() after/before ratio = 0.00 (need > 2.0)~\n• ~The alert is a false positive / instrumentation artifact since all golden signals show flat 1.0x ratios with zero values, suggesting the underlying data source for 'unknown' service may be misconfigured or sparse. — 0 rows (need > 0.0)~"
+      }
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "context",
+      "elements": [
+        {
+          "type": "mrkdwn",
+          "text": "🤖 Drafted by ARGUS · `inv-ebc62d8028` · LLM: claude-haiku-4-5-20251001 (live)"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "0/7 hypotheses verified · 2 LLM calls · 11316 tokens · est. $0.0565 · 22 SigNoz queries · 1,196 rows / 0.5 MB scanned · 144 ms query time"
+        }
+      ]
+    },
+    {
+      "type": "actions",
+      "elements": [
+        {
+          "type": "button",
+          "text": {
+            "type": "plain_text",
+            "text": "View in SigNoz"
+          },
+          "url": "http://localhost:8080/services/unknown?startTime=1784322161696&endTime=1784323991811"
+        }
+      ]
+    }
+  ],
+  "degraded": true,
+  "needs_review": true,
+  "llm_label": "claude-haiku-4-5-20251001 (live)",
+  "query_stats": "22 SigNoz queries · 1,196 rows / 0.5 MB scanned · 144 ms query time"
+}

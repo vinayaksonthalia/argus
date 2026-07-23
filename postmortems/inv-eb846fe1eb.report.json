@@ -1,0 +1,139 @@
+{
+  "title": "GLASSPANE: p75 INP regression by route — unknown",
+  "root_cause": "No hypothesis survived verification. Evidence-only report; human investigation required.",
+  "confidence": 0.0,
+  "impact": "p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x); error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x); throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x)",
+  "timeline": [
+    "21:02:01 UTC — baseline window opens (pre-incident comparison)",
+    "21:32:01 UTC — alert 'GLASSPANE: p75 INP regression by route' started firing",
+    "alert window — p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x)",
+    "alert window — error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x)",
+    "alert window — throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x)",
+    "21:32:32 UTC — ARGUS investigation inv-eb846fe1eb began"
+  ],
+  "evidence_bullets": [
+    "p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784322121862&endTime=1784323952004|view in SigNoz>)",
+    "error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784322121862&endTime=1784323952004|view in SigNoz>)",
+    "throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784322121862&endTime=1784323952004|view in SigNoz>)",
+    "similar to incident inv-8874a6845f (Jul 17, alert 'GLASSPANE: p75 LCP above 4s', service unknown, similarity 77%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.",
+    "similar to incident inv-4cfa29706d (Jul 17, alert 'GLASSPANE: p75 LCP above 4s', service unknown, similarity 77%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.",
+    "similar to incident inv-51d73b1d78 (Jul 17, alert 'ARGUS LLM spend rate', service argus, similarity 71%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.",
+    "incident evidence dashboard auto-created: http://localhost:8080/dashboard/019f71ff-6314-75b9-a6ce-22a9525ba482"
+  ],
+  "refuted": [
+    "The alert is a false positive/misconfiguration: the description's 'Current value: 37.5 ms' contradicts the firing condition of INP staying above 500ms, and all golden-signal metrics show flat 0.0 values before and after, indicating no real backend or traffic signal is being captured for this route. — count() = 0.00 (need > 0.0)",
+    "Client-side long tasks (JavaScript main-thread blocking) on the root route '/' are causing genuine INP degradation, unrelated to backend latency or errors which remain flat. — 'longtask' not found in 0 rows",
+    "The alert pipeline for GLASSPANE RUM metrics is misconfigured or disconnected from the actual telemetry collection for service 'unknown', causing the rule engine to fire on stale/empty aggregation windows rather than real INP samples. — count() = 0.00 (need > 0.0)",
+    "A third-party script or resource (ads, analytics, tag manager) injected on route '/' is causing input delay/processing delay spikes that standard longtask instrumentation on this service does not capture under the 'longtask' label. — 'third-party' not found in 0 rows",
+    "The INP regression is driven by a specific slow interaction target (e.g., a large re-render or layout thrash triggered by a particular UI element) on route '/', rather than generic long tasks or backend issues. — 'render' not found in 0 rows",
+    "Insufficient or entirely absent RUM instrumentation coverage for route '/' means the alert is based on a statistically invalid sample size (e.g., 1-2 sessions), making the p75 value unreliable and not representative of real user experience. — count() = 0.00 (need > 30.0)"
+  ],
+  "links": [
+    "http://localhost:8080/dashboard/019f71ff-6314-75b9-a6ce-22a9525ba482",
+    "http://localhost:8080/services/unknown?startTime=1784322121862&endTime=1784323952004",
+    "http://localhost:8080/services/unknown?startTime=1784322121862&endTime=1784323952004",
+    "http://localhost:8080/services/unknown?startTime=1784322121862&endTime=1784323952004"
+  ],
+  "slack_blocks": [
+    {
+      "type": "header",
+      "text": {
+        "type": "plain_text",
+        "text": "🔴 RCA: GLASSPANE: p75 INP regression by route — unknown"
+      }
+    },
+    {
+      "type": "section",
+      "fields": [
+        {
+          "type": "mrkdwn",
+          "text": "*Severity:*  Critical"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Status:*  Needs human review"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Started:*  21:32 UTC"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Duration:*  38s to RCA"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Service:*  unknown"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Confidence:*  0%"
+        }
+      ]
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Root cause (draft — flagged for review):*\nNo hypothesis survived verification. Evidence-only report; human investigation required."
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Evidence:*\n• p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784322121862&endTime=1784323952004|view in SigNoz>)\n• error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784322121862&endTime=1784323952004|view in SigNoz>)\n• throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784322121862&endTime=1784323952004|view in SigNoz>)\n• similar to incident inv-8874a6845f (Jul 17, alert 'GLASSPANE: p75 LCP above 4s', service unknown, similarity 77%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.\n• similar to incident inv-4cfa29706d (Jul 17, alert 'GLASSPANE: p75 LCP above 4s', service unknown, similarity 77%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.\n• similar to incident inv-51d73b1d78 (Jul 17, alert 'ARGUS LLM spend rate', service argus, similarity 71%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required."
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Timeline:*\n• 21:02:01 UTC — baseline window opens (pre-incident comparison)\n• 21:32:01 UTC — alert 'GLASSPANE: p75 INP regression by route' started firing\n• alert window — p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x)\n• alert window — error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x)\n• alert window — throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x)\n• 21:32:32 UTC — ARGUS investigation inv-eb846fe1eb began"
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Ruled out by verification queries:*\n• ~The alert is a false positive/misconfiguration: the description's 'Current value: 37.5 ms' contradicts the firing condition of INP staying above 500ms, and all golden-signal metrics show flat 0.0 values before and after, indicating no real backend or traffic signal is being captured for this route. — count() = 0.00 (need > 0.0)~\n• ~Client-side long tasks (JavaScript main-thread blocking) on the root route '/' are causing genuine INP degradation, unrelated to backend latency or errors which remain flat. — 'longtask' not found in 0 rows~\n• ~The alert pipeline for GLASSPANE RUM metrics is misconfigured or disconnected from the actual telemetry collection for service 'unknown', causing the rule engine to fire on stale/empty aggregation windows rather than real INP samples. — count() = 0.00 (need > 0.0)~\n• ~A third-party script or resource (ads, analytics, tag manager) injected on route '/' is causing input delay/processing delay spikes that standard longtask instrumentation on this service does not capture under the 'longtask' label. — 'third-party' not found in 0 rows~"
+      }
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "context",
+      "elements": [
+        {
+          "type": "mrkdwn",
+          "text": "🤖 Drafted by ARGUS · `inv-eb846fe1eb` · LLM: claude-haiku-4-5-20251001 (live)"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "0/6 hypotheses verified · 2 LLM calls · 11436 tokens · est. $0.0593 · 20 SigNoz queries · 0 rows / 0.0 MB scanned · 127 ms query time"
+        }
+      ]
+    },
+    {
+      "type": "actions",
+      "elements": [
+        {
+          "type": "button",
+          "text": {
+            "type": "plain_text",
+            "text": "View in SigNoz"
+          },
+          "url": "http://localhost:8080/services/unknown?startTime=1784322121862&endTime=1784323952004"
+        }
+      ]
+    }
+  ],
+  "degraded": true,
+  "needs_review": true,
+  "llm_label": "claude-haiku-4-5-20251001 (live)",
+  "query_stats": "20 SigNoz queries · 0 rows / 0.0 MB scanned · 127 ms query time"
+}

@@ -1,0 +1,145 @@
+{
+  "title": "ARGUS LLM spend rate — argus",
+  "root_cause": "ARGUS's own self-query to the 'changes.deployments' query_range API is malformed, causing repeated failed 400 requests that retry and inflate both throughput and LLM investigation spend. — Each investigation triggers a query_range call for deployment changes; a bad request parameter (e.g. invalid time range or filter syntax) causes a 400 Bad Request. ARGUS likely retries or re-invokes the LLM to reason about the failure, multiplying the number of investigation cycles (and thus argus.cost.usd) per alert, which explains throughput_per_min rising 1.8x while error_rate stays high. (verified: found '400 Bad Request' in 2 matching rows)",
+  "confidence": 0.6,
+  "impact": "p99_latency_ms: 18494.8ms before -> 20027.1ms after the alert boundary (1.1x); error_rate: 10.1% before -> 6.3% after the alert boundary (0.6x); throughput_per_min: 2.0req/min before -> 3.6req/min after the alert boundary (1.8x)",
+  "timeline": [
+    "22:59:03 UTC — baseline window opens (pre-incident comparison)",
+    "23:29:03 UTC — alert 'ARGUS LLM spend rate' started firing",
+    "alert window — p99_latency_ms: 18494.8ms before -> 20027.1ms after the alert boundary (1.1x)",
+    "alert window — error_rate: 10.1% before -> 6.3% after the alert boundary (0.6x)",
+    "alert window — throughput_per_min: 2.0req/min before -> 3.6req/min after the alert boundary (1.8x)",
+    "23:29:33 UTC — ARGUS investigation inv-a2a0b2e215 began",
+    "23:29:58 UTC — hypothesis CONFIRMED: ARGUS's own self-query to the 'changes.deployments' query_range API is malformed, causing repeated failed 400 requests that retry and inflate both throughput and LLM investigation spend.",
+    "23:29:58 UTC — hypothesis CONFIRMED: ARGUS is retrying the failed deployments query_range call multiple times per investigation, and each retry re-invokes costly LLM reasoning, amplifying spend beyond what request volume alone would predict."
+  ],
+  "evidence_bullets": [
+    "p99_latency_ms: 18494.8ms before -> 20027.1ms after the alert boundary (1.1x) (<http://localhost:8080/services/argus?startTime=1784242743876&endTime=1784244573979|view in SigNoz>)",
+    "error_rate: 10.1% before -> 6.3% after the alert boundary (0.6x) (<http://localhost:8080/services/argus?startTime=1784242743876&endTime=1784244573979|view in SigNoz>)",
+    "throughput_per_min: 2.0req/min before -> 3.6req/min after the alert boundary (1.8x) (<http://localhost:8080/services/argus?startTime=1784242743876&endTime=1784244573979|view in SigNoz>)",
+    "exemplar trace d946cff67a801612…: culprit span 'signoz.query_range.changes.deployments' (service=argus, 19ms, error=True) | http.status_code=400 | events: {'name': 'exception', 'timeUnixNano': 1784244428838348000, 'attributes': {'exception.escaped': 'False', 'exception.message': \"Client error '400 Bad Request' for url 'http://localhost:8080/api/v5/query…[truncated] (<http://localhost:8080/trace/d946cff67a8016123583d78cdbd158d7?spanId=98127a77385de432|view in SigNoz>)",
+    "exemplar trace d946cff67a801612…: culprit span 'signoz.query_range.changes.deployments' (service=argus, 19ms, error=True) | http.status_code=400 | events: {'name': 'exception', 'timeUnixNano': 1784244428838348000, 'attributes': {'exception.escaped': 'False', 'exception.message': \"Client error '400 Bad Request' for url 'http://localhost:8080/api/v5/query…[truncated] (<http://localhost:8080/trace/d946cff67a8016123583d78cdbd158d7?spanId=98127a77385de432|view in SigNoz>)",
+    "exemplar trace 72f14cda318cfc60…: culprit span 'signoz.query_range.changes.deployments' (service=argus, 20ms, error=True) | http.status_code=400 | events: {'name': 'exception', 'timeUnixNano': 1784243528741503000, 'attributes': {'exception.escaped': 'False', 'exception.message': \"Client error '400 Bad Request' for url 'http://localhost:8080/api/v5/query…[truncated] (<http://localhost:8080/trace/72f14cda318cfc603f62e3e61f218f0c?spanId=3401bb1054f14cde|view in SigNoz>)",
+    "similar to incident inv-6bde2d57f9 (Jul 16, alert 'Faultline catalog p99 latency > 1s', service catalog, similarity 38%): root cause was: The catalog service is timing out under load, causing the gateway to receive upstream timeouts and return 502s to clients. — Throughput to catalog jumped 5.7x while p99 latency remained elevated (~2.6-4.2s), pushing requests past the gateway's upstream timeout threshold; the gateway logs 'upstream call http://catalog:*/products failed: timed out' and emits 502 http send spans, indicating catalog c",
+    "similar to incident inv-3a51fe90dd (Jul 16, alert 'Faultline catalog p99 latency > 1s', service catalog, similarity 37%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.",
+    "similar to incident inv-58c6674b76 (Jul 16, alert 'Faultline catalog p99 latency > 1s', service catalog, similarity 37%): root cause was: Reduced throughput is a symptom (clients/load balancer backing off or timing out) rather than a cause, and error rate staying flat at 0% rules out timeout/502-driven explanations seen in prior similar incidents. — Because error_rate remained 0.0% before and after (no 502s), the gateway is not aborting due to timeout thresholds being exceeded, distinguishing this incident from the two lower-similar",
+    "incident evidence dashboard auto-created: http://localhost:8080/dashboard/019f6d43-f7b8-7c0e-9e72-2a98a30ce163",
+    "DRAFT follow-up alert rule proposed (disabled — review & enable): http://localhost:8080/alerts/edit?ruleId=019f6d43-f7df-7381-bb79-b5d4a50b33c4"
+  ],
+  "refuted": [
+    "The increase in investigation throughput (2.0 -> 3.6 req/min) is the direct driver of the budget alert, independent of the query_range failures. — count() after/before ratio = 0.93 (need > 1.5)",
+    "The alert is a false positive driven by noisy low-volume metrics (throughput only 2-3.6 req/min), and no genuine cost overrun mechanism exists beyond normal variance. — avg(argus.cost.usd) after/before ratio = 0.77 (need > 1.3)"
+  ],
+  "links": [
+    "http://localhost:8080/dashboard/019f6d43-f7b8-7c0e-9e72-2a98a30ce163",
+    "http://localhost:8080/services/argus?startTime=1784242743876&endTime=1784244573979",
+    "http://localhost:8080/services/argus?startTime=1784242743876&endTime=1784244573979",
+    "http://localhost:8080/services/argus?startTime=1784242743876&endTime=1784244573979",
+    "http://localhost:8080/trace/d946cff67a8016123583d78cdbd158d7?spanId=98127a77385de432",
+    "http://localhost:8080/trace/d946cff67a8016123583d78cdbd158d7?spanId=98127a77385de432",
+    "http://localhost:8080/trace/72f14cda318cfc603f62e3e61f218f0c?spanId=3401bb1054f14cde",
+    "http://localhost:8080/alerts/edit?ruleId=019f6d43-f7df-7381-bb79-b5d4a50b33c4"
+  ],
+  "slack_blocks": [
+    {
+      "type": "header",
+      "text": {
+        "type": "plain_text",
+        "text": "🟡 RCA: ARGUS LLM spend rate — argus"
+      }
+    },
+    {
+      "type": "section",
+      "fields": [
+        {
+          "type": "mrkdwn",
+          "text": "*Severity:*  Warning"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Status:*  Needs human review"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Started:*  23:29 UTC"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Duration:*  25s to RCA"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Service:*  argus"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Confidence:*  60%"
+        }
+      ]
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Root cause (draft — flagged for review):*\nARGUS's own self-query to the 'changes.deployments' query_range API is malformed, causing repeated failed 400 requests that retry and inflate both throughput and LLM investigation spend. — Each investigation triggers a query_range call for deployment changes; a bad request parameter (e.g. invalid time range or filter syntax) causes a 400 Bad Request. ARGUS likely retries or re-invokes the LLM to reason about the failure, multiplying the number of investigation cycles (and thus argus.cost.usd) per alert, which explains throughput_per_min rising 1.8x while error_rate stays high. (verified: found '400 Bad Request' in 2 matching rows)"
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Evidence:*\n• p99_latency_ms: 18494.8ms before -> 20027.1ms after the alert boundary (1.1x) (<http://localhost:8080/services/argus?startTime=1784242743876&endTime=1784244573979|view in SigNoz>)\n• error_rate: 10.1% before -> 6.3% after the alert boundary (0.6x) (<http://localhost:8080/services/argus?startTime=1784242743876&endTime=1784244573979|view in SigNoz>)\n• throughput_per_min: 2.0req/min before -> 3.6req/min after the alert boundary (1.8x) (<http://localhost:8080/services/argus?startTime=1784242743876&endTime=1784244573979|view in SigNoz>)\n• exemplar trace d946cff67a801612…: culprit span 'signoz.query_range.changes.deployments' (service=argus, 19ms, error=True) | http.status_code=400 | events: {'name': 'exception', 'timeUnixNano': 1784244428838348000, 'attributes': {'exception.escaped': 'False', 'exception.message': \"Client error '400 Bad Request' for url 'http://localhost:8080/api/v5/query…[truncated] (<http://localhost:8080/trace/d946cff67a8016123583d78cdbd158d7?spanId=98127a77385de432|view in SigNoz>)\n• exemplar trace d946cff67a801612…: culprit span 'signoz.query_range.changes.deployments' (service=argus, 19ms, error=True) | http.status_code=400 | events: {'name': 'exception', 'timeUnixNano': 1784244428838348000, 'attributes': {'exception.escaped': 'False', 'exception.message': \"Client error '400 Bad Request' for url 'http://localhost:8080/api/v5/query…[truncated] (<http://localhost:8080/trace/d946cff67a8016123583d78cdbd158d7?spanId=98127a77385de432|view in SigNoz>)\n• exemplar trace 72f14cda318cfc60…: culprit span 'signoz.query_range.changes.deployments' (service=argus, 20ms, error=True) | http.status_code=400 | events: {'name': 'exception', 'timeUnixNano': 1784243528741503000, 'attributes': {'exception.escaped': 'False', 'exception.message': \"Client error '400 Bad Request' for url 'http://localhost:8080/api/v5/query…[truncated] (<http://localhost:8080/trace/72f14cda318cfc603f62e3e61f218f0c?spanId=3401bb1054f14cde|view in SigNoz>)\n• similar to incident inv-6bde2d57f9 (Jul 16, alert 'Faultline catalog p99 latency > 1s', service catalog, similarity 38%): root cause was: The catalog service is timing out under load, causing the gateway to receive upstream timeouts and return 502s to clients. — Throughput to catalog jumped 5.7x while p99 latency remained elevated (~2.6-4.2s), pushing requests past the gateway's upstream timeout threshold; the gateway logs 'upstream call http://catalog:*/products failed: timed out' and emits 502 http send spans, indicating catalog c\n• similar to incident inv-3a51fe90dd (Jul 16, alert 'Faultline catalog p99 latency > 1s', service catalog, similarity 37%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required."
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Timeline:*\n• 22:59:03 UTC — baseline window opens (pre-incident comparison)\n• 23:29:03 UTC — alert 'ARGUS LLM spend rate' started firing\n• alert window — p99_latency_ms: 18494.8ms before -> 20027.1ms after the alert boundary (1.1x)\n• alert window — error_rate: 10.1% before -> 6.3% after the alert boundary (0.6x)\n• alert window — throughput_per_min: 2.0req/min before -> 3.6req/min after the alert boundary (1.8x)\n• 23:29:33 UTC — ARGUS investigation inv-a2a0b2e215 began"
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Ruled out by verification queries:*\n• ~The increase in investigation throughput (2.0 -> 3.6 req/min) is the direct driver of the budget alert, independent of the query_range failures. — count() after/before ratio = 0.93 (need > 1.5)~\n• ~The alert is a false positive driven by noisy low-volume metrics (throughput only 2-3.6 req/min), and no genuine cost overrun mechanism exists beyond normal variance. — avg(argus.cost.usd) after/before ratio = 0.77 (need > 1.3)~"
+      }
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "context",
+      "elements": [
+        {
+          "type": "mrkdwn",
+          "text": "🤖 Drafted by ARGUS · `inv-a2a0b2e215` · LLM: claude-haiku-4-5-20251001 (live)"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "2/4 hypotheses verified · 1 LLM calls · 6394 tokens · est. $0.0347 · 24 SigNoz queries · 715,782 rows / 68.2 MB scanned · 619 ms query time"
+        }
+      ]
+    },
+    {
+      "type": "actions",
+      "elements": [
+        {
+          "type": "button",
+          "text": {
+            "type": "plain_text",
+            "text": "View in SigNoz"
+          },
+          "url": "http://localhost:8080/services/argus?startTime=1784242743876&endTime=1784244573979"
+        }
+      ]
+    }
+  ],
+  "degraded": false,
+  "needs_review": true,
+  "llm_label": "claude-haiku-4-5-20251001 (live)",
+  "query_stats": "24 SigNoz queries · 715,782 rows / 68.2 MB scanned · 619 ms query time"
+}

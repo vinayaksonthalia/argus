@@ -1,0 +1,138 @@
+{
+  "title": "[DRAFT · ARGUS] unknown: The meridian-web 1.4.2 frontend deploy calls .map() on an API response payload t — unknown",
+  "root_cause": "The meridian-web 1.4.2 frontend deploy calls .map() on an API response payload that is not an array, causing uncaught 'map is not a function' TypeErrors in the browser. — A backend endpoint change (or error response) altered the payload shape from an array to an object/null, so frontend code doing response.data.map(...) throws a TypeError before rendering, producing browser-side JS exceptions/log entries. (verified: found 'map is not a function' in 40 matching rows) [Incident memory: similar to past incident inv-ebc62d8028 (similarity 71%) — see 'Similar past incidents'.]",
+  "confidence": 0.55,
+  "impact": "p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x); error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x); throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x)",
+  "timeline": [
+    "21:08:34 UTC — baseline window opens (pre-incident comparison)",
+    "21:38:34 UTC — alert '[DRAFT · ARGUS] unknown: The meridian-web 1.4.2 frontend deploy calls .map() on an API response payload t' started firing",
+    "alert window — p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x)",
+    "alert window — error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x)",
+    "alert window — throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x)",
+    "21:39:04 UTC — ARGUS investigation inv-57942d0754 began",
+    "21:39:19 UTC — hypothesis CONFIRMED: The meridian-web 1.4.2 frontend deploy calls .map() on an API response payload that is not an array, causing uncaught 'map is not a function' TypeErrors in the browser.",
+    "21:39:19 UTC — hypothesis CONFIRMED: No actual backend/runtime incident occurred; the alert is a stale/unconfirmed draft rule with no supporting golden-signal deviation."
+  ],
+  "evidence_bullets": [
+    "p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784322514803&endTime=1784324344907|view in SigNoz>)",
+    "error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784322514803&endTime=1784324344907|view in SigNoz>)",
+    "throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784322514803&endTime=1784324344907|view in SigNoz>)",
+    "similar to incident inv-ebc62d8028 (Jul 17, alert 'GLASSPANE: browser error spike', service unknown, similarity 71%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.",
+    "similar to incident inv-51d73b1d78 (Jul 17, alert 'ARGUS LLM spend rate', service argus, similarity 70%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.",
+    "similar to incident inv-8874a6845f (Jul 17, alert 'GLASSPANE: p75 LCP above 4s', service unknown, similarity 68%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.",
+    "incident evidence dashboard auto-created: http://localhost:8080/dashboard/019f7205-043d-7641-b8c4-18911f70d1e6",
+    "DRAFT follow-up alert rule proposed (disabled — review & enable): http://localhost:8080/alerts/edit?ruleId=019f7203-fefb-7038-848c-bc1637c6ae46"
+  ],
+  "refuted": [
+    "The API endpoint meridian-web depends on began returning an error/object payload instead of an array after a backend change coinciding with the 1.4.2 deploy. — verification failed to run: Client error '400 Bad Request' for url 'http://localhost:8080/api/v5/query_range'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400"
+  ],
+  "links": [
+    "http://localhost:8080/dashboard/019f7205-043d-7641-b8c4-18911f70d1e6",
+    "http://localhost:8080/services/unknown?startTime=1784322514803&endTime=1784324344907",
+    "http://localhost:8080/services/unknown?startTime=1784322514803&endTime=1784324344907",
+    "http://localhost:8080/services/unknown?startTime=1784322514803&endTime=1784324344907",
+    "http://localhost:8080/alerts/edit?ruleId=019f7203-fefb-7038-848c-bc1637c6ae46"
+  ],
+  "slack_blocks": [
+    {
+      "type": "header",
+      "text": {
+        "type": "plain_text",
+        "text": "🟡 RCA: [DRAFT · ARGUS] unknown: The meridian-web 1.4.2 frontend deploy calls .map() on an API response payload t — unknown"
+      }
+    },
+    {
+      "type": "section",
+      "fields": [
+        {
+          "type": "mrkdwn",
+          "text": "*Severity:*  Warning"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Status:*  Needs human review"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Started:*  21:38 UTC"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Duration:*  14s to RCA"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Service:*  unknown"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Confidence:*  55%"
+        }
+      ]
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Root cause (draft — flagged for review):*\nThe meridian-web 1.4.2 frontend deploy calls .map() on an API response payload that is not an array, causing uncaught 'map is not a function' TypeErrors in the browser. — A backend endpoint change (or error response) altered the payload shape from an array to an object/null, so frontend code doing response.data.map(...) throws a TypeError before rendering, producing browser-side JS exceptions/log entries. (verified: found 'map is not a function' in 40 matching rows) [Incident memory: similar to past incident inv-ebc62d8028 (similarity 71%) — see 'Similar past incidents'.]"
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Evidence:*\n• p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784322514803&endTime=1784324344907|view in SigNoz>)\n• error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784322514803&endTime=1784324344907|view in SigNoz>)\n• throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x) (<http://localhost:8080/services/unknown?startTime=1784322514803&endTime=1784324344907|view in SigNoz>)\n• similar to incident inv-ebc62d8028 (Jul 17, alert 'GLASSPANE: browser error spike', service unknown, similarity 71%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.\n• similar to incident inv-51d73b1d78 (Jul 17, alert 'ARGUS LLM spend rate', service argus, similarity 70%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required.\n• similar to incident inv-8874a6845f (Jul 17, alert 'GLASSPANE: p75 LCP above 4s', service unknown, similarity 68%): investigation did not converge; evidence pointed to: No hypothesis survived verification. Evidence-only report; human investigation required."
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Timeline:*\n• 21:08:34 UTC — baseline window opens (pre-incident comparison)\n• 21:38:34 UTC — alert '[DRAFT · ARGUS] unknown: The meridian-web 1.4.2 frontend deploy calls .map() on an API response payload t' started firing\n• alert window — p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x)\n• alert window — error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x)\n• alert window — throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x)\n• 21:39:04 UTC — ARGUS investigation inv-57942d0754 began"
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Ruled out by verification queries:*\n• ~The API endpoint meridian-web depends on began returning an error/object payload instead of an array after a backend change coinciding with the 1.4.2 deploy. — verification failed to run: Client error '400 Bad Request' for url 'http://localhost:8080/api/v5/query_range'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400~"
+      }
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "context",
+      "elements": [
+        {
+          "type": "mrkdwn",
+          "text": "🤖 Drafted by ARGUS · `inv-57942d0754` · LLM: claude-haiku-4-5-20251001 (live)"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "2/3 hypotheses verified · 1 LLM calls · 6131 tokens · est. $0.0286 · 16 SigNoz queries · 43,035 rows / 7.1 MB scanned · 96 ms query time"
+        }
+      ]
+    },
+    {
+      "type": "actions",
+      "elements": [
+        {
+          "type": "button",
+          "text": {
+            "type": "plain_text",
+            "text": "View in SigNoz"
+          },
+          "url": "http://localhost:8080/services/unknown?startTime=1784322514803&endTime=1784324344907"
+        }
+      ]
+    }
+  ],
+  "degraded": false,
+  "needs_review": true,
+  "llm_label": "claude-haiku-4-5-20251001 (live)",
+  "query_stats": "16 SigNoz queries · 43,035 rows / 7.1 MB scanned · 96 ms query time"
+}
