@@ -1,0 +1,12 @@
+{
+  "scenario": "slow-db",
+  "description": "Injected pg_sleep(2.5) in catalog product SELECT; pool exhaustion + statement timeouts",
+  "expected_service": "catalog",
+  "root_cause_keywords": [
+    "pg_sleep",
+    "postgres",
+    "catalog"
+  ],
+  "min_confirmed_hypotheses": 1,
+  "max_cost_usd": 0.15
+}

@@ -1,0 +1,24 @@
+{
+  "status": "success",
+  "data": {
+    "type": "raw",
+    "data": {
+      "results": [
+        {
+          "queryName": "A",
+          "rows": [
+            {
+              "timestamp": 1783990920000,
+              "data": {
+                "timestamp": 1783990920000,
+                "body": "cache miss for product 4471, falling back to db",
+                "severity_text": "ERROR",
+                "service.name": "catalog"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

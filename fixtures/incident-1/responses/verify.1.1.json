@@ -1,0 +1,14 @@
+{
+  "status": "success",
+  "data": {
+    "type": "raw",
+    "data": {
+      "results": [
+        {
+          "queryName": "A",
+          "rows": []
+        }
+      ]
+    }
+  }
+}

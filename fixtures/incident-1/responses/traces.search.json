@@ -1,0 +1,37 @@
+{
+  "status": "success",
+  "data": {
+    "type": "raw",
+    "data": {
+      "results": [
+        {
+          "queryName": "A",
+          "rows": [
+            {
+              "timestamp": 1783995120000,
+              "data": {
+                "trace_id": "7f3a9c1e5b2d48a6b1c9d0e2f4a67788",
+                "span_id": "aa11bb22cc33dd44",
+                "name": "GET /products",
+                "service.name": "catalog",
+                "duration_nano": 3050000000.0,
+                "has_error": true
+              }
+            },
+            {
+              "timestamp": 1783995120000,
+              "data": {
+                "trace_id": "1c8e2b4d6f9a3057c2d4e6f8a0b1c2d3",
+                "span_id": "ee55ff66aa77bb88",
+                "name": "GET /products",
+                "service.name": "catalog",
+                "duration_nano": 2870000000.0,
+                "has_error": true
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "status": "success",
+  "data": {
+    "type": "raw",
+    "data": {
+      "results": [
+        {
+          "queryName": "A",
+          "rows": [
+            {
+              "timestamp": 1783995240000,
+              "data": {
+                "timestamp": 1783995240000,
+                "body": "db query timeout after 3000 ms executing SELECT products (statement timeout)",
+                "severity_text": "ERROR",
+                "service.name": "catalog",
+                "trace_id": "7f3a9c1e5b2d48a6b1c9d0e2f4a67788"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

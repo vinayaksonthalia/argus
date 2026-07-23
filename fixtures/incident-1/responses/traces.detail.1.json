@@ -1,0 +1,43 @@
+{
+  "status": "success",
+  "data": {
+    "type": "raw",
+    "data": {
+      "results": [
+        {
+          "queryName": "A",
+          "rows": [
+            {
+              "timestamp": 1783995120000,
+              "data": {
+                "trace_id": "1c8e2b4d6f9a3057c2d4e6f8a0b1c2d3",
+                "span_id": "c2c2c2c2c2c2c2c2",
+                "name": "GET /products",
+                "service.name": "catalog",
+                "duration_nano": 2870000000.0,
+                "has_error": true,
+                "http.route": "/products",
+                "http.status_code": 500
+              }
+            },
+            {
+              "timestamp": 1783995120000,
+              "data": {
+                "trace_id": "1c8e2b4d6f9a3057c2d4e6f8a0b1c2d3",
+                "span_id": "d3d3d3d3d3d3d3d3",
+                "name": "SELECT products",
+                "service.name": "catalog",
+                "duration_nano": 2790000000.0,
+                "has_error": true,
+                "db.system": "postgresql",
+                "db.statement": "SELECT *, pg_sleep(2.5) FROM products WHERE category = $1",
+                "exception.type": "QueryCanceledError",
+                "exception.message": "canceling statement due to statement timeout"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

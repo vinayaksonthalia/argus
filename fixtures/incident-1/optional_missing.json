@@ -1,0 +1,6 @@
+[
+  "infra.k8s_container_memory_usage",
+  "infra.k8s_container_cpu_usage",
+  "infra.k8s_container_restarts",
+  "changes.deployments"
+]

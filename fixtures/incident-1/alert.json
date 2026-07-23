@@ -1,0 +1,29 @@
+{
+  "receiver": "argus",
+  "status": "firing",
+  "alerts": [
+    {
+      "status": "firing",
+      "labels": {
+        "alertname": "CatalogP99LatencyAnomaly",
+        "service.name": "catalog",
+        "severity": "critical",
+        "ruleId": "42"
+      },
+      "annotations": {
+        "summary": "p99 latency for catalog breached the anomaly band",
+        "description": "seasonal-decomposition anomaly on p99(duration_nano), catalog service"
+      },
+      "startsAt": "2026-07-14T02:12:00+00:00",
+      "fingerprint": "9a1c22e7c001f5d4"
+    }
+  ],
+  "groupLabels": {
+    "alertname": "CatalogP99LatencyAnomaly"
+  },
+  "commonLabels": {
+    "service.name": "catalog"
+  },
+  "externalURL": "http://localhost:8080",
+  "version": "4"
+}

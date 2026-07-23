@@ -1,0 +1,54 @@
+{
+  "status": "success",
+  "data": {
+    "type": "raw",
+    "data": {
+      "results": [
+        {
+          "queryName": "A",
+          "rows": [
+            {
+              "timestamp": 1783995120000,
+              "data": {
+                "trace_id": "7f3a9c1e5b2d48a6b1c9d0e2f4a67788",
+                "span_id": "0a0a0a0a0a0a0a0a",
+                "name": "GET /checkout",
+                "service.name": "gateway",
+                "duration_nano": 3200000000.0,
+                "has_error": true
+              }
+            },
+            {
+              "timestamp": 1783995120000,
+              "data": {
+                "trace_id": "7f3a9c1e5b2d48a6b1c9d0e2f4a67788",
+                "span_id": "aa11bb22cc33dd44",
+                "name": "GET /products",
+                "service.name": "catalog",
+                "duration_nano": 3050000000.0,
+                "has_error": true,
+                "http.route": "/products",
+                "http.status_code": 500
+              }
+            },
+            {
+              "timestamp": 1783995120000,
+              "data": {
+                "trace_id": "7f3a9c1e5b2d48a6b1c9d0e2f4a67788",
+                "span_id": "b1b1b1b1b1b1b1b1",
+                "name": "SELECT products",
+                "service.name": "catalog",
+                "duration_nano": 2980000000.0,
+                "has_error": true,
+                "db.system": "postgresql",
+                "db.statement": "SELECT *, pg_sleep(2.5) FROM products WHERE category = $1",
+                "exception.type": "QueryCanceledError",
+                "exception.message": "canceling statement due to statement timeout"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
