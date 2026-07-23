@@ -273,3 +273,9 @@ picture, how the investigation loop works, a SigNoz API deep-dive, the tech
 stack and trade-offs, an FAQ (with honest limits and a glossary), the design
 rationale, and a bug-hunt war diary. Start at
 [`learning/README.md`](learning/README.md).
+
+---
+
+## AI assistance
+
+ARGUS was built and tested with help from Claude (Claude Code) as a pair-programmer — for research, implementation, and verification runs. Every design decision, live verification, and claim in this repo was reviewed against real evidence; the `assets/` folder holds the receipts.
