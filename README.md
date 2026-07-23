@@ -259,12 +259,6 @@ live demo in 5 commands").
 - Live Slack posting (dry-run prints Block Kit JSON today).
 - Multi-service blast-radius correlation (single-service analysis today).
 
-## AI usage disclosure
-
-ARGUS uses Anthropic Claude as its reasoning model behind a pluggable
-provider interface; all root-cause claims are verified against real SigNoz
-queries before being reported. AI coding assistants were used during
-development.
 
 ## Learn
 
@@ -276,6 +270,6 @@ rationale, and a bug-hunt war diary. Start at
 
 ---
 
-## AI assistance
+## AI disclosure
 
-ARGUS was built and tested with help from Claude (Claude Code) as a pair-programmer — for research, implementation, and verification runs. Every design decision, live verification, and claim in this repo was reviewed against real evidence; the `assets/` folder holds the receipts.
+ARGUS uses Anthropic Claude as its reasoning model behind a pluggable provider interface (Claude / Groq / any OpenAI-compatible endpoint, or fully offline replay); every root-cause claim is verified against real SigNoz queries before it is reported. Claude Code was also used as a pair-programmer during development and testing — every design decision, live verification, and claim in this repo was reviewed against real evidence, and the `assets/` folder holds the receipts.
