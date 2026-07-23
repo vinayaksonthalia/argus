@@ -1,0 +1,936 @@
+{
+  "status": "success",
+  "data": {
+    "type": "raw",
+    "meta": {
+      "rowsScanned": 2476,
+      "bytesScanned": 865115,
+      "durationMs": 9,
+      "stepIntervals": {
+        "A": 5
+      }
+    },
+    "data": {
+      "results": [
+        {
+          "queryName": "A",
+          "nextCursor": "",
+          "rows": [
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 72
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/orders.py",
+                  "code.function.name": "create_order",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "0012cd52ba4f0c29",
+                  "otelTraceID": "f0f5f549146715c10ec22298196b2118"
+                },
+                "body": "NoneType has no attribute 'sku' while normalizing order payload (introduced in 1.1.0-rc1)",
+                "id": "0lAhx3GkdK6YEjz7TUGYi1VL0AJ",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.orders",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "0012cd52ba4f0c29",
+                "timestamp": 1784240919128464128,
+                "trace_flags": 3,
+                "trace_id": "f0f5f549146715c10ec22298196b2118"
+              },
+              "timestamp": "2026-07-16T22:28:39.128464128Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 72
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/orders.py",
+                  "code.function.name": "create_order",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "ccddf6b75f6f686f",
+                  "otelTraceID": "cb6be992d21982b0b97250be6e31831c"
+                },
+                "body": "NoneType has no attribute 'sku' while normalizing order payload (introduced in 1.1.0-rc1)",
+                "id": "0lAhx0iK0hHP71UDh1KFYHbqqCx",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.orders",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "ccddf6b75f6f686f",
+                "timestamp": 1784240917719856640,
+                "trace_flags": 3,
+                "trace_id": "cb6be992d21982b0b97250be6e31831c"
+              },
+              "timestamp": "2026-07-16T22:28:37.71985664Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 72
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/orders.py",
+                  "code.function.name": "create_order",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "6dc8f1e86ea1051f",
+                  "otelTraceID": "851259645a2ac258c210b13043464ad0"
+                },
+                "body": "NoneType has no attribute 'sku' while normalizing order payload (introduced in 1.1.0-rc1)",
+                "id": "0lAhwlACJ7hCwQPQEMn7uLUbCp0",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.orders",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "6dc8f1e86ea1051f",
+                "timestamp": 1784240909147757056,
+                "trace_flags": 3,
+                "trace_id": "851259645a2ac258c210b13043464ad0"
+              },
+              "timestamp": "2026-07-16T22:28:29.147757056Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 72
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/orders.py",
+                  "code.function.name": "create_order",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "4872892c5f1e576f",
+                  "otelTraceID": "1f0774fb3f53fc4bf25f52dc2aedc7f1"
+                },
+                "body": "NoneType has no attribute 'sku' while normalizing order payload (introduced in 1.1.0-rc1)",
+                "id": "0lAhwTBoFsgJp6ytTQoeY6tnk0d",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.orders",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "4872892c5f1e576f",
+                "timestamp": 1784240899239651840,
+                "trace_flags": 3,
+                "trace_id": "1f0774fb3f53fc4bf25f52dc2aedc7f1"
+              },
+              "timestamp": "2026-07-16T22:28:19.23965184Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 72
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/orders.py",
+                  "code.function.name": "create_order",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "76de8e86891a4a41",
+                  "otelTraceID": "c5efabe6ccf4b993410e170af1ad6cd5"
+                },
+                "body": "NoneType has no attribute 'sku' while normalizing order payload (introduced in 1.1.0-rc1)",
+                "id": "0lAhw4c3AEuOgRqG6nod7xCmTBf",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.orders",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "76de8e86891a4a41",
+                "timestamp": 1784240885691793664,
+                "trace_flags": 3,
+                "trace_id": "c5efabe6ccf4b993410e170af1ad6cd5"
+              },
+              "timestamp": "2026-07-16T22:28:05.691793664Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 72
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/orders.py",
+                  "code.function.name": "create_order",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "c77eb9bfd31a8e52",
+                  "otelTraceID": "ad97143d22af75e59fb24ac5b8579591"
+                },
+                "body": "NoneType has no attribute 'sku' while normalizing order payload (introduced in 1.1.0-rc1)",
+                "id": "0lAhvxwVtJaZmqXyBz1q6bYFp5Y",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.orders",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "c77eb9bfd31a8e52",
+                "timestamp": 1784240882015008768,
+                "trace_flags": 3,
+                "trace_id": "ad97143d22af75e59fb24ac5b8579591"
+              },
+              "timestamp": "2026-07-16T22:28:02.015008768Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 72
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/orders.py",
+                  "code.function.name": "create_order",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "4bccf3cf4731be77",
+                  "otelTraceID": "af461c7d4f67db01df1fcbad67b764b6"
+                },
+                "body": "NoneType has no attribute 'sku' while normalizing order payload (introduced in 1.1.0-rc1)",
+                "id": "0lAhvsaFoXeYtdEtTyOSAID0E3P",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.orders",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "4bccf3cf4731be77",
+                "timestamp": 1784240879060866816,
+                "trace_flags": 3,
+                "trace_id": "af461c7d4f67db01df1fcbad67b764b6"
+              },
+              "timestamp": "2026-07-16T22:27:59.060866816Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 72
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/orders.py",
+                  "code.function.name": "create_order",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "0cd5a5e4515d89f1",
+                  "otelTraceID": "dc902acfd81cbdf03794c86c4c9782ee"
+                },
+                "body": "NoneType has no attribute 'sku' while normalizing order payload (introduced in 1.1.0-rc1)",
+                "id": "0lAhveltW5EQhSku433RmOFMb9E",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.orders",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "0cd5a5e4515d89f1",
+                "timestamp": 1784240871446910208,
+                "trace_flags": 3,
+                "trace_id": "dc902acfd81cbdf03794c86c4c9782ee"
+              },
+              "timestamp": "2026-07-16T22:27:51.446910208Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 72
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/orders.py",
+                  "code.function.name": "create_order",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "bd55851169f94b97",
+                  "otelTraceID": "29320cbd3c67b11315b81e9eac03852d"
+                },
+                "body": "NoneType has no attribute 'sku' while normalizing order payload (introduced in 1.1.0-rc1)",
+                "id": "0lAhvbkvGvi6DxTa3piadRwLhNf",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.orders",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "bd55851169f94b97",
+                "timestamp": 1784240869784531200,
+                "trace_flags": 3,
+                "trace_id": "29320cbd3c67b11315b81e9eac03852d"
+              },
+              "timestamp": "2026-07-16T22:27:49.7845312Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 72
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/orders.py",
+                  "code.function.name": "create_order",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "306f8cae5b252a8c",
+                  "otelTraceID": "b9d672c03643538e21fd416182329552"
+                },
+                "body": "NoneType has no attribute 'sku' while normalizing order payload (introduced in 1.1.0-rc1)",
+                "id": "0lAhvYPGN5iVYlKjsqxaoHKUblt",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.orders",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "306f8cae5b252a8c",
+                "timestamp": 1784240867938213632,
+                "trace_flags": 3,
+                "trace_id": "b9d672c03643538e21fd416182329552"
+              },
+              "timestamp": "2026-07-16T22:27:47.938213632Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 72
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/orders.py",
+                  "code.function.name": "create_order",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "345a531f9c40d22c",
+                  "otelTraceID": "ff1b3fcdb6caa90daa19f4ea3994f32a"
+                },
+                "body": "NoneType has no attribute 'sku' while normalizing order payload (introduced in 1.1.0-rc1)",
+                "id": "0lAhvIXCkKC82lhQzgA8k5LC7BR",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.orders",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "345a531f9c40d22c",
+                "timestamp": 1784240859188877312,
+                "trace_flags": 3,
+                "trace_id": "ff1b3fcdb6caa90daa19f4ea3994f32a"
+              },
+              "timestamp": "2026-07-16T22:27:39.188877312Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 72
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/orders.py",
+                  "code.function.name": "create_order",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "d4c96d5dc968c102",
+                  "otelTraceID": "a0316789f2c34bba2d6d7cc39beb29a1"
+                },
+                "body": "NoneType has no attribute 'sku' while normalizing order payload (introduced in 1.1.0-rc1)",
+                "id": "0lAhvC6tTrrK65GRHvVEEuPWr5t",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.orders",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "d4c96d5dc968c102",
+                "timestamp": 1784240855647467264,
+                "trace_flags": 3,
+                "trace_id": "a0316789f2c34bba2d6d7cc39beb29a1"
+              },
+              "timestamp": "2026-07-16T22:27:35.647467264Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 72
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/orders.py",
+                  "code.function.name": "create_order",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "5537daecf83fb7e9",
+                  "otelTraceID": "8919378b55e82bd2d1cc792fec075099"
+                },
+                "body": "NoneType has no attribute 'sku' while normalizing order payload (introduced in 1.1.0-rc1)",
+                "id": "0lAhuiV52aWLj23xwiwbwZoFry5",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.orders",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "5537daecf83fb7e9",
+                "timestamp": 1784240839325113856,
+                "trace_flags": 3,
+                "trace_id": "8919378b55e82bd2d1cc792fec075099"
+              },
+              "timestamp": "2026-07-16T22:27:19.325113856Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 99
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/orders.py",
+                  "code.function.name": "create_order",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "b76e64ad25007477",
+                  "otelTraceID": "20aa16606eb60f1942b4a52e39da0b3d"
+                },
+                "body": "payment failed for order a128b138840a: HTTP 502",
+                "id": "0lAhsiDsVm6oLY4itBx2R1FPgjX",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.orders",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "b76e64ad25007477",
+                "timestamp": 1784240770817594880,
+                "trace_flags": 3,
+                "trace_id": "20aa16606eb60f1942b4a52e39da0b3d"
+              },
+              "timestamp": "2026-07-16T22:26:10.81759488Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 99
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/orders.py",
+                  "code.function.name": "create_order",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "deea4e7ddfd2f9f9",
+                  "otelTraceID": "fa77e2f106075f46cd1e74fbd51be0d1"
+                },
+                "body": "payment failed for order e20ee3ef2618: HTTP 502",
+                "id": "0lAhshJMHvheQi9QVXMQuKuZhiI",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.orders",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "deea4e7ddfd2f9f9",
+                "timestamp": 1784240770315073792,
+                "trace_flags": 3,
+                "trace_id": "fa77e2f106075f46cd1e74fbd51be0d1"
+              },
+              "timestamp": "2026-07-16T22:26:10.315073792Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 99
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/orders.py",
+                  "code.function.name": "create_order",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "3a2908c9bd747239",
+                  "otelTraceID": "564f2065afd723ca12827bdd88635bb0"
+                },
+                "body": "payment failed for order 0fc549527914: HTTP 502",
+                "id": "0lAhs0rBK5pqf52JT7HHOirxJoz",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.orders",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "3a2908c9bd747239",
+                "timestamp": 1784240746912195584,
+                "trace_flags": 3,
+                "trace_id": "564f2065afd723ca12827bdd88635bb0"
+              },
+              "timestamp": "2026-07-16T22:25:46.912195584Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 99
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/orders.py",
+                  "code.function.name": "create_order",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "44d3e38562b848c6",
+                  "otelTraceID": "1d74149cf101b473334010c7ed69fc68"
+                },
+                "body": "payment failed for order 6d1e23627a48: HTTP 502",
+                "id": "0lAhrtju3DFNvzmejnmv3sXg0Dm",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.orders",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "44d3e38562b848c6",
+                "timestamp": 1784240742988755200,
+                "trace_flags": 3,
+                "trace_id": "1d74149cf101b473334010c7ed69fc68"
+              },
+              "timestamp": "2026-07-16T22:25:42.9887552Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 99
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/orders.py",
+                  "code.function.name": "create_order",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "cb81554b8bac1976",
+                  "otelTraceID": "b0473982c190d0f659be95a5befe6b7e"
+                },
+                "body": "payment failed for order 500dfb619801: HTTP 502",
+                "id": "0lAhr9wdr95ZTayFPUXjU7Axdmo",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.orders",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "cb81554b8bac1976",
+                "timestamp": 1784240717744674816,
+                "trace_flags": 3,
+                "trace_id": "b0473982c190d0f659be95a5befe6b7e"
+              },
+              "timestamp": "2026-07-16T22:25:17.744674816Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 99
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/orders.py",
+                  "code.function.name": "create_order",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "15f7665e9ac2444b",
+                  "otelTraceID": "ea5904d5a432eb6a93612bf240b26966"
+                },
+                "body": "payment failed for order 9872af2c5c65: HTTP 502",
+                "id": "0lAhqnzK5IE2diukKfLaLA6uFZv",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.orders",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "15f7665e9ac2444b",
+                "timestamp": 1784240705641088256,
+                "trace_flags": 3,
+                "trace_id": "ea5904d5a432eb6a93612bf240b26966"
+              },
+              "timestamp": "2026-07-16T22:25:05.641088256Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 99
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/orders.py",
+                  "code.function.name": "create_order",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "da9c9e2859e937fe",
+                  "otelTraceID": "eddc14fb3344b8ebed9a0683b9dc8693"
+                },
+                "body": "payment failed for order af36ee2e3113: HTTP 502",
+                "id": "0lAhqjyykOiUQsRQcXlrEGDIiG1",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.orders",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "da9c9e2859e937fe",
+                "timestamp": 1784240703433042176,
+                "trace_flags": 3,
+                "trace_id": "eddc14fb3344b8ebed9a0683b9dc8693"
+              },
+              "timestamp": "2026-07-16T22:25:03.433042176Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 99
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/orders.py",
+                  "code.function.name": "create_order",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "3b2fa45cfca1be89",
+                  "otelTraceID": "70c16560929a2a6a49e10db7afcba6fa"
+                },
+                "body": "payment failed for order b20bc82786f9: HTTP 502",
+                "id": "0lAhqgtczG8R8ajy3cWcrRwo22D",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.orders",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "3b2fa45cfca1be89",
+                "timestamp": 1784240701731726592,
+                "trace_flags": 3,
+                "trace_id": "70c16560929a2a6a49e10db7afcba6fa"
+              },
+              "timestamp": "2026-07-16T22:25:01.731726592Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 99
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/orders.py",
+                  "code.function.name": "create_order",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "99ae29642c83969b",
+                  "otelTraceID": "1d2f8f978d2d404ddd3ea1102a7ef357"
+                },
+                "body": "payment failed for order 82fbc1840cc2: HTTP 502",
+                "id": "0lAhqdxFEqQsWDXe4PfXWzGTogh",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.orders",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "99ae29642c83969b",
+                "timestamp": 1784240700110145536,
+                "trace_flags": 3,
+                "trace_id": "1d2f8f978d2d404ddd3ea1102a7ef357"
+              },
+              "timestamp": "2026-07-16T22:25:00.110145536Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 99
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/orders.py",
+                  "code.function.name": "create_order",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "a39d1e05117799a6",
+                  "otelTraceID": "182796e26b55f126f52f839620838a4d"
+                },
+                "body": "payment failed for order deef47aa3c5c: HTTP 502",
+                "id": "0lAhqK3Ug9Ilkgc3GNSPlr6trJ0",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.orders",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "a39d1e05117799a6",
+                "timestamp": 1784240689140774912,
+                "trace_flags": 3,
+                "trace_id": "182796e26b55f126f52f839620838a4d"
+              },
+              "timestamp": "2026-07-16T22:24:49.140774912Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 99
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/orders.py",
+                  "code.function.name": "create_order",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "68a5e1f410e4a64b",
+                  "otelTraceID": "79240f4aec1ac91b64724d5e5b4bcabb"
+                },
+                "body": "payment failed for order 2ab88c619e24: HTTP 502",
+                "id": "0lAhq2CAMPtcIge1jvIf6A3t0iZ",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.orders",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "68a5e1f410e4a64b",
+                "timestamp": 1784240679295442688,
+                "trace_flags": 3,
+                "trace_id": "79240f4aec1ac91b64724d5e5b4bcabb"
+              },
+              "timestamp": "2026-07-16T22:24:39.295442688Z"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

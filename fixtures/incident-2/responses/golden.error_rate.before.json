@@ -1,0 +1,27 @@
+{
+  "status": "success",
+  "data": {
+    "type": "time_series",
+    "meta": {
+      "rowsScanned": 0,
+      "bytesScanned": 0,
+      "durationMs": 12,
+      "stepIntervals": {
+        "A": 60,
+        "B": 60
+      }
+    },
+    "data": {
+      "results": [
+        {
+          "queryName": "A",
+          "aggregations": null
+        },
+        {
+          "queryName": "B",
+          "aggregations": null
+        }
+      ]
+    }
+  }
+}

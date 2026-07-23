@@ -1,0 +1,138 @@
+{
+  "status": "success",
+  "data": {
+    "type": "raw",
+    "meta": {
+      "rowsScanned": 2452,
+      "bytesScanned": 686693,
+      "durationMs": 3,
+      "stepIntervals": {
+        "A": 5
+      }
+    },
+    "data": {
+      "results": [
+        {
+          "queryName": "A",
+          "nextCursor": "",
+          "rows": [
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 36
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/gateway.py",
+                  "code.function.name": "_proxy",
+                  "otelServiceName": "gateway",
+                  "otelSpanID": "fca37b4a0530ac1f",
+                  "otelTraceID": "1f0774fb3f53fc4bf25f52dc2aedc7f1"
+                },
+                "body": "upstream http://orders:8093/orders returned HTTP 500",
+                "id": "0lAhwTCLJEPWYonSLM5LhO4QoOd",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "9223fb74-ea51-4be6-925c-5e0cde6599b5",
+                  "service.name": "gateway",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.gateway",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "fca37b4a0530ac1f",
+                "timestamp": 1784240899244391936,
+                "trace_flags": 3,
+                "trace_id": "1f0774fb3f53fc4bf25f52dc2aedc7f1"
+              },
+              "timestamp": "2026-07-16T22:28:19.244391936Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 1025
+                },
+                "attributes_string": {
+                  "code.file.path": "/usr/local/lib/python3.12/site-packages/httpx/_client.py",
+                  "code.function.name": "_send_single_request",
+                  "otelServiceName": "gateway",
+                  "otelSpanID": "fca37b4a0530ac1f",
+                  "otelTraceID": "1f0774fb3f53fc4bf25f52dc2aedc7f1"
+                },
+                "body": "HTTP Request: POST http://orders:8093/orders \"HTTP/1.1 500 Internal Server Error\"",
+                "id": "0lAhwTCE8IYHXoA1L8zvOlAtJtr",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "9223fb74-ea51-4be6-925c-5e0cde6599b5",
+                  "service.name": "gateway",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "httpx",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 9,
+                "severity_text": "INFO",
+                "span_id": "fca37b4a0530ac1f",
+                "timestamp": 1784240899243362816,
+                "trace_flags": 3,
+                "trace_id": "1f0774fb3f53fc4bf25f52dc2aedc7f1"
+              },
+              "timestamp": "2026-07-16T22:28:19.243362816Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 72
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/orders.py",
+                  "code.function.name": "create_order",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "4872892c5f1e576f",
+                  "otelTraceID": "1f0774fb3f53fc4bf25f52dc2aedc7f1"
+                },
+                "body": "NoneType has no attribute 'sku' while normalizing order payload (introduced in 1.1.0-rc1)",
+                "id": "0lAhwTBoFsgJp6ytTQoeY6tnk0d",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.orders",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "4872892c5f1e576f",
+                "timestamp": 1784240899239651840,
+                "trace_flags": 3,
+                "trace_id": "1f0774fb3f53fc4bf25f52dc2aedc7f1"
+              },
+              "timestamp": "2026-07-16T22:28:19.23965184Z"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

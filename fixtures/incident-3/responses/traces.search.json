@@ -1,0 +1,201 @@
+{
+  "status": "success",
+  "data": {
+    "type": "raw",
+    "meta": {
+      "rowsScanned": 16554,
+      "bytesScanned": 5404009,
+      "durationMs": 16,
+      "stepIntervals": {
+        "A": 5
+      }
+    },
+    "data": {
+      "results": [
+        {
+          "queryName": "A",
+          "nextCursor": "",
+          "rows": [
+            {
+              "data": {
+                "attributes": {
+                  "http.flavor": "1.1",
+                  "http.host": "172.19.0.5:8093",
+                  "http.method": "POST",
+                  "http.route": "/orders",
+                  "http.scheme": "http",
+                  "http.server_name": "orders:8093",
+                  "http.status_code": 500,
+                  "http.target": "/orders",
+                  "http.url": "http://orders:8093/orders",
+                  "http.user_agent": "python-httpx/0.28.1",
+                  "net.host.port": 8093,
+                  "net.peer.ip": "172.19.0.6",
+                  "net.peer.port": 37296
+                },
+                "db_name": "",
+                "db_operation": "",
+                "duration_nano": 1047287292,
+                "events": [],
+                "external_http_method": "",
+                "external_http_url": "",
+                "flags": 768,
+                "has_error": true,
+                "http_host": "172.19.0.5:8093",
+                "http_method": "POST",
+                "http_url": "http://orders:8093/orders",
+                "is_remote": "yes",
+                "kind": 2,
+                "kind_string": "Server",
+                "links": [
+                  {
+                    "traceId": "af461c7d4f67db01df1fcbad67b764b6",
+                    "spanId": "c7f6c1cb0a2c1a40"
+                  }
+                ],
+                "name": "POST /orders",
+                "parent_span_id": "c7f6c1cb0a2c1a40",
+                "resource": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "response_status_code": "500",
+                "span_id": "4bccf3cf4731be77",
+                "status_code": 2,
+                "status_code_string": "Error",
+                "status_message": "",
+                "timestamp": "2026-07-16T22:27:58.014652626Z",
+                "trace_id": "af461c7d4f67db01df1fcbad67b764b6",
+                "trace_state": ""
+              },
+              "timestamp": "2026-07-16T22:27:58.014652626Z"
+            },
+            {
+              "data": {
+                "attributes": {
+                  "http.flavor": "1.1",
+                  "http.host": "172.19.0.5:8093",
+                  "http.method": "POST",
+                  "http.route": "/orders",
+                  "http.scheme": "http",
+                  "http.server_name": "orders:8093",
+                  "http.status_code": 500,
+                  "http.target": "/orders",
+                  "http.url": "http://orders:8093/orders",
+                  "http.user_agent": "python-httpx/0.28.1",
+                  "net.host.port": 8093,
+                  "net.peer.ip": "172.19.0.6",
+                  "net.peer.port": 39362
+                },
+                "db_name": "",
+                "db_operation": "",
+                "duration_nano": 969994209,
+                "events": [],
+                "external_http_method": "",
+                "external_http_url": "",
+                "flags": 768,
+                "has_error": true,
+                "http_host": "172.19.0.5:8093",
+                "http_method": "POST",
+                "http_url": "http://orders:8093/orders",
+                "is_remote": "yes",
+                "kind": 2,
+                "kind_string": "Server",
+                "links": [
+                  {
+                    "traceId": "1f0774fb3f53fc4bf25f52dc2aedc7f1",
+                    "spanId": "f6e56557cc6650fd"
+                  }
+                ],
+                "name": "POST /orders",
+                "parent_span_id": "f6e56557cc6650fd",
+                "resource": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "response_status_code": "500",
+                "span_id": "4872892c5f1e576f",
+                "status_code": 2,
+                "status_code_string": "Error",
+                "status_message": "",
+                "timestamp": "2026-07-16T22:28:18.272499302Z",
+                "trace_id": "1f0774fb3f53fc4bf25f52dc2aedc7f1",
+                "trace_state": ""
+              },
+              "timestamp": "2026-07-16T22:28:18.272499302Z"
+            },
+            {
+              "data": {
+                "attributes": {
+                  "http.flavor": "1.1",
+                  "http.host": "172.19.0.5:8093",
+                  "http.method": "POST",
+                  "http.route": "/orders",
+                  "http.scheme": "http",
+                  "http.server_name": "orders:8093",
+                  "http.status_code": 500,
+                  "http.target": "/orders",
+                  "http.url": "http://orders:8093/orders",
+                  "http.user_agent": "python-httpx/0.28.1",
+                  "net.host.port": 8093,
+                  "net.peer.ip": "172.19.0.6",
+                  "net.peer.port": 45064
+                },
+                "db_name": "",
+                "db_operation": "",
+                "duration_nano": 914069334,
+                "events": [],
+                "external_http_method": "",
+                "external_http_url": "",
+                "flags": 768,
+                "has_error": true,
+                "http_host": "172.19.0.5:8093",
+                "http_method": "POST",
+                "http_url": "http://orders:8093/orders",
+                "is_remote": "yes",
+                "kind": 2,
+                "kind_string": "Server",
+                "links": [
+                  {
+                    "traceId": "8919378b55e82bd2d1cc792fec075099",
+                    "spanId": "030c379376dd83c4"
+                  }
+                ],
+                "name": "POST /orders",
+                "parent_span_id": "030c379376dd83c4",
+                "resource": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "response_status_code": "500",
+                "span_id": "5537daecf83fb7e9",
+                "status_code": 2,
+                "status_code_string": "Error",
+                "status_message": "",
+                "timestamp": "2026-07-16T22:27:18.41516401Z",
+                "trace_id": "8919378b55e82bd2d1cc792fec075099",
+                "trace_state": ""
+              },
+              "timestamp": "2026-07-16T22:27:18.41516401Z"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

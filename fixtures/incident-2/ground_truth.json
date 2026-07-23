@@ -1,0 +1,9 @@
+{
+  "root_cause_keywords": [
+    "payment",
+    "502"
+  ],
+  "expected_service": "payments",
+  "min_confirmed_hypotheses": 1,
+  "max_cost_usd": 0.25
+}

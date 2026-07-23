@@ -1,0 +1,21 @@
+{
+  "receiver": "argus-webhook",
+  "status": "firing",
+  "alerts": [
+    {
+      "status": "firing",
+      "labels": {
+        "alertname": "Faultline orders latency + errors after deploy",
+        "service.name": "orders",
+        "severity": "critical",
+        "ruleId": "recorded-bad-deploy"
+      },
+      "annotations": {
+        "summary": "orders latency degraded and 5xx appearing",
+        "description": "p99 latency and error rate for orders regressed."
+      },
+      "startsAt": "2026-07-16T22:23:44Z",
+      "fingerprint": "faultline-bad-deploy"
+    }
+  ]
+}

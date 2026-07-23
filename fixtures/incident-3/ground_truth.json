@@ -1,0 +1,9 @@
+{
+  "root_cause_keywords": [
+    "orders",
+    "deploy"
+  ],
+  "expected_service": "orders",
+  "min_confirmed_hypotheses": 1,
+  "max_cost_usd": 0.25
+}

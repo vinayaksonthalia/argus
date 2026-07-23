@@ -1,0 +1,107 @@
+{
+  "status": "success",
+  "data": {
+    "type": "time_series",
+    "meta": {
+      "rowsScanned": 8362,
+      "bytesScanned": 1357540,
+      "durationMs": 9,
+      "stepIntervals": {
+        "A": 60
+      }
+    },
+    "data": {
+      "results": [
+        {
+          "queryName": "A",
+          "aggregations": [
+            {
+              "index": 0,
+              "alias": "__result_0",
+              "meta": {},
+              "series": [
+                {
+                  "values": [
+                    {
+                      "timestamp": 1784240280000,
+                      "value": 59549595.95
+                    },
+                    {
+                      "timestamp": 1784240700000,
+                      "value": 70589029
+                    },
+                    {
+                      "timestamp": 1784239860000,
+                      "value": 66916586.48
+                    },
+                    {
+                      "timestamp": 1784240220000,
+                      "value": 70170550.68
+                    },
+                    {
+                      "timestamp": 1784240760000,
+                      "value": 80615154.98
+                    },
+                    {
+                      "timestamp": 1784240460000,
+                      "value": 75445810.48
+                    },
+                    {
+                      "timestamp": 1784240100000,
+                      "value": 71102820.55
+                    },
+                    {
+                      "timestamp": 1784240400000,
+                      "value": 82320879.25
+                    },
+                    {
+                      "timestamp": 1784240520000,
+                      "value": 76004190.28
+                    },
+                    {
+                      "timestamp": 1784240160000,
+                      "value": 71128505.75
+                    },
+                    {
+                      "timestamp": 1784240640000,
+                      "value": 80337889.77
+                    },
+                    {
+                      "timestamp": 1784240340000,
+                      "value": 71201130.5
+                    },
+                    {
+                      "timestamp": 1784240820000,
+                      "value": 1148583732.52
+                    },
+                    {
+                      "timestamp": 1784239980000,
+                      "value": 75065138.79
+                    },
+                    {
+                      "timestamp": 1784240040000,
+                      "value": 69671276.47
+                    },
+                    {
+                      "timestamp": 1784240580000,
+                      "value": 70157233
+                    },
+                    {
+                      "timestamp": 1784239920000,
+                      "value": 68851623.19
+                    },
+                    {
+                      "timestamp": 1784240880000,
+                      "partial": true,
+                      "value": 1089997696
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

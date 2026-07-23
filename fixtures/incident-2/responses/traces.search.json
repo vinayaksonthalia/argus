@@ -1,0 +1,201 @@
+{
+  "status": "success",
+  "data": {
+    "type": "raw",
+    "meta": {
+      "rowsScanned": 16042,
+      "bytesScanned": 5234859,
+      "durationMs": 13,
+      "stepIntervals": {
+        "A": 5
+      }
+    },
+    "data": {
+      "results": [
+        {
+          "queryName": "A",
+          "nextCursor": "",
+          "rows": [
+            {
+              "data": {
+                "attributes": {
+                  "http.flavor": "1.1",
+                  "http.host": "172.19.0.2:8092",
+                  "http.method": "POST",
+                  "http.route": "/charge",
+                  "http.scheme": "http",
+                  "http.server_name": "payments:8092",
+                  "http.status_code": 502,
+                  "http.target": "/charge",
+                  "http.url": "http://payments:8092/charge",
+                  "http.user_agent": "python-httpx/0.28.1",
+                  "net.host.port": 8092,
+                  "net.peer.ip": "172.19.0.5",
+                  "net.peer.port": 34394
+                },
+                "db_name": "",
+                "db_operation": "",
+                "duration_nano": 54476291,
+                "events": [],
+                "external_http_method": "",
+                "external_http_url": "",
+                "flags": 768,
+                "has_error": true,
+                "http_host": "172.19.0.2:8092",
+                "http_method": "POST",
+                "http_url": "http://payments:8092/charge",
+                "is_remote": "yes",
+                "kind": 2,
+                "kind_string": "Server",
+                "links": [
+                  {
+                    "traceId": "79240f4aec1ac91b64724d5e5b4bcabb",
+                    "spanId": "5a19e801ac017a70"
+                  }
+                ],
+                "name": "POST /charge",
+                "parent_span_id": "5a19e801ac017a70",
+                "resource": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "4d2c9342-ac1e-454c-95d1-850af14ba1ba",
+                  "service.name": "payments",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "response_status_code": "502",
+                "span_id": "bb69098ad3bd7c86",
+                "status_code": 2,
+                "status_code_string": "Error",
+                "status_message": "",
+                "timestamp": "2026-07-16T22:24:39.239518423Z",
+                "trace_id": "79240f4aec1ac91b64724d5e5b4bcabb",
+                "trace_state": ""
+              },
+              "timestamp": "2026-07-16T22:24:39.239518423Z"
+            },
+            {
+              "data": {
+                "attributes": {
+                  "http.flavor": "1.1",
+                  "http.host": "172.19.0.2:8092",
+                  "http.method": "POST",
+                  "http.route": "/charge",
+                  "http.scheme": "http",
+                  "http.server_name": "payments:8092",
+                  "http.status_code": 502,
+                  "http.target": "/charge",
+                  "http.url": "http://payments:8092/charge",
+                  "http.user_agent": "python-httpx/0.28.1",
+                  "net.host.port": 8092,
+                  "net.peer.ip": "172.19.0.5",
+                  "net.peer.port": 41396
+                },
+                "db_name": "",
+                "db_operation": "",
+                "duration_nano": 48024416,
+                "events": [],
+                "external_http_method": "",
+                "external_http_url": "",
+                "flags": 768,
+                "has_error": true,
+                "http_host": "172.19.0.2:8092",
+                "http_method": "POST",
+                "http_url": "http://payments:8092/charge",
+                "is_remote": "yes",
+                "kind": 2,
+                "kind_string": "Server",
+                "links": [
+                  {
+                    "traceId": "fa77e2f106075f46cd1e74fbd51be0d1",
+                    "spanId": "ee0d021c81ffeaa0"
+                  }
+                ],
+                "name": "POST /charge",
+                "parent_span_id": "ee0d021c81ffeaa0",
+                "resource": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "4d2c9342-ac1e-454c-95d1-850af14ba1ba",
+                  "service.name": "payments",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "response_status_code": "502",
+                "span_id": "924d235518bcd206",
+                "status_code": 2,
+                "status_code_string": "Error",
+                "status_message": "",
+                "timestamp": "2026-07-16T22:26:10.266477257Z",
+                "trace_id": "fa77e2f106075f46cd1e74fbd51be0d1",
+                "trace_state": ""
+              },
+              "timestamp": "2026-07-16T22:26:10.266477257Z"
+            },
+            {
+              "data": {
+                "attributes": {
+                  "http.flavor": "1.1",
+                  "http.host": "172.19.0.2:8092",
+                  "http.method": "POST",
+                  "http.route": "/charge",
+                  "http.scheme": "http",
+                  "http.server_name": "payments:8092",
+                  "http.status_code": 502,
+                  "http.target": "/charge",
+                  "http.url": "http://payments:8092/charge",
+                  "http.user_agent": "python-httpx/0.28.1",
+                  "net.host.port": 8092,
+                  "net.peer.ip": "172.19.0.5",
+                  "net.peer.port": 51640
+                },
+                "db_name": "",
+                "db_operation": "",
+                "duration_nano": 47888708,
+                "events": [],
+                "external_http_method": "",
+                "external_http_url": "",
+                "flags": 768,
+                "has_error": true,
+                "http_host": "172.19.0.2:8092",
+                "http_method": "POST",
+                "http_url": "http://payments:8092/charge",
+                "is_remote": "yes",
+                "kind": 2,
+                "kind_string": "Server",
+                "links": [
+                  {
+                    "traceId": "eddc14fb3344b8ebed9a0683b9dc8693",
+                    "spanId": "9485f0f1a9b63145"
+                  }
+                ],
+                "name": "POST /charge",
+                "parent_span_id": "9485f0f1a9b63145",
+                "resource": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "4d2c9342-ac1e-454c-95d1-850af14ba1ba",
+                  "service.name": "payments",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "response_status_code": "502",
+                "span_id": "ee244eb91b6391c0",
+                "status_code": 2,
+                "status_code_string": "Error",
+                "status_message": "",
+                "timestamp": "2026-07-16T22:25:03.384315045Z",
+                "trace_id": "eddc14fb3344b8ebed9a0683b9dc8693",
+                "trace_state": ""
+              },
+              "timestamp": "2026-07-16T22:25:03.384315045Z"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

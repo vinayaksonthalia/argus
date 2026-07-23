@@ -1,0 +1,442 @@
+{
+  "status": "success",
+  "data": {
+    "type": "raw",
+    "meta": {
+      "rowsScanned": 2140,
+      "bytesScanned": 747944,
+      "durationMs": 11,
+      "stepIntervals": {
+        "A": 5
+      }
+    },
+    "data": {
+      "results": [
+        {
+          "queryName": "A",
+          "nextCursor": "",
+          "rows": [
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 32
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/payments.py",
+                  "code.function.name": "charge",
+                  "otelServiceName": "payments",
+                  "otelSpanID": "13e1ca24a8b843c8",
+                  "otelTraceID": "20aa16606eb60f1942b4a52e39da0b3d"
+                },
+                "body": "payment provider gateway returned 502 Bad Gateway for order a128b138840a (upstream connection reset by peer)",
+                "id": "0lAhsiDiMYk1zAoA9SHz27snhmC",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "4d2c9342-ac1e-454c-95d1-850af14ba1ba",
+                  "service.name": "payments",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.payments",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "13e1ca24a8b843c8",
+                "timestamp": 1784240770816139520,
+                "trace_flags": 3,
+                "trace_id": "20aa16606eb60f1942b4a52e39da0b3d"
+              },
+              "timestamp": "2026-07-16T22:26:10.81613952Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 32
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/payments.py",
+                  "code.function.name": "charge",
+                  "otelServiceName": "payments",
+                  "otelSpanID": "924d235518bcd206",
+                  "otelTraceID": "fa77e2f106075f46cd1e74fbd51be0d1"
+                },
+                "body": "payment provider gateway returned 502 Bad Gateway for order e20ee3ef2618 (upstream connection reset by peer)",
+                "id": "0lAhshJ9am0tQZUeEOX2zR4XExf",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "4d2c9342-ac1e-454c-95d1-850af14ba1ba",
+                  "service.name": "payments",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.payments",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "924d235518bcd206",
+                "timestamp": 1784240770313253120,
+                "trace_flags": 3,
+                "trace_id": "fa77e2f106075f46cd1e74fbd51be0d1"
+              },
+              "timestamp": "2026-07-16T22:26:10.31325312Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 32
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/payments.py",
+                  "code.function.name": "charge",
+                  "otelServiceName": "payments",
+                  "otelSpanID": "f3c1bbcb09228658",
+                  "otelTraceID": "564f2065afd723ca12827bdd88635bb0"
+                },
+                "body": "payment provider gateway returned 502 Bad Gateway for order 0fc549527914 (upstream connection reset by peer)",
+                "id": "0lAhs0r3GNASR2d4EIHwLYLYEzv",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "4d2c9342-ac1e-454c-95d1-850af14ba1ba",
+                  "service.name": "payments",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.payments",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "f3c1bbcb09228658",
+                "timestamp": 1784240746911039744,
+                "trace_flags": 3,
+                "trace_id": "564f2065afd723ca12827bdd88635bb0"
+              },
+              "timestamp": "2026-07-16T22:25:46.911039744Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 32
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/payments.py",
+                  "code.function.name": "charge",
+                  "otelServiceName": "payments",
+                  "otelSpanID": "1a28b12c3a7825cc",
+                  "otelTraceID": "1d74149cf101b473334010c7ed69fc68"
+                },
+                "body": "payment provider gateway returned 502 Bad Gateway for order 6d1e23627a48 (upstream connection reset by peer)",
+                "id": "0lAhrtjROT171uebmJngLDdJPSb",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "4d2c9342-ac1e-454c-95d1-850af14ba1ba",
+                  "service.name": "payments",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.payments",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "1a28b12c3a7825cc",
+                "timestamp": 1784240742984645632,
+                "trace_flags": 3,
+                "trace_id": "1d74149cf101b473334010c7ed69fc68"
+              },
+              "timestamp": "2026-07-16T22:25:42.984645632Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 32
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/payments.py",
+                  "code.function.name": "charge",
+                  "otelServiceName": "payments",
+                  "otelSpanID": "b42882abc0f12fc0",
+                  "otelTraceID": "b0473982c190d0f659be95a5befe6b7e"
+                },
+                "body": "payment provider gateway returned 502 Bad Gateway for order 500dfb619801 (upstream connection reset by peer)",
+                "id": "0lAhr9wKwNd7UEt9bnP0h8lPIb0",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "4d2c9342-ac1e-454c-95d1-850af14ba1ba",
+                  "service.name": "payments",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.payments",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "b42882abc0f12fc0",
+                "timestamp": 1784240717741962240,
+                "trace_flags": 3,
+                "trace_id": "b0473982c190d0f659be95a5befe6b7e"
+              },
+              "timestamp": "2026-07-16T22:25:17.74196224Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 32
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/payments.py",
+                  "code.function.name": "charge",
+                  "otelServiceName": "payments",
+                  "otelSpanID": "284cbc743d9f398d",
+                  "otelTraceID": "ea5904d5a432eb6a93612bf240b26966"
+                },
+                "body": "payment provider gateway returned 502 Bad Gateway for order 9872af2c5c65 (upstream connection reset by peer)",
+                "id": "0lAhqnz8xJWG1GEsGDDVhiNt0cu",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "4d2c9342-ac1e-454c-95d1-850af14ba1ba",
+                  "service.name": "payments",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.payments",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "284cbc743d9f398d",
+                "timestamp": 1784240705639492352,
+                "trace_flags": 3,
+                "trace_id": "ea5904d5a432eb6a93612bf240b26966"
+              },
+              "timestamp": "2026-07-16T22:25:05.639492352Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 32
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/payments.py",
+                  "code.function.name": "charge",
+                  "otelServiceName": "payments",
+                  "otelSpanID": "ee244eb91b6391c0",
+                  "otelTraceID": "eddc14fb3344b8ebed9a0683b9dc8693"
+                },
+                "body": "payment provider gateway returned 502 Bad Gateway for order af36ee2e3113 (upstream connection reset by peer)",
+                "id": "0lAhqjylctqQpnaa3FybAtQGxCt",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "4d2c9342-ac1e-454c-95d1-850af14ba1ba",
+                  "service.name": "payments",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.payments",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "ee244eb91b6391c0",
+                "timestamp": 1784240703431160576,
+                "trace_flags": 3,
+                "trace_id": "eddc14fb3344b8ebed9a0683b9dc8693"
+              },
+              "timestamp": "2026-07-16T22:25:03.431160576Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 32
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/payments.py",
+                  "code.function.name": "charge",
+                  "otelServiceName": "payments",
+                  "otelSpanID": "600282ad7a258e0f",
+                  "otelTraceID": "70c16560929a2a6a49e10db7afcba6fa"
+                },
+                "body": "payment provider gateway returned 502 Bad Gateway for order b20bc82786f9 (upstream connection reset by peer)",
+                "id": "0lAhqgtLNOueVHnyVhVPIBumfd1",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "4d2c9342-ac1e-454c-95d1-850af14ba1ba",
+                  "service.name": "payments",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.payments",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "600282ad7a258e0f",
+                "timestamp": 1784240701729201152,
+                "trace_flags": 3,
+                "trace_id": "70c16560929a2a6a49e10db7afcba6fa"
+              },
+              "timestamp": "2026-07-16T22:25:01.729201152Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 32
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/payments.py",
+                  "code.function.name": "charge",
+                  "otelServiceName": "payments",
+                  "otelSpanID": "ce3f29c5f5ae2172",
+                  "otelTraceID": "1d2f8f978d2d404ddd3ea1102a7ef357"
+                },
+                "body": "payment provider gateway returned 502 Bad Gateway for order 82fbc1840cc2 (upstream connection reset by peer)",
+                "id": "0lAhqdx3fkUtKjnciFTiwkQmu58",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "4d2c9342-ac1e-454c-95d1-850af14ba1ba",
+                  "service.name": "payments",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.payments",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "ce3f29c5f5ae2172",
+                "timestamp": 1784240700108486912,
+                "trace_flags": 3,
+                "trace_id": "1d2f8f978d2d404ddd3ea1102a7ef357"
+              },
+              "timestamp": "2026-07-16T22:25:00.108486912Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 32
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/payments.py",
+                  "code.function.name": "charge",
+                  "otelServiceName": "payments",
+                  "otelSpanID": "0d233440350a283e",
+                  "otelTraceID": "182796e26b55f126f52f839620838a4d"
+                },
+                "body": "payment provider gateway returned 502 Bad Gateway for order deef47aa3c5c (upstream connection reset by peer)",
+                "id": "0lAhqK3KrBhDzrlqSsMdsdqV1b2",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "4d2c9342-ac1e-454c-95d1-850af14ba1ba",
+                  "service.name": "payments",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.payments",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "0d233440350a283e",
+                "timestamp": 1784240689139366400,
+                "trace_flags": 3,
+                "trace_id": "182796e26b55f126f52f839620838a4d"
+              },
+              "timestamp": "2026-07-16T22:24:49.1393664Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 32
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/payments.py",
+                  "code.function.name": "charge",
+                  "otelServiceName": "payments",
+                  "otelSpanID": "bb69098ad3bd7c86",
+                  "otelTraceID": "79240f4aec1ac91b64724d5e5b4bcabb"
+                },
+                "body": "payment provider gateway returned 502 Bad Gateway for order 2ab88c619e24 (upstream connection reset by peer)",
+                "id": "0lAhq2BsHRwgGfZBcvsHx8y9l6b",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "4d2c9342-ac1e-454c-95d1-850af14ba1ba",
+                  "service.name": "payments",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.payments",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "bb69098ad3bd7c86",
+                "timestamp": 1784240679292849920,
+                "trace_flags": 3,
+                "trace_id": "79240f4aec1ac91b64724d5e5b4bcabb"
+              },
+              "timestamp": "2026-07-16T22:24:39.29284992Z"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,442 @@
+{
+  "status": "success",
+  "data": {
+    "type": "raw",
+    "meta": {
+      "rowsScanned": 2456,
+      "bytesScanned": 857840,
+      "durationMs": 8,
+      "stepIntervals": {
+        "A": 5
+      }
+    },
+    "data": {
+      "results": [
+        {
+          "queryName": "A",
+          "nextCursor": "",
+          "rows": [
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 99
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/orders.py",
+                  "code.function.name": "create_order",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "b76e64ad25007477",
+                  "otelTraceID": "20aa16606eb60f1942b4a52e39da0b3d"
+                },
+                "body": "payment failed for order a128b138840a: HTTP 502",
+                "id": "0lAhsiDsVm6oLY4itBx2R1FPgjX",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.orders",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "b76e64ad25007477",
+                "timestamp": 1784240770817594880,
+                "trace_flags": 3,
+                "trace_id": "20aa16606eb60f1942b4a52e39da0b3d"
+              },
+              "timestamp": "2026-07-16T22:26:10.81759488Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 99
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/orders.py",
+                  "code.function.name": "create_order",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "deea4e7ddfd2f9f9",
+                  "otelTraceID": "fa77e2f106075f46cd1e74fbd51be0d1"
+                },
+                "body": "payment failed for order e20ee3ef2618: HTTP 502",
+                "id": "0lAhshJMHvheQi9QVXMQuKuZhiI",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.orders",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "deea4e7ddfd2f9f9",
+                "timestamp": 1784240770315073792,
+                "trace_flags": 3,
+                "trace_id": "fa77e2f106075f46cd1e74fbd51be0d1"
+              },
+              "timestamp": "2026-07-16T22:26:10.315073792Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 99
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/orders.py",
+                  "code.function.name": "create_order",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "3a2908c9bd747239",
+                  "otelTraceID": "564f2065afd723ca12827bdd88635bb0"
+                },
+                "body": "payment failed for order 0fc549527914: HTTP 502",
+                "id": "0lAhs0rBK5pqf52JT7HHOirxJoz",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.orders",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "3a2908c9bd747239",
+                "timestamp": 1784240746912195584,
+                "trace_flags": 3,
+                "trace_id": "564f2065afd723ca12827bdd88635bb0"
+              },
+              "timestamp": "2026-07-16T22:25:46.912195584Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 99
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/orders.py",
+                  "code.function.name": "create_order",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "44d3e38562b848c6",
+                  "otelTraceID": "1d74149cf101b473334010c7ed69fc68"
+                },
+                "body": "payment failed for order 6d1e23627a48: HTTP 502",
+                "id": "0lAhrtju3DFNvzmejnmv3sXg0Dm",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.orders",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "44d3e38562b848c6",
+                "timestamp": 1784240742988755200,
+                "trace_flags": 3,
+                "trace_id": "1d74149cf101b473334010c7ed69fc68"
+              },
+              "timestamp": "2026-07-16T22:25:42.9887552Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 99
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/orders.py",
+                  "code.function.name": "create_order",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "cb81554b8bac1976",
+                  "otelTraceID": "b0473982c190d0f659be95a5befe6b7e"
+                },
+                "body": "payment failed for order 500dfb619801: HTTP 502",
+                "id": "0lAhr9wdr95ZTayFPUXjU7Axdmo",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.orders",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "cb81554b8bac1976",
+                "timestamp": 1784240717744674816,
+                "trace_flags": 3,
+                "trace_id": "b0473982c190d0f659be95a5befe6b7e"
+              },
+              "timestamp": "2026-07-16T22:25:17.744674816Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 99
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/orders.py",
+                  "code.function.name": "create_order",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "15f7665e9ac2444b",
+                  "otelTraceID": "ea5904d5a432eb6a93612bf240b26966"
+                },
+                "body": "payment failed for order 9872af2c5c65: HTTP 502",
+                "id": "0lAhqnzK5IE2diukKfLaLA6uFZv",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.orders",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "15f7665e9ac2444b",
+                "timestamp": 1784240705641088256,
+                "trace_flags": 3,
+                "trace_id": "ea5904d5a432eb6a93612bf240b26966"
+              },
+              "timestamp": "2026-07-16T22:25:05.641088256Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 99
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/orders.py",
+                  "code.function.name": "create_order",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "da9c9e2859e937fe",
+                  "otelTraceID": "eddc14fb3344b8ebed9a0683b9dc8693"
+                },
+                "body": "payment failed for order af36ee2e3113: HTTP 502",
+                "id": "0lAhqjyykOiUQsRQcXlrEGDIiG1",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.orders",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "da9c9e2859e937fe",
+                "timestamp": 1784240703433042176,
+                "trace_flags": 3,
+                "trace_id": "eddc14fb3344b8ebed9a0683b9dc8693"
+              },
+              "timestamp": "2026-07-16T22:25:03.433042176Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 99
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/orders.py",
+                  "code.function.name": "create_order",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "3b2fa45cfca1be89",
+                  "otelTraceID": "70c16560929a2a6a49e10db7afcba6fa"
+                },
+                "body": "payment failed for order b20bc82786f9: HTTP 502",
+                "id": "0lAhqgtczG8R8ajy3cWcrRwo22D",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.orders",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "3b2fa45cfca1be89",
+                "timestamp": 1784240701731726592,
+                "trace_flags": 3,
+                "trace_id": "70c16560929a2a6a49e10db7afcba6fa"
+              },
+              "timestamp": "2026-07-16T22:25:01.731726592Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 99
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/orders.py",
+                  "code.function.name": "create_order",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "99ae29642c83969b",
+                  "otelTraceID": "1d2f8f978d2d404ddd3ea1102a7ef357"
+                },
+                "body": "payment failed for order 82fbc1840cc2: HTTP 502",
+                "id": "0lAhqdxFEqQsWDXe4PfXWzGTogh",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.orders",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "99ae29642c83969b",
+                "timestamp": 1784240700110145536,
+                "trace_flags": 3,
+                "trace_id": "1d2f8f978d2d404ddd3ea1102a7ef357"
+              },
+              "timestamp": "2026-07-16T22:25:00.110145536Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 99
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/orders.py",
+                  "code.function.name": "create_order",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "a39d1e05117799a6",
+                  "otelTraceID": "182796e26b55f126f52f839620838a4d"
+                },
+                "body": "payment failed for order deef47aa3c5c: HTTP 502",
+                "id": "0lAhqK3Ug9Ilkgc3GNSPlr6trJ0",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.orders",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "a39d1e05117799a6",
+                "timestamp": 1784240689140774912,
+                "trace_flags": 3,
+                "trace_id": "182796e26b55f126f52f839620838a4d"
+              },
+              "timestamp": "2026-07-16T22:24:49.140774912Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 99
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/orders.py",
+                  "code.function.name": "create_order",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "68a5e1f410e4a64b",
+                  "otelTraceID": "79240f4aec1ac91b64724d5e5b4bcabb"
+                },
+                "body": "payment failed for order 2ab88c619e24: HTTP 502",
+                "id": "0lAhq2CAMPtcIge1jvIf6A3t0iZ",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.orders",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "68a5e1f410e4a64b",
+                "timestamp": 1784240679295442688,
+                "trace_flags": 3,
+                "trace_id": "79240f4aec1ac91b64724d5e5b4bcabb"
+              },
+              "timestamp": "2026-07-16T22:24:39.295442688Z"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

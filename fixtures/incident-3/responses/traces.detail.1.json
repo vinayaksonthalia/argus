@@ -1,0 +1,474 @@
+{
+  "status": "success",
+  "data": {
+    "type": "raw",
+    "meta": {
+      "rowsScanned": 16384,
+      "bytesScanned": 4253254,
+      "durationMs": 9,
+      "stepIntervals": {
+        "A": 5
+      }
+    },
+    "data": {
+      "results": [
+        {
+          "queryName": "A",
+          "nextCursor": "",
+          "rows": [
+            {
+              "data": {
+                "attributes": {
+                  "http.flavor": "1.1",
+                  "http.host": "172.19.0.6:8090",
+                  "http.method": "POST",
+                  "http.route": "/api/checkout",
+                  "http.scheme": "http",
+                  "http.server_name": "localhost:8090",
+                  "http.status_code": 502,
+                  "http.target": "/api/checkout",
+                  "http.url": "http://localhost:8090/api/checkout",
+                  "http.user_agent": "curl/8.7.1",
+                  "net.host.port": 8090,
+                  "net.peer.ip": "192.168.65.1",
+                  "net.peer.port": 55076
+                },
+                "db_name": "",
+                "db_operation": "",
+                "duration_nano": 990402834,
+                "events": [],
+                "external_http_method": "",
+                "external_http_url": "",
+                "flags": 256,
+                "has_error": true,
+                "http_host": "172.19.0.6:8090",
+                "http_method": "POST",
+                "http_url": "http://localhost:8090/api/checkout",
+                "is_remote": "no",
+                "kind": 2,
+                "kind_string": "Server",
+                "links": [
+                  {
+                    "traceId": "1f0774fb3f53fc4bf25f52dc2aedc7f1"
+                  }
+                ],
+                "name": "POST /api/checkout",
+                "parent_span_id": "",
+                "resource": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "9223fb74-ea51-4be6-925c-5e0cde6599b5",
+                  "service.name": "gateway",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "response_status_code": "502",
+                "span_id": "fca37b4a0530ac1f",
+                "status_code": 2,
+                "status_code_string": "Error",
+                "status_message": "",
+                "timestamp": "2026-07-16T22:28:18.255279635Z",
+                "trace_id": "1f0774fb3f53fc4bf25f52dc2aedc7f1",
+                "trace_state": ""
+              },
+              "timestamp": "2026-07-16T22:28:18.255279635Z"
+            },
+            {
+              "data": {
+                "attributes": {
+                  "http.method": "POST",
+                  "http.status_code": 500,
+                  "http.url": "http://orders:8093/orders"
+                },
+                "db_name": "",
+                "db_operation": "",
+                "duration_nano": 972112500,
+                "events": [],
+                "external_http_method": "POST",
+                "external_http_url": "orders",
+                "flags": 256,
+                "has_error": true,
+                "http_host": "orders",
+                "http_method": "POST",
+                "http_url": "http://orders:8093/orders",
+                "is_remote": "no",
+                "kind": 3,
+                "kind_string": "Client",
+                "links": [
+                  {
+                    "traceId": "1f0774fb3f53fc4bf25f52dc2aedc7f1",
+                    "spanId": "fca37b4a0530ac1f"
+                  }
+                ],
+                "name": "POST",
+                "parent_span_id": "fca37b4a0530ac1f",
+                "resource": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "9223fb74-ea51-4be6-925c-5e0cde6599b5",
+                  "service.name": "gateway",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "response_status_code": "500",
+                "span_id": "f6e56557cc6650fd",
+                "status_code": 2,
+                "status_code_string": "Error",
+                "status_message": "",
+                "timestamp": "2026-07-16T22:28:18.270860844Z",
+                "trace_id": "1f0774fb3f53fc4bf25f52dc2aedc7f1",
+                "trace_state": ""
+              },
+              "timestamp": "2026-07-16T22:28:18.270860844Z"
+            },
+            {
+              "data": {
+                "attributes": {
+                  "http.flavor": "1.1",
+                  "http.host": "172.19.0.5:8093",
+                  "http.method": "POST",
+                  "http.route": "/orders",
+                  "http.scheme": "http",
+                  "http.server_name": "orders:8093",
+                  "http.status_code": 500,
+                  "http.target": "/orders",
+                  "http.url": "http://orders:8093/orders",
+                  "http.user_agent": "python-httpx/0.28.1",
+                  "net.host.port": 8093,
+                  "net.peer.ip": "172.19.0.6",
+                  "net.peer.port": 39362
+                },
+                "db_name": "",
+                "db_operation": "",
+                "duration_nano": 969994209,
+                "events": [],
+                "external_http_method": "",
+                "external_http_url": "",
+                "flags": 768,
+                "has_error": true,
+                "http_host": "172.19.0.5:8093",
+                "http_method": "POST",
+                "http_url": "http://orders:8093/orders",
+                "is_remote": "yes",
+                "kind": 2,
+                "kind_string": "Server",
+                "links": [
+                  {
+                    "traceId": "1f0774fb3f53fc4bf25f52dc2aedc7f1",
+                    "spanId": "f6e56557cc6650fd"
+                  }
+                ],
+                "name": "POST /orders",
+                "parent_span_id": "f6e56557cc6650fd",
+                "resource": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "response_status_code": "500",
+                "span_id": "4872892c5f1e576f",
+                "status_code": 2,
+                "status_code_string": "Error",
+                "status_message": "",
+                "timestamp": "2026-07-16T22:28:18.272499302Z",
+                "trace_id": "1f0774fb3f53fc4bf25f52dc2aedc7f1",
+                "trace_state": ""
+              },
+              "timestamp": "2026-07-16T22:28:18.272499302Z"
+            },
+            {
+              "data": {
+                "attributes": {
+                  "asgi.event.type": "http.response.start",
+                  "http.status_code": 500
+                },
+                "db_name": "",
+                "db_operation": "",
+                "duration_nano": 86875,
+                "events": [],
+                "external_http_method": "",
+                "external_http_url": "",
+                "flags": 256,
+                "has_error": true,
+                "http_host": "",
+                "http_method": "",
+                "http_url": "",
+                "is_remote": "no",
+                "kind": 1,
+                "kind_string": "Internal",
+                "links": [
+                  {
+                    "traceId": "1f0774fb3f53fc4bf25f52dc2aedc7f1",
+                    "spanId": "4872892c5f1e576f"
+                  }
+                ],
+                "name": "POST /orders http send",
+                "parent_span_id": "4872892c5f1e576f",
+                "resource": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "response_status_code": "500",
+                "span_id": "0cfc4f5dc7978273",
+                "status_code": 2,
+                "status_code_string": "Error",
+                "status_message": "",
+                "timestamp": "2026-07-16T22:28:19.241504386Z",
+                "trace_id": "1f0774fb3f53fc4bf25f52dc2aedc7f1",
+                "trace_state": ""
+              },
+              "timestamp": "2026-07-16T22:28:19.241504386Z"
+            },
+            {
+              "data": {
+                "attributes": {
+                  "asgi.event.type": "http.response.start",
+                  "http.status_code": 502
+                },
+                "db_name": "",
+                "db_operation": "",
+                "duration_nano": 40250,
+                "events": [],
+                "external_http_method": "",
+                "external_http_url": "",
+                "flags": 256,
+                "has_error": true,
+                "http_host": "",
+                "http_method": "",
+                "http_url": "",
+                "is_remote": "no",
+                "kind": 1,
+                "kind_string": "Internal",
+                "links": [
+                  {
+                    "traceId": "1f0774fb3f53fc4bf25f52dc2aedc7f1",
+                    "spanId": "fca37b4a0530ac1f"
+                  }
+                ],
+                "name": "POST /api/checkout http send",
+                "parent_span_id": "fca37b4a0530ac1f",
+                "resource": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "9223fb74-ea51-4be6-925c-5e0cde6599b5",
+                  "service.name": "gateway",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "response_status_code": "502",
+                "span_id": "2b982460368a1567",
+                "status_code": 2,
+                "status_code_string": "Error",
+                "status_message": "",
+                "timestamp": "2026-07-16T22:28:19.245205386Z",
+                "trace_id": "1f0774fb3f53fc4bf25f52dc2aedc7f1",
+                "trace_state": ""
+              },
+              "timestamp": "2026-07-16T22:28:19.245205386Z"
+            },
+            {
+              "data": {
+                "attributes": {
+                  "asgi.event.type": "http.request"
+                },
+                "db_name": "",
+                "db_operation": "",
+                "duration_nano": 36334,
+                "events": [],
+                "external_http_method": "",
+                "external_http_url": "",
+                "flags": 256,
+                "has_error": false,
+                "http_host": "",
+                "http_method": "",
+                "http_url": "",
+                "is_remote": "no",
+                "kind": 1,
+                "kind_string": "Internal",
+                "links": [
+                  {
+                    "traceId": "1f0774fb3f53fc4bf25f52dc2aedc7f1",
+                    "spanId": "fca37b4a0530ac1f"
+                  }
+                ],
+                "name": "POST /api/checkout http receive",
+                "parent_span_id": "fca37b4a0530ac1f",
+                "resource": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "9223fb74-ea51-4be6-925c-5e0cde6599b5",
+                  "service.name": "gateway",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "response_status_code": "",
+                "span_id": "cc05acf54f341455",
+                "status_code": 0,
+                "status_code_string": "Unset",
+                "status_message": "",
+                "timestamp": "2026-07-16T22:28:18.255800385Z",
+                "trace_id": "1f0774fb3f53fc4bf25f52dc2aedc7f1",
+                "trace_state": ""
+              },
+              "timestamp": "2026-07-16T22:28:18.255800385Z"
+            },
+            {
+              "data": {
+                "attributes": {
+                  "asgi.event.type": "http.response.body"
+                },
+                "db_name": "",
+                "db_operation": "",
+                "duration_nano": 27292,
+                "events": [],
+                "external_http_method": "",
+                "external_http_url": "",
+                "flags": 256,
+                "has_error": false,
+                "http_host": "",
+                "http_method": "",
+                "http_url": "",
+                "is_remote": "no",
+                "kind": 1,
+                "kind_string": "Internal",
+                "links": [
+                  {
+                    "traceId": "1f0774fb3f53fc4bf25f52dc2aedc7f1",
+                    "spanId": "4872892c5f1e576f"
+                  }
+                ],
+                "name": "POST /orders http send",
+                "parent_span_id": "4872892c5f1e576f",
+                "resource": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "response_status_code": "",
+                "span_id": "0e074fbfcc593b61",
+                "status_code": 0,
+                "status_code_string": "Unset",
+                "status_message": "",
+                "timestamp": "2026-07-16T22:28:19.242237969Z",
+                "trace_id": "1f0774fb3f53fc4bf25f52dc2aedc7f1",
+                "trace_state": ""
+              },
+              "timestamp": "2026-07-16T22:28:19.242237969Z"
+            },
+            {
+              "data": {
+                "attributes": {
+                  "asgi.event.type": "http.request"
+                },
+                "db_name": "",
+                "db_operation": "",
+                "duration_nano": 13166,
+                "events": [],
+                "external_http_method": "",
+                "external_http_url": "",
+                "flags": 256,
+                "has_error": false,
+                "http_host": "",
+                "http_method": "",
+                "http_url": "",
+                "is_remote": "no",
+                "kind": 1,
+                "kind_string": "Internal",
+                "links": [
+                  {
+                    "traceId": "1f0774fb3f53fc4bf25f52dc2aedc7f1",
+                    "spanId": "4872892c5f1e576f"
+                  }
+                ],
+                "name": "POST /orders http receive",
+                "parent_span_id": "4872892c5f1e576f",
+                "resource": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "response_status_code": "",
+                "span_id": "e8f7c82855c26f02",
+                "status_code": 0,
+                "status_code_string": "Unset",
+                "status_message": "",
+                "timestamp": "2026-07-16T22:28:18.272668719Z",
+                "trace_id": "1f0774fb3f53fc4bf25f52dc2aedc7f1",
+                "trace_state": ""
+              },
+              "timestamp": "2026-07-16T22:28:18.272668719Z"
+            },
+            {
+              "data": {
+                "attributes": {
+                  "asgi.event.type": "http.response.body"
+                },
+                "db_name": "",
+                "db_operation": "",
+                "duration_nano": 9709,
+                "events": [],
+                "external_http_method": "",
+                "external_http_url": "",
+                "flags": 256,
+                "has_error": false,
+                "http_host": "",
+                "http_method": "",
+                "http_url": "",
+                "is_remote": "no",
+                "kind": 1,
+                "kind_string": "Internal",
+                "links": [
+                  {
+                    "traceId": "1f0774fb3f53fc4bf25f52dc2aedc7f1",
+                    "spanId": "fca37b4a0530ac1f"
+                  }
+                ],
+                "name": "POST /api/checkout http send",
+                "parent_span_id": "fca37b4a0530ac1f",
+                "resource": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "9223fb74-ea51-4be6-925c-5e0cde6599b5",
+                  "service.name": "gateway",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "response_status_code": "",
+                "span_id": "0f24aa102338ada5",
+                "status_code": 0,
+                "status_code_string": "Unset",
+                "status_message": "",
+                "timestamp": "2026-07-16T22:28:19.245526802Z",
+                "trace_id": "1f0774fb3f53fc4bf25f52dc2aedc7f1",
+                "trace_state": ""
+              },
+              "timestamp": "2026-07-16T22:28:19.245526802Z"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

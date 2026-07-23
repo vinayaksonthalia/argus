@@ -1,0 +1,107 @@
+{
+  "status": "success",
+  "data": {
+    "type": "time_series",
+    "meta": {
+      "rowsScanned": 16724,
+      "bytesScanned": 2581352,
+      "durationMs": 26,
+      "stepIntervals": {
+        "A": 60
+      }
+    },
+    "data": {
+      "results": [
+        {
+          "queryName": "A",
+          "aggregations": [
+            {
+              "index": 0,
+              "alias": "__result_0",
+              "meta": {},
+              "series": [
+                {
+                  "values": [
+                    {
+                      "timestamp": 1784239860000,
+                      "value": 57
+                    },
+                    {
+                      "timestamp": 1784239920000,
+                      "value": 210
+                    },
+                    {
+                      "timestamp": 1784239980000,
+                      "value": 138
+                    },
+                    {
+                      "timestamp": 1784240040000,
+                      "value": 160
+                    },
+                    {
+                      "timestamp": 1784240100000,
+                      "value": 186
+                    },
+                    {
+                      "timestamp": 1784240160000,
+                      "value": 50
+                    },
+                    {
+                      "timestamp": 1784240220000,
+                      "value": 30
+                    },
+                    {
+                      "timestamp": 1784240280000,
+                      "value": 36
+                    },
+                    {
+                      "timestamp": 1784240340000,
+                      "value": 78
+                    },
+                    {
+                      "timestamp": 1784240400000,
+                      "value": 72
+                    },
+                    {
+                      "timestamp": 1784240460000,
+                      "value": 54
+                    },
+                    {
+                      "timestamp": 1784240520000,
+                      "value": 84
+                    },
+                    {
+                      "timestamp": 1784240580000,
+                      "value": 30
+                    },
+                    {
+                      "timestamp": 1784240640000,
+                      "value": 132
+                    },
+                    {
+                      "timestamp": 1784240700000,
+                      "value": 168
+                    },
+                    {
+                      "timestamp": 1784240760000,
+                      "value": 54
+                    },
+                    {
+                      "timestamp": 1784240820000,
+                      "value": 157
+                    },
+                    {
+                      "timestamp": 1784240880000,
+                      "partial": true,
+                      "value": 145
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

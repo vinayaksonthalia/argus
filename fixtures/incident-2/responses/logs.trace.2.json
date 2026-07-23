@@ -1,0 +1,214 @@
+{
+  "status": "success",
+  "data": {
+    "type": "raw",
+    "meta": {
+      "rowsScanned": 2096,
+      "bytesScanned": 587713,
+      "durationMs": 3,
+      "stepIntervals": {
+        "A": 5
+      }
+    },
+    "data": {
+      "results": [
+        {
+          "queryName": "A",
+          "nextCursor": "",
+          "rows": [
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 36
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/gateway.py",
+                  "code.function.name": "_proxy",
+                  "otelServiceName": "gateway",
+                  "otelSpanID": "e63a4c1e8925c0f7",
+                  "otelTraceID": "eddc14fb3344b8ebed9a0683b9dc8693"
+                },
+                "body": "upstream http://orders:8093/orders returned HTTP 502",
+                "id": "0lAhqjzCNYBUGgNMWCGmWKYiJsu",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "9223fb74-ea51-4be6-925c-5e0cde6599b5",
+                  "service.name": "gateway",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.gateway",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "e63a4c1e8925c0f7",
+                "timestamp": 1784240703434996992,
+                "trace_flags": 3,
+                "trace_id": "eddc14fb3344b8ebed9a0683b9dc8693"
+              },
+              "timestamp": "2026-07-16T22:25:03.434996992Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 1025
+                },
+                "attributes_string": {
+                  "code.file.path": "/usr/local/lib/python3.12/site-packages/httpx/_client.py",
+                  "code.function.name": "_send_single_request",
+                  "otelServiceName": "gateway",
+                  "otelSpanID": "e63a4c1e8925c0f7",
+                  "otelTraceID": "eddc14fb3344b8ebed9a0683b9dc8693"
+                },
+                "body": "HTTP Request: POST http://orders:8093/orders \"HTTP/1.1 502 Bad Gateway\"",
+                "id": "0lAhqjz7AMfYvpYCanJ5vdVKi2v",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "9223fb74-ea51-4be6-925c-5e0cde6599b5",
+                  "service.name": "gateway",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "httpx",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 9,
+                "severity_text": "INFO",
+                "span_id": "e63a4c1e8925c0f7",
+                "timestamp": 1784240703434249472,
+                "trace_flags": 3,
+                "trace_id": "eddc14fb3344b8ebed9a0683b9dc8693"
+              },
+              "timestamp": "2026-07-16T22:25:03.434249472Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 99
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/orders.py",
+                  "code.function.name": "create_order",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "da9c9e2859e937fe",
+                  "otelTraceID": "eddc14fb3344b8ebed9a0683b9dc8693"
+                },
+                "body": "payment failed for order af36ee2e3113: HTTP 502",
+                "id": "0lAhqjyykOiUQsRQcXlrEGDIiG1",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.orders",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "da9c9e2859e937fe",
+                "timestamp": 1784240703433042176,
+                "trace_flags": 3,
+                "trace_id": "eddc14fb3344b8ebed9a0683b9dc8693"
+              },
+              "timestamp": "2026-07-16T22:25:03.433042176Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 1025
+                },
+                "attributes_string": {
+                  "code.file.path": "/usr/local/lib/python3.12/site-packages/httpx/_client.py",
+                  "code.function.name": "_send_single_request",
+                  "otelServiceName": "orders",
+                  "otelSpanID": "da9c9e2859e937fe",
+                  "otelTraceID": "eddc14fb3344b8ebed9a0683b9dc8693"
+                },
+                "body": "HTTP Request: POST http://payments:8092/charge \"HTTP/1.1 502 Bad Gateway\"",
+                "id": "0lAhqjyvOCzLJZZEzXyR25wGxL7",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "e51fb318-89f0-485b-9451-794b3cfc299a",
+                  "service.name": "orders",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "httpx",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 9,
+                "severity_text": "INFO",
+                "span_id": "da9c9e2859e937fe",
+                "timestamp": 1784240703432560640,
+                "trace_flags": 3,
+                "trace_id": "eddc14fb3344b8ebed9a0683b9dc8693"
+              },
+              "timestamp": "2026-07-16T22:25:03.43256064Z"
+            },
+            {
+              "data": {
+                "attributes_bool": {
+                  "otelTraceSampled": true
+                },
+                "attributes_number": {
+                  "code.line.number": 32
+                },
+                "attributes_string": {
+                  "code.file.path": "/srv/app/payments.py",
+                  "code.function.name": "charge",
+                  "otelServiceName": "payments",
+                  "otelSpanID": "ee244eb91b6391c0",
+                  "otelTraceID": "eddc14fb3344b8ebed9a0683b9dc8693"
+                },
+                "body": "payment provider gateway returned 502 Bad Gateway for order af36ee2e3113 (upstream connection reset by peer)",
+                "id": "0lAhqjylctqQpnaa3FybAtQGxCt",
+                "resources_string": {
+                  "deployment.environment": "faultline",
+                  "service.instance.id": "4d2c9342-ac1e-454c-95d1-850af14ba1ba",
+                  "service.name": "payments",
+                  "telemetry.auto.version": "0.65b0",
+                  "telemetry.sdk.language": "python",
+                  "telemetry.sdk.name": "opentelemetry",
+                  "telemetry.sdk.version": "1.44.0"
+                },
+                "scope_name": "faultline.payments",
+                "scope_string": {},
+                "scope_version": "",
+                "severity_number": 17,
+                "severity_text": "ERROR",
+                "span_id": "ee244eb91b6391c0",
+                "timestamp": 1784240703431160576,
+                "trace_flags": 3,
+                "trace_id": "eddc14fb3344b8ebed9a0683b9dc8693"
+              },
+              "timestamp": "2026-07-16T22:25:03.431160576Z"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

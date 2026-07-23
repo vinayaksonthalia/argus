@@ -1,0 +1,129 @@
+{
+  "status": "success",
+  "data": {
+    "type": "time_series",
+    "meta": {
+      "rowsScanned": 16044,
+      "bytesScanned": 2477949,
+      "durationMs": 14,
+      "stepIntervals": {
+        "A": 60,
+        "B": 60
+      }
+    },
+    "data": {
+      "results": [
+        {
+          "queryName": "A",
+          "aggregations": [
+            {
+              "index": 0,
+              "alias": "__result_0",
+              "meta": {},
+              "series": [
+                {
+                  "values": [
+                    {
+                      "timestamp": 1784240700000,
+                      "value": 14
+                    },
+                    {
+                      "timestamp": 1784240760000,
+                      "partial": true,
+                      "value": 4
+                    },
+                    {
+                      "timestamp": 1784240640000,
+                      "value": 4
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "queryName": "B",
+          "aggregations": [
+            {
+              "index": 0,
+              "alias": "__result_0",
+              "meta": {},
+              "series": [
+                {
+                  "values": [
+                    {
+                      "timestamp": 1784240280000,
+                      "value": 24
+                    },
+                    {
+                      "timestamp": 1784240700000,
+                      "value": 112
+                    },
+                    {
+                      "timestamp": 1784239860000,
+                      "value": 38
+                    },
+                    {
+                      "timestamp": 1784240220000,
+                      "value": 20
+                    },
+                    {
+                      "timestamp": 1784240760000,
+                      "partial": true,
+                      "value": 16
+                    },
+                    {
+                      "timestamp": 1784240460000,
+                      "value": 36
+                    },
+                    {
+                      "timestamp": 1784240100000,
+                      "value": 124
+                    },
+                    {
+                      "timestamp": 1784240400000,
+                      "value": 48
+                    },
+                    {
+                      "timestamp": 1784240520000,
+                      "value": 56
+                    },
+                    {
+                      "timestamp": 1784240160000,
+                      "value": 34
+                    },
+                    {
+                      "timestamp": 1784240640000,
+                      "value": 91
+                    },
+                    {
+                      "timestamp": 1784240340000,
+                      "value": 52
+                    },
+                    {
+                      "timestamp": 1784239980000,
+                      "value": 92
+                    },
+                    {
+                      "timestamp": 1784240040000,
+                      "value": 106
+                    },
+                    {
+                      "timestamp": 1784240580000,
+                      "value": 20
+                    },
+                    {
+                      "timestamp": 1784239920000,
+                      "value": 140
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
