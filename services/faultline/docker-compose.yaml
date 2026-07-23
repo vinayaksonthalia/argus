@@ -1,0 +1,80 @@
+# Faultline — ARGUS's demo microservice stack with injectable faults.
+# OTLP goes to the host's SigNoz collector (ports 4317/4318 published by the
+# SigNoz Foundry deployment). Logs are exported via OTLP too, so ERROR logs
+# and the bad-deploy change event land in SigNoz Logs.
+
+x-otel-env: &otel-env
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://host.docker.internal:4317
+  OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+  OTEL_TRACES_EXPORTER: otlp
+  OTEL_METRICS_EXPORTER: otlp
+  OTEL_LOGS_EXPORTER: otlp
+  OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED: "true"
+  OTEL_PYTHON_LOG_CORRELATION: "true"
+  OTEL_RESOURCE_ATTRIBUTES: deployment.environment=faultline
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: faultline
+      POSTGRES_PASSWORD: faultline
+      POSTGRES_DB: faultline
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports: ["5433:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U faultline"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  catalog:
+    build: .
+    environment:
+      <<: *otel-env
+      SERVICE: catalog
+      PORT: "8091"
+      OTEL_SERVICE_NAME: catalog
+      DATABASE_URL: postgresql://faultline:faultline@postgres:5432/faultline
+    ports: ["8091:8091"]
+    depends_on:
+      postgres: { condition: service_healthy }
+    extra_hosts: ["host.docker.internal:host-gateway"]
+
+  payments:
+    build: .
+    environment:
+      <<: *otel-env
+      SERVICE: payments
+      PORT: "8092"
+      OTEL_SERVICE_NAME: payments
+    ports: ["8092:8092"]
+    extra_hosts: ["host.docker.internal:host-gateway"]
+
+  orders:
+    build: .
+    environment:
+      <<: *otel-env
+      SERVICE: orders
+      PORT: "8093"
+      OTEL_SERVICE_NAME: orders
+      DATABASE_URL: postgresql://faultline:faultline@postgres:5432/faultline
+      PAYMENTS_URL: http://payments:8092
+    ports: ["8093:8093"]
+    depends_on:
+      postgres: { condition: service_healthy }
+    extra_hosts: ["host.docker.internal:host-gateway"]
+
+  gateway:
+    build: .
+    environment:
+      <<: *otel-env
+      SERVICE: gateway
+      PORT: "8090"
+      OTEL_SERVICE_NAME: gateway
+      CATALOG_URL: http://catalog:8091
+      ORDERS_URL: http://orders:8093
+    ports: ["8090:8090"]
+    depends_on: [catalog, orders, payments]
+    extra_hosts: ["host.docker.internal:host-gateway"]

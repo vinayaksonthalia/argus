@@ -1,0 +1,21 @@
+{
+  "receiver": "argus-webhook",
+  "status": "firing",
+  "alerts": [
+    {
+      "status": "firing",
+      "labels": {
+        "alertname": "Faultline payments error rate spike",
+        "service.name": "payments",
+        "severity": "critical",
+        "ruleId": "recorded-error-storm"
+      },
+      "annotations": {
+        "summary": "payments error rate crossed 10%",
+        "description": "Errored span ratio for payments exceeded threshold."
+      },
+      "startsAt": "AUTO",
+      "fingerprint": "faultline-error-storm"
+    }
+  ]
+}
