@@ -72,7 +72,7 @@ _Last verified live: July 17, 2026 (against SigNoz v0.132.2 self-hosted via Foun
 - **Three recorded incidents** (`fixtures/incident-{1,2,3}`: slow-db,
   error-storm, bad-deploy — 2 and 3 recorded from REAL Faultline telemetry
   with REAL Claude output) replay offline and pass the evals scorecard 3/3.
-- **Offline test suite**: 97 tests, no network, no LLM.
+- **Offline test suite**: 109 tests, no network, no LLM.
 
 ## The Investigations Console (`argus console`)
 

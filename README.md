@@ -262,6 +262,19 @@ live demo in 5 commands").
 - Multi-service blast-radius correlation (single-service analysis today).
 
 
+## Compatibility & uninstall
+
+**Compatibility:** built and live-verified against **self-hosted SigNoz v0.132.2**. SigNoz Cloud
+is untested — API-key auth against the Cloud query API may work as-is, and ARGUS's own OTLP
+self-telemetry would need the Cloud ingestion endpoint and key instead of a local collector. (The
+trace-operator (`A => B`) query caveat lives in `DOCS.md` and still applies.)
+
+**Uninstall:** stop the ARGUS webhook server (and, for the live demo, the Faultline stack /
+`foundryctl` cast); point the SigNoz webhook notification channel away from `/webhook/signoz`; and
+on the SigNoz side delete the ARGUS-created evidence dashboards, the Mission Control dashboard, and
+any `[DRAFT · ARGUS]` alert rules. ARGUS never mutates existing SigNoz resources, so nothing else
+needs cleanup.
+
 ## Learn
 
 A full teaching curriculum lives in [`learning/`](learning/README.md) — the big
