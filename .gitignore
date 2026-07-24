@@ -3,6 +3,11 @@ __pycache__/
 *.egg-info/
 .env
 postmortems/*.md
+# …but ship a small curated corpus of real postmortems so the Investigations
+# Console demo and tests/test_console.py have live .md-backed data on a clean clone.
+!postmortems/inv-0d3daf4f0f.md
+!postmortems/inv-fcdb95f553.md
+!postmortems/inv-6bde2d57f9.md
 .pytest_cache/
 *.sqlite3
 argus-memory.sqlite3

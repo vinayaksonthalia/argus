@@ -83,4 +83,4 @@ ARGUS is **read-only advice**, not autonomous remediation — its only write-bac
 - [hard-questions-answered.md](hard-questions-answered.md) — the full FAQ.
 - [newbie-glossary.md](newbie-glossary.md) — definitions for confidence threshold, self-time, OpAMP, and more.
 - [../06-bug-hunt.md](../06-bug-hunt.md) — how we found these limits (including the overclaim we caught in ourselves).
-- [../DOCS.md](../DOCS.md) — the canonical "what's still open (honest)" list.
+- [../../DOCS.md](../../DOCS.md) — the canonical "what's still open (honest)" list.

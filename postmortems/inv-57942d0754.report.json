@@ -1,5 +1,5 @@
 {
-  "title": "[DRAFT · ARGUS] unknown: The meridian-web 1.4.2 frontend deploy calls .map() on an API response payload t — unknown",
+  "title": "[DRAFT · ARGUS] unknown: The meridian-web 1.4.2 frontend deploy calls .map() on an API response payload… — unknown",
   "root_cause": "The meridian-web 1.4.2 frontend deploy calls .map() on an API response payload that is not an array, causing uncaught 'map is not a function' TypeErrors in the browser. — A backend endpoint change (or error response) altered the payload shape from an array to an object/null, so frontend code doing response.data.map(...) throws a TypeError before rendering, producing browser-side JS exceptions/log entries. (verified: found 'map is not a function' in 40 matching rows) [Incident memory: similar to past incident inv-ebc62d8028 (similarity 71%) — see 'Similar past incidents'.]",
   "confidence": 0.55,
   "impact": "p99_latency_ms: 0.0ms before -> 0.0ms after the alert boundary (1.0x); error_rate: 0.0% before -> 0.0% after the alert boundary (1.0x); throughput_per_min: 0.0req/min before -> 0.0req/min after the alert boundary (1.0x)",
@@ -38,7 +38,7 @@
       "type": "header",
       "text": {
         "type": "plain_text",
-        "text": "🟡 RCA: [DRAFT · ARGUS] unknown: The meridian-web 1.4.2 frontend deploy calls .map() on an API response payload t — unknown"
+        "text": "🟡 RCA: [DRAFT · ARGUS] unknown: The meridian-web 1.4.2 frontend deploy calls .map() on an API response payload… — unknown"
       }
     },
     {

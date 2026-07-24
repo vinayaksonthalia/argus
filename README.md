@@ -253,7 +253,9 @@ live demo in 5 commands").
   (that run scored 55% and self-flagged — the artifact proves the transport).
 - Foundry single-cast: `deploy/casting.yaml` (+ `deploy/Dockerfile`) deploys
   SigNoz + ARGUS + Faultline in one `foundryctl cast` (generation dry-run
-  validated; run steps in the file header).
+  validated; run steps in the file header). Foundry is SigNoz's official
+  deployment tool ([github.com/SigNoz/foundry](https://github.com/SigNoz/foundry));
+  a *casting* is its config and `foundryctl cast` applies it.
 
 **Planned (not yet built):**
 - Live Slack posting (dry-run prints Block Kit JSON today).

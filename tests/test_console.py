@@ -37,11 +37,11 @@ def _write_report(dirpath: Path, inv_id: str, payload: dict, md: str | None = No
 # --------------------------------------------------------------------------
 
 def test_load_investigation_from_real_postmortems():
-    # This is an integration check against the developer's local corpus. The
-    # verbose ``*.md`` postmortems and the runtime memory DB are gitignored
-    # (they are per-run output), so a clean checkout only has the committed
-    # ``*.report.json`` files and cannot satisfy the metadata assertions below.
-    # Skip gracefully when the full .md-backed corpus is absent.
+    # Integration check against a small curated corpus of real postmortems. Most
+    # ``*.md`` postmortems and the runtime memory DB are gitignored (per-run
+    # output), but a few real ones are committed via .gitignore negations so a
+    # clean checkout has live .md-backed data (see postmortems/inv-0d3daf4f0f.md).
+    # Skip gracefully only if that curated corpus was removed.
     pm_dir = Path("postmortems")
     fixture_md = pm_dir / "inv-0d3daf4f0f.md"
     if not (pm_dir.is_dir() and fixture_md.is_file()):
