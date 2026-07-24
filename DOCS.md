@@ -204,8 +204,11 @@ Record a new incident fixture from live data:
 - **Anthropic SDK path untested live** — no API key on this machine; the seam
   is exercised by the `claude-cli` provider instead (same prompt, same JSON
   contract, real Claude models).
-- **Slack posting is dry-run** — no `SLACK_BOT_TOKEN` yet; Block Kit JSON is
-  design-system-compliant and logged/saved instead.
+- **Slack posting is live-verified** — `chat.postMessage` posts the Block Kit
+  RCA to a real workspace when `SLACK_BOT_TOKEN` + `SLACK_CHANNEL` are set (per
+  `.env.example`); verified HTTP 200 (runs inv-1bd6d878ab, inv-66ed446ae4, see
+  `assets/live-slack-posting-verified.md`). Without a token it stays dry-run
+  and the design-system-compliant Block Kit JSON is logged/saved instead.
 - **UI screenshots** need a signed-in SigNoz browser session (agents can't
   perform logins); all UI-facing claims are evidenced via API queries in
   `assets/` until then.

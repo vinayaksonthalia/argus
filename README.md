@@ -89,7 +89,8 @@ uv run argus investigate --replay fixtures/incident-1
 
 You'll see node-by-node progress, the verified RCA (one hypothesis confirmed
 by a before/after p99 query on catalog's Postgres spans, two refuted), the
-Slack Block Kit payload (dry-run), a markdown postmortem in `postmortems/`,
+Slack Block Kit payload (dry-run by default; set `SLACK_BOT_TOKEN` to post
+live), a markdown postmortem in `postmortems/`,
 and the token/cost line.
 
 ### Evals harness
@@ -256,9 +257,12 @@ live demo in 5 commands").
   validated; run steps in the file header). Foundry is SigNoz's official
   deployment tool ([github.com/SigNoz/foundry](https://github.com/SigNoz/foundry));
   a *casting* is its config and `foundryctl cast` applies it.
+- Live Slack posting: with `SLACK_BOT_TOKEN` + `SLACK_CHANNEL` set (per
+  `.env.example`), `chat.postMessage` posts the Block Kit RCA to a real
+  workspace; without a token it stays dry-run and prints the Block Kit JSON.
+  Live-verified (HTTP 200; runs inv-1bd6d878ab, inv-66ed446ae4).
 
 **Planned (not yet built):**
-- Live Slack posting (dry-run prints Block Kit JSON today).
 - Multi-service blast-radius correlation (single-service analysis today).
 
 

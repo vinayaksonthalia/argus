@@ -60,7 +60,7 @@ ARGUS analyzes the failing service and the traces that pass through it. Correlat
 
 **We do NOT claim** things we couldn't capture.
 
-Slack posting is currently **dry-run** (Block Kit JSON is design-compliant and logged, but no live post — no bot token yet). The Anthropic *SDK* path is untested live on this machine (no API key here) — the same prompt and JSON contract are exercised via the `claude-cli` provider instead, with real Claude models. And UI screenshots need a signed-in browser session an agent can't perform, so UI-facing claims are evidenced via API queries in `assets/` until a human captures them. We label each of these open items rather than implying they're done.
+Slack posting is **live-verified** — with `SLACK_BOT_TOKEN` + `SLACK_CHANNEL` set, `chat.postMessage` posts the Block Kit RCA to a real workspace (HTTP 200; runs inv-1bd6d878ab, inv-66ed446ae4). Without a token it stays dry-run: the design-compliant Block Kit JSON is logged instead of posted. The Anthropic *SDK* path is untested live on this machine (no API key here) — the same prompt and JSON contract are exercised via the `claude-cli` provider instead, with real Claude models. And UI screenshots need a signed-in browser session an agent can't perform, so UI-facing claims are evidenced via API queries in `assets/` until a human captures them. We label each of these open items rather than implying they're done.
 
 ---
 
@@ -74,7 +74,7 @@ Claude (via the CLI) hit 8/9 root causes on the benchmark; Groq's Llama-3.3-70B 
 
 ## The one-paragraph version (for a reader in a hurry)
 
-ARGUS is **read-only advice**, not autonomous remediation — its only write-backs are disabled draft rules and additive dashboards. An LLM can be confidently wrong, so verification is a **kill-switch, not a truth oracle**: it refuses unbacked claims and self-flags below 75%. Model-proposed checks can 404 on missing fields (costing the hypothesis), and on a foreign schema ARGUS **degrades honestly to "human review"** rather than pretending. Memory is small at launch, blast-radius is single-service, Slack is dry-run, and model quality varies (Claude 8/9, Groq 3/6, measured). And the honesty machinery is load-bearing: our own audit caught prose that over-reached past the artifacts, and the cheapest credibility we ever bought was making the words match the receipt.
+ARGUS is **read-only advice**, not autonomous remediation — its only write-backs are disabled draft rules and additive dashboards. An LLM can be confidently wrong, so verification is a **kill-switch, not a truth oracle**: it refuses unbacked claims and self-flags below 75%. Model-proposed checks can 404 on missing fields (costing the hypothesis), and on a foreign schema ARGUS **degrades honestly to "human review"** rather than pretending. Memory is small at launch, blast-radius is single-service, Slack posting is live-verified (dry-run default without a token), and model quality varies (Claude 8/9, Groq 3/6, measured). And the honesty machinery is load-bearing: our own audit caught prose that over-reached past the artifacts, and the cheapest credibility we ever bought was making the words match the receipt.
 
 ---
 
