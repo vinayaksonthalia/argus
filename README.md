@@ -140,6 +140,34 @@ telemetry-derived and escaped server-side (an XSS regression test proves
 injected `<script>`/`<img onerror>` render inert). Screenshots:
 `assets/screenshots/09-console-list.png`, `10-console-detail.png`.
 
+### Connect Slack (guided, ~2 minutes)
+
+```bash
+uv run argus slack-setup
+```
+
+The **primary path** for getting RCAs into Slack. A guided wizard walks you
+through creating the Slack app, adding `chat:write` (+ `chat:write.public`,
+explained inline), and installing to your workspace — then it **live-validates**
+the token (`auth.test`, shows the workspace + bot name), lists the channels the
+bot can see, sends a **real test message** (a small Block Kit sample) so you
+see it land, and writes `SLACK_BOT_TOKEN` + `SLACK_CHANNEL` into `.env`
+(`chmod 600`, other lines preserved, **token never printed**). Every failure is
+a What/Why/Try message (e.g. a `not_in_channel` error tells you to invite the
+bot or add `chat:write.public`).
+
+Scripted / CI use the same validation path non-interactively:
+
+```bash
+uv run argus slack-setup --token xoxb-… --channel '#incidents' --yes
+```
+
+**Manual fallback** (if you'd rather not use the wizard): create the app at
+[api.slack.com/apps](https://api.slack.com/apps), add the `chat:write` scope,
+install to the workspace, and set `SLACK_BOT_TOKEN` + `SLACK_CHANNEL` in `.env`
+yourself (see `.env.example`). Without a token ARGUS stays in dry-run — the
+Block Kit JSON is logged instead of posted.
+
 ### Live mode
 
 ```bash
@@ -260,7 +288,10 @@ live demo in 5 commands").
 - Live Slack posting: with `SLACK_BOT_TOKEN` + `SLACK_CHANNEL` set (per
   `.env.example`), `chat.postMessage` posts the Block Kit RCA to a real
   workspace; without a token it stays dry-run and prints the Block Kit JSON.
-  Live-verified (HTTP 200; runs inv-1bd6d878ab, inv-66ed446ae4).
+  Live-verified (HTTP 200; runs inv-1bd6d878ab, inv-66ed446ae4). The
+  `argus slack-setup` wizard is the guided ~2-minute path to those two
+  variables — it live-validates the token, sends a real test message, and
+  writes `.env` for you.
 
 **Planned (not yet built):**
 - Multi-service blast-radius correlation (single-service analysis today).

@@ -127,6 +127,48 @@ that sets a variable wins over later files):
 There is no further walking up the tree — an unrelated ancestor `.env` can
 never be silently picked up.
 
+## Connecting Slack (`argus slack-setup`)
+
+The guided, ~2-minute path from "no Slack" to "RCAs land in a channel". It is
+the **primary** way to set `SLACK_BOT_TOKEN` + `SLACK_CHANNEL`; the manual
+`.env` route (below) remains a supported fallback.
+
+```bash
+uv run argus slack-setup                                   # interactive wizard
+uv run argus slack-setup --token xoxb-… --channel '#x' --yes   # scripted / CI
+```
+
+What it does, in order:
+
+1. **Intro + steps** — explains the ~2-minute flow and links
+   [api.slack.com/apps](https://api.slack.com/apps), then walks the Slack-UI
+   clicks: create app (from scratch) → OAuth & Permissions → add `chat:write`
+   (required) and `chat:write.public` (recommended — post to public channels
+   without being invited; `channels:read` is optional and only lets the wizard
+   list channels) → Install to Workspace → copy the **Bot User OAuth Token**.
+2. **Token entry** — masked input, re-prompts on a bad shape. Format check is
+   `xoxb-…`; it distinguishes a user token (`xoxp-`) or app-level token
+   (`xapp-`) and says so, without ever echoing the value.
+3. **Live validation** — `auth.test` (prints the workspace + bot name on
+   success; a What/Why/Try message on failure), then `conversations.list` to
+   show channels the bot can see (graceful if the scope is missing — you can
+   still type a name; default `#incidents`).
+4. **Real test message** — `chat.postMessage` posts a small Block Kit sample
+   ("ARGUS connected …") and confirms delivery via the returned `ts`. A
+   `not_in_channel` failure tells you to invite the bot or add
+   `chat:write.public`.
+5. **Writes `.env`** — creates it from `.env.example` if absent, upserts the
+   two keys **preserving every other line**, `chmod 600`, and prints *what* was
+   written (never the token).
+6. **Closing** — next steps (`argus investigate --replay …` to see a full RCA
+   post; disable = remove the two lines).
+
+Secrets rule: the token is never printed, logged, or written to stdout/stderr —
+prompts mask it and the summary reports key names + the (non-secret) channel
+only. Exit codes: `0` ok, `1` live-validation failure (nothing written), `2`
+bad `--token` format. No new dependencies — the wizard uses `httpx` (already
+present) for the three Slack calls.
+
 ## The LLM provider seam (honesty rules)
 
 `ARGUS_LLM_PROVIDER=auto|anthropic|claude-cli|heuristic`
@@ -208,7 +250,12 @@ Record a new incident fixture from live data:
   RCA to a real workspace when `SLACK_BOT_TOKEN` + `SLACK_CHANNEL` are set (per
   `.env.example`); verified HTTP 200 (runs inv-1bd6d878ab, inv-66ed446ae4, see
   `assets/live-slack-posting-verified.md`). Without a token it stays dry-run
-  and the design-system-compliant Block Kit JSON is logged/saved instead.
+  and the design-system-compliant Block Kit JSON is logged/saved instead. The
+  `argus slack-setup` wizard's live paths (token-format check, `auth.test`
+  graceful-failure UX, `.env` writing) are unit-tested with a mocked Slack API
+  and exercised against the real `auth.test` endpoint with an invalid token; a
+  full happy-path wizard run (real `auth.test`/`chat.postMessage` success) needs
+  a valid workspace token.
 - **UI screenshots** need a signed-in SigNoz browser session (agents can't
   perform logins); all UI-facing claims are evidenced via API queries in
   `assets/` until then.

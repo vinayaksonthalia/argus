@@ -245,6 +245,14 @@ def _cmd_console(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_slack_setup(args: argparse.Namespace) -> int:
+    """Guided (or scripted) Slack connection: validate a token live, send a
+    real test message, and write SLACK_BOT_TOKEN + SLACK_CHANNEL to .env."""
+    from .slack_setup import run_setup
+
+    return run_setup(token=args.token, channel=args.channel, assume_yes=args.yes)
+
+
 def _cmd_serve(args: argparse.Namespace) -> int:
     import uvicorn
 
@@ -289,7 +297,11 @@ No investigations yet? Try the zero-setup offline demo (no SigNoz, no keys):
 
     argus investigate --replay fixtures/incident-1
 
-Commands: investigate · eval · serve · console · memory · init-dashboards
+Want RCAs in Slack? Connect it in ~2 minutes:
+
+    argus slack-setup
+
+Commands: investigate · eval · serve · console · memory · init-dashboards · slack-setup
 Full docs: DOCS.md · learning/ curriculum · argus --help
 """
 
@@ -319,6 +331,16 @@ def main(argv: list[str] | None = None) -> int:
 
     p_serve = sub.add_parser("serve", help="run the webhook server (live mode)")
     p_serve.set_defaults(fn=_cmd_serve)
+
+    p_slack = sub.add_parser(
+        "slack-setup",
+        help="guided 2-minute Slack connection (validates token, sends a test message)")
+    p_slack.add_argument("--token", help="xoxb- bot token (non-interactive/scripted mode)")
+    p_slack.add_argument("--channel", help=f"target channel (default {'#incidents'})")
+    p_slack.add_argument("--yes", action="store_true",
+                         help="skip confirmations (for scripts); assumes default channel "
+                              "in interactive mode")
+    p_slack.set_defaults(fn=_cmd_slack_setup)
 
     p_console = sub.add_parser(
         "console", help="serve the read-only Investigations Console (local web UI)")
