@@ -56,7 +56,7 @@ window.addEventListener("load", () => {
   // ---- panel 4: back to sleep, ARGUS watching ---------------------------
   S.frame(3); S.badge(3, 4);
   S.headline(3, "you sleep");
-  const sc4 = S.screen(3, '<div class="label" style="margin-top:-4px;">all services calm</div>', 54, 246, 116);
+  const sc4 = S.screen(3, '<div class="label">all services calm</div>', 54, 246, 116, "cardtop");
   S.character(3, "asleep", { cy: 406 });
   S.caption(3, "ARGUS keeps watch<br><b>over the quiet systems.</b>");
 
@@ -74,7 +74,7 @@ window.addEventListener("load", () => {
   })(sc2);
   // panel 4: ARGUS eye + calm service dots
   (function eye(s){
-    const ex = s.cx, ey = s.top + 40;
+    const ex = s.cx, ey = s.top + 66;
     // almond
     Sketch.line(ex-30, ey, ex, ey-15, { color:A, width:2.6, jit:0.9, seed:60 });
     Sketch.line(ex, ey-15, ex+30, ey, { color:A, width:2.6, jit:0.9, seed:61 });
