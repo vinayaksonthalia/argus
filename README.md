@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/brand/logo-1200.png" alt="ARGUS" width="420">
+<img src="assets/brand/logo-1200.png" alt="ARGUS — the self-observing AI SRE for SigNoz" width="420">
 
 # ARGUS
 
