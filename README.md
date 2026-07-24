@@ -24,6 +24,15 @@ system.
   <img src="assets/illustrations/01-the-2am-loop.png" alt="At 2am the alert fires, ARGUS wakes on the webhook, reads signals/traces/logs, and posts an evidence-linked RCA — no human typed anything." width="820">
 </p>
 
+## The story
+
+You're on call. It's 2 a.m. The page goes off — and here's how the night actually
+goes with ARGUS on the pager next to you.
+
+<p align="center">
+  <img src="assets/illustrations/05-the-story.png" alt="Four panels: (1) 2am, paged and exhausted at the laptop as a checkout p99 alert fires; (2) ARGUS is already investigating, a tree of checks builds itself; (3) the verdict lands in #incidents with a root cause and clickable evidence; (4) you go back to sleep while ARGUS's eye watches the calm services." width="900">
+</p>
+
 ## Why it's different
 
 - **Autonomous, not conversational.** Nobody types a question. The alert

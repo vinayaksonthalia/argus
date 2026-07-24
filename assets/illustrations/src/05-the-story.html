@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="sketch.css">
+<style>
+  body { --accent: #8B5CF6; }
+  .title { font-size: 52px; }
+  .badge { position:absolute; font-family:"Marker Felt","Chalkboard SE",cursive; font-size:22px; color:var(--accent); z-index:3; }
+  .phead { position:absolute; font-family:"Marker Felt","Chalkboard SE",cursive; font-size:24px; color:var(--ink); z-index:3; }
+  .pcap  { position:absolute; font-size:21px; color:var(--gray); line-height:1.3; z-index:3; }
+  .pcap b { color:var(--ink); font-weight:normal; }
+  .screen { padding:12px 16px; }
+  .screen .label { font-size:23px; }
+  .screen .sub { font-size:18px; }
+  .cardtop { justify-content:flex-start; padding-top:12px; }
+  .mono { font-family:"Courier New",monospace; font-size:16px; color:var(--gray); }
+  .storycap { position:absolute; font-family:"Marker Felt","Chalkboard SE",cursive; font-size:27px; color:var(--ink); text-align:center; width:100%; left:0; z-index:3; }
+  .storycap .em { color:var(--accent); }
+</style>
+</head>
+<body>
+  <div class="title" style="left:56px; top:34px;">one night on call</div>
+  <div class="subtitle" style="left:60px; top:100px;">you're asleep. an alert fires. here's how the night actually goes. &mdash; ARGUS</div>
+
+<script src="sketch.js"></script>
+<script src="character.js"></script>
+<script src="story-builder.js"></script>
+<script>
+window.addEventListener("load", () => {
+  Sketch.init();
+  Sketch.underline(".title");
+  const S = Story, A = S.getAccent();
+
+  // ---- panel 1: 2 a.m., paged, exhausted --------------------------------
+  S.frame(0); S.badge(0, 1);
+  S.headline(0, "2 a.m.");
+  const sc1 = S.screen(0, '<div class="label red-ink">&#9888; ALERT</div><div class="sub">checkout p99 &gt; 1s<br>&mdash; SigNoz rule</div>', 56, 236, 108, "red", "var(--red)");
+  S.character(0, "exhausted", { cy: 402 });
+  S.caption(0, "the page goes off.<br><b>you are the only human awake.</b>");
+
+  // ---- panel 2: ARGUS is already investigating --------------------------
+  S.frame(1); S.badge(1, 2);
+  S.headline(1, "it's already working");
+  const sc2 = S.screen(1, '<div class="label">ARGUS is investigating</div>', 50, 250, 128, "cardtop");
+  S.character(1, "curious", { cy: 404 });
+  S.caption(1, "a tree of checks builds itself.<br><b>no question typed.</b>");
+
+  // ---- panel 3: the verdict lands in Slack ------------------------------
+  S.frame(2); S.badge(2, 3);
+  S.headline(2, "the verdict");
+  const sc3 = S.screen(2, '<div class="label">#incidents</div><div class="sub">root cause: deploy #4823<br><span style="color:var(--accent)">every claim &rarr; SigNoz &#8599;</span></div>', 56, 246, 116);
+  S.character(2, "aha", { cy: 404 });
+  S.caption(2, "a verified answer,<br><b>with evidence you can click.</b>");
+
+  // ---- panel 4: back to sleep, ARGUS watching ---------------------------
+  S.frame(3); S.badge(3, 4);
+  S.headline(3, "you sleep");
+  const sc4 = S.screen(3, '<div class="label" style="margin-top:-4px;">all services calm</div>', 54, 246, 116);
+  S.character(3, "asleep", { cy: 406 });
+  S.caption(3, "ARGUS keeps watch<br><b>over the quiet systems.</b>");
+
+  // ---- decorative drawings inside screens -------------------------------
+  const svg = Sketch.overlay();
+  // panel 2: little investigation tree
+  (function tree(s){
+    const cx = s.cx, ty = s.top + 62;
+    Sketch.circle(cx, ty, 8, { color:A, width:2.4, seed:11 });
+    const kids = [cx-64, cx-21, cx+22, cx+65];
+    const ky = ty + 46;
+    kids.forEach((kx,i)=>{ Sketch.line(cx, ty+8, kx, ky-8, { color:A, width:1.8, jit:0.8, seed:12+i, opacity:0.8 }); Sketch.circle(kx, ky, 6, { color:A, width:2.2, seed:20+i }); });
+    // one child confirmed (accent fill dot)
+    Sketch.circle(kids[2], ky, 3, { color:A, width:2, fill:A, seed:40 });
+  })(sc2);
+  // panel 4: ARGUS eye + calm service dots
+  (function eye(s){
+    const ex = s.cx, ey = s.top + 40;
+    // almond
+    Sketch.line(ex-30, ey, ex, ey-15, { color:A, width:2.6, jit:0.9, seed:60 });
+    Sketch.line(ex, ey-15, ex+30, ey, { color:A, width:2.6, jit:0.9, seed:61 });
+    Sketch.line(ex+30, ey, ex, ey+15, { color:A, width:2.6, jit:0.9, seed:62 });
+    Sketch.line(ex, ey+15, ex-30, ey, { color:A, width:2.6, jit:0.9, seed:63 });
+    Sketch.circle(ex, ey, 8, { color:A, width:2.4, seed:64 });
+    Sketch.circle(ex, ey, 3, { color:A, width:2, fill:A, seed:65 });
+    // three calm service dots below
+    [-26,0,26].forEach((dx,i)=> Sketch.circle(ex+dx, ey+34, 5, { color:"var(--gray)", width:2, seed:70+i }));
+  })(sc4);
+
+  // ---- sequence arrows in gutters ---------------------------------------
+  [0,1,2].forEach(i => S.seqArrow(i, 452));
+
+  // ---- story caption arc beneath ----------------------------------------
+  const cap = S.el("storycap",
+    'the page fired at 2 a.m. &mdash; and the answer was <span class="em">already waiting</span>. you never typed a word.',
+    'top:690px;');
+
+  window.__sketchDone = true;
+});
+</script>
+</body>
+</html>
