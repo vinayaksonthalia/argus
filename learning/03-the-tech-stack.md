@@ -1,6 +1,6 @@
 # The Tech Stack — every choice, and the honest trade-off
 
-**In one line:** Python + FastAPI, a hand-rolled typed state machine, two clean seams (SigNoz reads and LLM calls), a pluggable provider seam so you can bring any model, manual OTel self-instrumentation, and 97 offline tests — each choice made to keep the whole loop replayable without a network or a key.
+**In one line:** Python + FastAPI, a hand-rolled typed state machine, two clean seams (SigNoz reads and LLM calls), a pluggable provider seam so you can bring any model, manual OTel self-instrumentation, and 158 offline tests — each choice made to keep the whole loop replayable without a network or a key.
 
 ---
 
