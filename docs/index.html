@@ -321,6 +321,91 @@ a.fam:hover{text-decoration:underline; text-underline-offset:3px}
 @media (min-width:761px) and (max-width:1180px){
   .hero-chips{display:none}
 }
+
+/* ---- the "what am I looking at?" affordance in the landing band ---- */
+.hero-btn-tour{
+  background:var(--accent-dim); color:var(--text-1);
+  border-color:rgba(139,92,246,.45); gap:7px;
+}
+.hero-btn-tour:hover{background:rgba(139,92,246,.26); border-color:var(--accent)}
+.hero-btn-sub{
+  font-size:10.5px; font-weight:500; color:var(--text-3);
+  text-transform:uppercase; letter-spacing:.06em; white-space:nowrap;
+}
+
+/* ---- the tour itself ----
+   Three layers: a scrim that swallows clicks so the page underneath can't be
+   half-driven mid-tour, a spotlight box whose 9999px shadow *is* the dimming
+   (one element, no four-panel maths, no seams), and the card. */
+.tour-root{position:fixed; inset:0; z-index:1000}
+.tour-root[hidden]{display:none !important}
+.tour-scrim{position:absolute; inset:0; background:transparent}
+.tour-spot{
+  position:fixed; border-radius:12px; pointer-events:none;
+  border:1.5px solid rgba(139,92,246,.85);
+  box-shadow:0 0 0 9999px rgba(6,7,9,.74), 0 0 0 4px rgba(139,92,246,.18);
+  transition:top .22s ease,left .22s ease,width .22s ease,height .22s ease;
+}
+.tour-spot.is-blank{border-color:transparent; box-shadow:0 0 0 9999px rgba(6,7,9,.74)}
+.tour-card{
+  position:fixed; width:352px; max-width:calc(100vw - 32px);
+  background:var(--bg-raised); border:1px solid var(--border);
+  border-radius:14px; padding:16px 18px 14px;
+  box-shadow:0 18px 48px rgba(0,0,0,.55);
+}
+.tour-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:8px}
+.tour-count{font-size:11px; color:var(--text-3); letter-spacing:.08em}
+.tour-x{
+  background:transparent; border:none; color:var(--text-3); cursor:pointer;
+  font:inherit; font-size:13px; line-height:1; padding:4px 5px; border-radius:6px;
+}
+.tour-x:hover{color:var(--text-1); background:var(--bg-surface)}
+.tour-heading{
+  margin:0 0 8px; font-size:16px; font-weight:600; line-height:1.3;
+  letter-spacing:-.015em; color:var(--text-1);
+}
+.tour-body p{margin:0 0 9px; font-size:13px; line-height:1.55; color:var(--text-2)}
+.tour-body p:last-child{margin-bottom:0}
+.tour-link a{color:var(--accent); text-decoration:none; font-weight:500}
+.tour-link a:hover{text-decoration:underline}
+.tour-nav{display:flex; align-items:center; justify-content:flex-end; gap:8px; margin-top:14px}
+.tour-btn{
+  font:inherit; font-size:12.5px; font-weight:500; cursor:pointer;
+  border-radius:7px; padding:7px 14px; border:1px solid var(--border);
+  background:transparent; color:var(--text-2);
+}
+.tour-btn:hover{background:var(--bg-surface); color:var(--text-1)}
+.tour-btn[disabled]{opacity:.4; cursor:default}
+.tour-btn-next{background:var(--accent); border-color:var(--accent); color:#fff}
+.tour-btn-next:hover{background:#7C4DEF; color:#fff}
+.tour-btn:focus-visible,.tour-x:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+/* Narrow screens drop the spotlight (a cutout over a stacked, scrolling page
+   lands badly) and the card becomes a bottom sheet; the step's subject just
+   gets a ring so you still know what is being pointed at. */
+.tour-lit{outline:2px solid var(--accent); outline-offset:3px; border-radius:10px}
+@media (max-width:760px){
+  .tour-spot{display:none}
+  .tour-scrim{background:rgba(6,7,9,.5)}
+  .tour-card{
+    left:0; right:0; bottom:0; top:auto; width:auto; max-width:none;
+    border-radius:16px 16px 0 0; border-bottom:none; padding:16px 18px 18px;
+    max-height:72vh; overflow-y:auto;
+  }
+  /* Three affordances no longer fit beside the wordmark, so they take their
+     own full-width row instead of pushing the band into a sideways scroll. */
+  .hero-actions{
+    order:2; flex:1 1 100%; margin-left:0;
+    flex-wrap:wrap; justify-content:flex-start;
+  }
+}
+/* Laptop widths: the band is one fixed-height line, so the tour button buys its
+   space from its own sub-label and from "See the evidence" — which it makes
+   redundant anyway, since the tour walks you into exactly that evidence. */
+@media (min-width:761px) and (max-width:1180px){
+  .hero-btn-sub{display:none}
+  #hero-scroll{display:none}
+}
+@media (prefers-reduced-motion:reduce){.tour-spot{transition:none}}
 </style>
 </head>
 <body class="has-hero">
@@ -330,6 +415,9 @@ a.fam:hover{text-decoration:underline; text-underline-offset:3px}
     <span class="hero-lead"><b class="mono">20</b><span class="hero-chip-label">recorded investigations</span></span>
     <div class="hero-chips"><span class="hero-chip"><b class="mono">1</b><span class="hero-chip-label">verified RCA at 90%</span></span><span class="hero-chip"><b class="mono">$0.94</b><span class="hero-chip-label">total LLM spend</span></span><span class="hero-chip"><b class="mono">0</b><span class="hero-chip-label">runtime dependencies</span></span></div>
     <div class="hero-actions">
+      <button class="hero-btn hero-btn-tour" id="tour-start" type="button"
+              aria-haspopup="dialog">What am I looking at?<span
+              class="hero-btn-sub">60-second tour</span></button>
       <a class="hero-btn hero-btn-primary" href="https://github.com/vinayaksonthalia/argus"
          target="_blank" rel="noopener noreferrer">GitHub &rarr;</a>
       <button class="hero-btn hero-btn-ghost" id="hero-scroll"
@@ -363,7 +451,7 @@ a.fam:hover{text-decoration:underline; text-underline-offset:3px}
   <p class="fam-tag">Three tools for self-hosted SigNoz &mdash; investigate the
     incident, watch the real browser, price the waste.</p>
 </div>
-</main>
+</main><div id="tour-steps" data-inv="inv-fcdb95f553" hidden><div class="tour-step" data-target=".verdict" data-title="A real alert fired. Nobody typed anything." data-step="1"><p>“Faultline catalog p99 latency &gt; 1s” fired on service catalog at 2026-07-17 21:02 UTC. ARGUS took the webhook, opened inv-fcdb95f553, and had a verified answer 50 seconds later.</p><p>No prompt, no operator, no runbook. Everything on this page is that run&#x27;s own output, replayed from the report it wrote.</p></div><div class="tour-step" data-target=".rail-col" data-title="20 investigations, badged honestly." data-step="2"><p>The rail lists every run recorded here: 1 VERIFIED, 13 NEEDS REVIEW and 6 DEGRADED.</p><p>A run only earns VERIFIED when a hypothesis survives a query against real telemetry and confidence clears 75%. The rest keep a badge that admits it.</p></div><div class="tour-step" data-target=".root-cause" data-title="The root cause — and the query that proved it." data-step="3"><p>ARGUS pulled the metrics, the exemplar traces and the logs, then named it: “An injected/artificial pg_sleep(2.5) call embedded in the products SELECT statement is directly causing the ~2.5s query latency that drives the p99 breach.”</p><p>It did not stop at plausible. It ran one more query back at SigNoz to check — found &#x27;pg_sleep&#x27; in 20 matching rows — and only then wrote the finding down, at 90% confidence.</p></div><div class="tour-step" data-target="#hypotheses" data-title="4 hypotheses were tested. 1 survived." data-step="4"><p>1 was confirmed against the data. 1 was refuted: the verification query came back with no matching rows. 2 could not be verified at all, because the check itself failed to run — and those are reported too, not quietly dropped.</p><p>All of them stay on the page, each with the reason it died. An agent that hid its failures could show you one confident paragraph instead. This one refuses to bluff.</p></div><div class="tour-step" data-target=".ev-list" data-title="8 pieces of evidence, and you can click through to each one." data-step="5"><p>Metric deltas, exemplar traces with span ids, novel log signatures — 8 of the 8 bullets deep-link straight into the SigNoz view that produced them.</p><p>Nothing here asks you to take a summary on faith. (The links resolve on the SigNoz instance that recorded the incident, not on this static page.)</p></div><div class="tour-step" data-target=".cost-footer" data-title="This entire investigation cost $0.0407." data-step="6"><p>1 LLM call on claude-haiku-4-5-20251001 (live), 5,700 tokens in / 1,470 out, plus 22 SigNoz queries · 306,252 rows / 33.8 MB scanned · 151 ms query time. Printed on every report, because an agent you cannot budget for is an agent you cannot run.</p><p>All 20 runs together came to $0.94, and 1 of 20 cleared verification. That ratio is on the page rather than hidden — the honesty is the feature.</p><p class="tour-link"><a href="https://github.com/vinayaksonthalia/argus" target="_blank" rel="noopener noreferrer">Read the source on GitHub &rarr;</a></p></div></div><div class="tour-root" id="tour" hidden><div class="tour-scrim"></div><div class="tour-spot" id="tour-spot" aria-hidden="true"></div><div class="tour-card" id="tour-card" role="dialog" aria-modal="true" aria-labelledby="tour-heading"><div class="tour-head"><span class="tour-count mono" id="tour-count"></span><button class="tour-x" id="tour-close" type="button" aria-label="End the tour (Esc)">&#10005;</button></div><h2 class="tour-heading" id="tour-heading"></h2><div class="tour-body" id="tour-body"></div><div class="tour-nav"><button class="tour-btn" id="tour-back" type="button">Back</button><button class="tour-btn tour-btn-next" id="tour-next" type="button">Next</button></div></div></div>
 <script>
 (function () {
   var rail = document.getElementById('rail');
@@ -519,6 +607,202 @@ a.fam:hover{text-decoration:underline; text-underline-offset:3px}
   var landing = rail.querySelector('.row[data-default]') || rail.querySelector('.row');
   if (initial) select(initial, 'center');
   else if (landing) select(landing.getAttribute('data-id'), 'center');
+})();
+
+(function () {
+  var steps = document.getElementById('tour-steps');
+  var root = document.getElementById('tour');
+  var startBtn = document.getElementById('tour-start');
+  if (!steps || !root || !startBtn) return;
+
+  var items = [].slice.call(steps.querySelectorAll('.tour-step'));
+  if (!items.length) return;
+
+  var pane = document.getElementById('pane');
+  var spot = document.getElementById('tour-spot');
+  var card = document.getElementById('tour-card');
+  var heading = document.getElementById('tour-heading');
+  var body = document.getElementById('tour-body');
+  var count = document.getElementById('tour-count');
+  var backBtn = document.getElementById('tour-back');
+  var nextBtn = document.getElementById('tour-next');
+  var closeBtn = document.getElementById('tour-close');
+  var idx = 0;
+  var open = false;
+  var lit = null;
+  var opener = null;
+
+  function narrow() {
+    return window.matchMedia('(max-width: 760px)').matches;
+  }
+
+  function clearLit() {
+    if (lit) { lit.classList.remove('tour-lit'); lit = null; }
+  }
+
+  function placeCard(rect) {
+    if (narrow()) {
+      // Bottom sheet: the stylesheet pins it to the viewport edges, so any
+      // inline coordinates left over from a wider layout have to go.
+      card.style.top = '';
+      card.style.left = '';
+      return;
+    }
+    var m = 16, vw = window.innerWidth, vh = window.innerHeight;
+    var cw = card.offsetWidth, ch = card.offsetHeight;
+    var top, left;
+    if (!rect) {
+      card.style.top = Math.max(m, (vh - ch) / 2) + 'px';
+      card.style.left = Math.max(m, (vw - cw) / 2) + 'px';
+      return;
+    }
+    if (rect.bottom + m + ch + m <= vh) {          // below the subject
+      top = rect.bottom + m;
+      left = rect.left;
+    } else if (rect.top - m - ch >= m) {           // above it
+      top = rect.top - m - ch;
+      left = rect.left;
+    } else if (rect.right + m + cw + m <= vw) {    // beside it, right
+      top = rect.top;
+      left = rect.right + m;
+    } else if (rect.left - m - cw >= m) {          // beside it, left
+      top = rect.top;
+      left = rect.left - m - cw;
+    } else {
+      // The subject is taller and wider than any gap (a full-height card).
+      // Overlap is unavoidable, so overlap the *dimmed* side — the wider of
+      // the two margins — rather than sitting on the thing being pointed at.
+      top = (vh - ch) / 2;
+      left = rect.left >= vw - rect.right ? m : vw - cw - m;
+    }
+    card.style.top = Math.min(Math.max(m, top), Math.max(m, vh - ch - m)) + 'px';
+    card.style.left = Math.min(Math.max(m, left), Math.max(m, vw - cw - m)) + 'px';
+  }
+
+  function paint() {
+    var step = items[idx];
+    var target = null;
+    try { target = document.querySelector(step.getAttribute('data-target')); }
+    catch (e) { target = null; }
+
+    heading.textContent = step.getAttribute('data-title') || '';
+    body.innerHTML = '';
+    [].forEach.call(step.children, function (n) {
+      body.appendChild(n.cloneNode(true)); // server-escaped copy
+    });
+    count.textContent = (idx + 1) + ' / ' + items.length;
+    backBtn.disabled = idx === 0;
+    nextBtn.textContent = idx === items.length - 1 ? 'Done' : 'Next';
+
+    clearLit();
+    if (target && target.scrollIntoView) {
+      // On the bottom-sheet layout the card owns the lower half of the
+      // screen, so the subject goes to the top rather than the middle.
+      target.scrollIntoView({block: narrow() ? 'start' : 'center', inline: 'nearest'});
+    }
+    // One frame later the scroll has settled, so the rect is the real one.
+    requestAnimationFrame(function () {
+      var rect = target ? target.getBoundingClientRect() : null;
+      if (narrow() || !rect || !rect.width || !rect.height) {
+        spot.className = 'tour-spot is-blank';
+        spot.style.top = '-9999px';
+        spot.style.left = '-9999px';
+        spot.style.width = '0px';
+        spot.style.height = '0px';
+        if (narrow() && target) { target.classList.add('tour-lit'); lit = target; }
+        placeCard(null);
+        return;
+      }
+      var p = 8;
+      spot.className = 'tour-spot';
+      spot.style.top = (rect.top - p) + 'px';
+      spot.style.left = (rect.left - p) + 'px';
+      spot.style.width = (rect.width + p * 2) + 'px';
+      spot.style.height = (rect.height + p * 2) + 'px';
+      placeCard({
+        top: rect.top - p, left: rect.left - p,
+        bottom: rect.bottom + p, right: rect.right + p
+      });
+    });
+  }
+
+  function go(delta) {
+    var next = idx + delta;
+    if (next < 0) return;
+    if (next >= items.length) { stop(); return; }
+    idx = next;
+    paint();
+    nextBtn.focus();
+  }
+
+  function stop() {
+    open = false;
+    root.hidden = true;
+    clearLit();
+    document.removeEventListener('keydown', onKey, true);
+    if (opener && opener.focus) opener.focus();
+  }
+
+  function onKey(e) {
+    if (!open) return;
+    if (e.key === 'Escape') { e.preventDefault(); stop(); }
+    else if (e.key === 'ArrowRight') { e.preventDefault(); go(1); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); go(-1); }
+    else if (e.key === 'Tab') {
+      // Keep focus inside the dialog: the page behind is inert for now.
+      var focusables = [].filter.call(
+        card.querySelectorAll('button:not([disabled]), a[href]'),
+        function (n) { return n.offsetParent !== null; }
+      );
+      if (!focusables.length) return;
+      var first = focusables[0], last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault(); last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault(); first.focus();
+      }
+    }
+  }
+
+  function begin() {
+    opener = document.activeElement;
+    idx = 0;
+    open = true;
+    root.hidden = false;
+    document.addEventListener('keydown', onKey, true);
+    paint();
+    nextBtn.focus();
+  }
+
+  // The copy describes one specific run, so make sure that run is the one on
+  // screen before pointing at it. Then wait for the fetched fragment to land.
+  function start() {
+    var id = steps.getAttribute('data-inv');
+    if (id && location.hash.slice(1) !== id) {
+      location.hash = '#' + id;
+    }
+    var tries = 0;
+    (function wait() {
+      var stamp = pane && pane.querySelector('.verdict-id');
+      if (!id || (stamp && stamp.textContent.trim() === id) || tries > 60) {
+        begin();
+        return;
+      }
+      tries++;
+      setTimeout(wait, 50);
+    })();
+  }
+
+  startBtn.addEventListener('click', start);
+  nextBtn.addEventListener('click', function () { go(1); });
+  backBtn.addEventListener('click', function () { go(-1); });
+  closeBtn.addEventListener('click', stop);
+  window.addEventListener('resize', function () { if (open) paint(); });
+
+  // Deep link: /?tour=1 walks a visitor straight into the walkthrough.
+  if (/[?&]tour=1(&|$)/.test(location.search)) {
+    start();
+  }
 })();
 </script>
 </body>

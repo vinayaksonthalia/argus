@@ -14,6 +14,8 @@ from __future__ import annotations
 
 from html import escape
 
+import re
+
 from .data import Investigation, Stats, default_selection
 
 ACCENT = "#8B5CF6"
@@ -406,6 +408,9 @@ def render_hero(invs: list[Investigation], stats: Stats) -> str:
     {lead_html}
     <div class="hero-chips">{chips}</div>
     <div class="hero-actions">
+      <button class="hero-btn hero-btn-tour" id="tour-start" type="button"
+              aria-haspopup="dialog">What am I looking at?<span
+              class="hero-btn-sub">60-second tour</span></button>
       <a class="hero-btn hero-btn-primary" href="{safe_url(REPO_URL)}"
          target="_blank" rel="noopener noreferrer">GitHub &rarr;</a>
       <button class="hero-btn hero-btn-ghost" id="hero-scroll"
@@ -435,6 +440,297 @@ _FAMILY = """<div class="family">
 </div>"""
 
 
+# --------------------------------------------------------------------------
+# The guided tour (published static export only).
+#
+# The console shows a stranger twenty investigations and never says what
+# happened. This walks them through one real run — the same run the console
+# opens on — and says it out loud: an alert fired, nobody typed anything, the
+# agent queried the telemetry, most of its guesses died, one survived a check.
+#
+# Every number below is READ OFF the loaded corpus. There is no hand-written
+# figure in this file, so the copy cannot drift from the reports the way a
+# hand-maintained script would. Steps whose numbers a corpus can't support are
+# simply phrased without them.
+# --------------------------------------------------------------------------
+
+_RE_TL_TIME = re.compile(r"^(\d{2}):(\d{2}):(\d{2}) UTC")
+
+
+def _tl_seconds(entry: str) -> int | None:
+    m = _RE_TL_TIME.match(entry.strip())
+    if not m:
+        return None
+    h, mi, s = (int(g) for g in m.groups())
+    return h * 3600 + mi * 60 + s
+
+
+def _time_to_verdict(inv: Investigation) -> int | None:
+    """Seconds between 'alert started firing' and 'hypothesis CONFIRMED'.
+
+    Both lines are written by ARGUS into the report's own timeline, so this is
+    the run's measured latency, not a stopwatch held over the demo. Returns
+    ``None`` (and the copy drops the claim) if either line is absent or the
+    pair straddles midnight.
+    """
+    fired = confirmed = None
+    for t in inv.timeline:
+        secs = _tl_seconds(t)
+        if secs is None:
+            continue
+        if fired is None and "started firing" in t:
+            fired = secs
+        if "hypothesis CONFIRMED" in t:
+            confirmed = secs
+    if fired is None or confirmed is None:
+        return None
+    delta = confirmed - fired
+    return delta if 0 < delta < 3600 else None
+
+
+_RE_VERIFIED_NOTE = re.compile(r"\(verified:\s*(.+?)\)")
+
+
+def _verified_note(inv: Investigation) -> str:
+    """The '(verified: …)' clause ARGUS appends once a check actually passed.
+
+    ``data._parse_hypotheses`` only lifts this into ``Hypothesis.detail`` when it
+    sits at the very end of the root cause, and incident-memory context is often
+    appended after it — so read it from the root cause directly.
+    """
+    m = _RE_VERIFIED_NOTE.search(inv.root_cause or "")
+    return m.group(1).strip() if m else ""
+
+
+def _headline_claim(inv: Investigation) -> str:
+    """The confirmed hypothesis, cut at the seam before its reasoning."""
+    for h in inv.hypotheses:
+        if h.verdict == "CONFIRMED":
+            return h.text.split(" — ")[0].strip()
+    return ""
+
+
+def _join_clauses(parts: list[str]) -> str:
+    if len(parts) <= 1:
+        return parts[0] if parts else ""
+    return f"{', '.join(parts[:-1])} and {parts[-1]}"
+
+
+def _tour_steps(invs: list[Investigation], stats: Stats) -> list[dict]:
+    """Six steps over the run the console opens on, all numbers from the corpus."""
+    inv = default_selection(invs)
+    if inv is None:
+        return []
+
+    counts = {"CONFIRMED": 0, "REFUTED": 0, "ERROR": 0}
+    for h in inv.hypotheses:
+        counts[h.verdict] = counts.get(h.verdict, 0) + 1
+    n_hyp = len(inv.hypotheses)
+    n_conf, n_ref, n_err = counts["CONFIRMED"], counts["REFUTED"], counts["ERROR"]
+    conf_pct = round(inv.confidence * 100)
+    check = _verified_note(inv) or next(
+        (h.detail for h in inv.hypotheses if h.verdict == "CONFIRMED" and h.detail),
+        "",
+    )
+    claim = _headline_claim(inv)
+    secs = _time_to_verdict(inv)
+    n_ev = len(inv.evidence)
+    n_linked = sum(1 for e in inv.evidence if safe_url(e.url))
+    c = inv.cost
+
+    # ---- 1: the alert ----------------------------------------------------
+    when = f" at {inv.date_display}" if inv.date_display else ""
+    if secs is not None:
+        opened = (
+            f"took the webhook, opened {inv.id}, and had a verified answer "
+            f"{secs} seconds later"
+        )
+    else:
+        opened = f"took the webhook and opened {inv.id} on its own"
+    s1 = {
+        "target": ".verdict",
+        "title": "A real alert fired. Nobody typed anything.",
+        "body": [
+            f"“{inv.alert}” fired on service {inv.service}{when}. "
+            f"ARGUS {opened}.",
+            "No prompt, no operator, no runbook. Everything on this page is "
+            "that run's own output, replayed from the report it wrote.",
+        ],
+    }
+
+    # ---- 2: the rail -----------------------------------------------------
+    tally = [
+        f"{n} {label}"
+        for label, n in (
+            ("VERIFIED", sum(1 for i in invs if i.status == "VERIFIED")),
+            ("NEEDS REVIEW", sum(1 for i in invs if i.status == "NEEDS REVIEW")),
+            ("DEGRADED", sum(1 for i in invs if i.status == "DEGRADED")),
+        )
+        if n
+    ]
+    s2 = {
+        "target": ".rail-col",
+        "title": (
+            f"{stats.total} investigations, badged honestly."
+            if stats.total != 1
+            else "One investigation, badged honestly."
+        ),
+        "body": [
+            f"The rail lists every run recorded here: {_join_clauses(tally)}.",
+            "A run only earns VERIFIED when a hypothesis survives a query "
+            "against real telemetry and confidence clears 75%. The rest keep "
+            "a badge that admits it.",
+        ],
+    }
+
+    # ---- 3: the verified root cause --------------------------------------
+    proof = (
+        f"It ran one more query back at SigNoz to check — {check} — and only "
+        f"then wrote the finding down, at {conf_pct}% confidence."
+        if check
+        else f"It recorded the finding at {conf_pct}% confidence."
+    )
+    s3 = {
+        "target": ".root-cause",
+        "title": "The root cause — and the query that proved it.",
+        "body": [
+            f"ARGUS pulled the metrics, the exemplar traces and the logs, then "
+            f"named it: “{claim}”" if claim else
+            "ARGUS pulled the metrics, the exemplar traces and the logs, then "
+            "named the cause.",
+            f"It did not stop at plausible. {proof}",
+        ],
+    }
+
+    # ---- 4: the hypotheses -----------------------------------------------
+    was = lambda n: "was" if n == 1 else "were"  # noqa: E731
+    fates = []
+    if n_conf:
+        fates.append(f"{n_conf} {was(n_conf)} confirmed against the data.")
+    if n_ref:
+        fates.append(
+            f"{n_ref} {was(n_ref)} refuted: the verification query came back "
+            f"with no matching rows."
+        )
+    if n_err:
+        fates.append(
+            f"{n_err} could not be verified at all, because the check itself "
+            f"failed to run — and {'that is' if n_err == 1 else 'those are'} "
+            f"reported too, not quietly dropped."
+        )
+    s4 = {
+        "target": "#hypotheses",
+        "title": (
+            f"{n_hyp} hypotheses were tested. {n_conf} survived."
+            if n_hyp
+            else "Every hypothesis is shown, whatever happened to it."
+        ),
+        "body": [
+            " ".join(fates) if fates else
+            "Each hypothesis is listed with the verdict its check returned.",
+            "All of them stay on the page, each with the reason it died. An "
+            "agent that hid its failures could show you one confident "
+            "paragraph instead. This one refuses to bluff.",
+        ],
+    }
+
+    # ---- 5: the evidence -------------------------------------------------
+    s5 = {
+        "target": ".ev-list",
+        "title": f"{n_ev} pieces of evidence, and you can click through to each one."
+        if n_ev != 1 else "One piece of evidence, and you can click through to it.",
+        "body": [
+            f"Metric deltas, exemplar traces with span ids, novel log "
+            f"signatures — {n_linked} of the {n_ev} bullets deep-link straight "
+            f"into the SigNoz view that produced them."
+            if n_linked else
+            "Metric deltas, exemplar traces and log signatures, each written "
+            "down as ARGUS read it.",
+            "Nothing here asks you to take a summary on faith. (The links "
+            "resolve on the SigNoz instance that recorded the incident, not "
+            "on this static page.)",
+        ],
+    }
+
+    # ---- 6: the cost, and the closing honesty line -----------------------
+    spend = f"${c.usd:.4f}" if c.usd else "almost nothing"
+    calls = (
+        f"{c.llm_calls} LLM call{'' if c.llm_calls == 1 else 's'} on {c.model}"
+        if c.llm_calls and c.model
+        else (c.model or "One model call")
+    )
+    tokens = (
+        f", {c.tokens_in:,} tokens in / {c.tokens_out:,} out"
+        if c.tokens_in or c.tokens_out
+        else ""
+    )
+    queries = f", plus {c.query_stats}" if c.query_stats else ""
+    s6 = {
+        "target": ".cost-footer",
+        "title": f"This entire investigation cost {spend}.",
+        "body": [
+            f"{calls}{tokens}{queries}. Printed on every report, because an "
+            f"agent you cannot budget for is an agent you cannot run.",
+            f"All {stats.total} runs together came to ${stats.total_usd:.2f}, "
+            f"and {stats.verified} of {stats.total} cleared verification. That "
+            f"ratio is on the page rather than hidden — the honesty is the "
+            f"feature.",
+        ],
+        "link": REPO_URL,
+        "link_text": "Read the source on GitHub",
+    }
+
+    return [s1, s2, s3, s4, s5, s6]
+
+
+def render_tour(invs: list[Investigation], stats: Stats) -> str:
+    """The tour's DOM: a scrim, a spotlight, a card, and the escaped step copy.
+
+    The step text is rendered here as ordinary escaped HTML in a hidden block
+    and cloned into the card by the client. No copy is interpolated into a
+    JavaScript string literal — same rule as the rest of this file.
+    """
+    steps = _tour_steps(invs, stats)
+    if not steps:
+        return ""
+    inv = default_selection(invs)
+    items = []
+    for i, step in enumerate(steps, 1):
+        paras = "".join(f"<p>{esc(p)}</p>" for p in step["body"])
+        link = ""
+        url = safe_url(step.get("link", ""))
+        if url:
+            link = (
+                f'<p class="tour-link"><a href="{url}" target="_blank" '
+                f'rel="noopener noreferrer">{esc(step["link_text"])} &rarr;</a></p>'
+            )
+        items.append(
+            f'<div class="tour-step" data-target="{esc(step["target"])}" '
+            f'data-title="{esc(step["title"])}" data-step="{i}">{paras}{link}</div>'
+        )
+    return (
+        f'<div id="tour-steps" data-inv="{esc(inv.id if inv else "")}" hidden>'
+        f'{"".join(items)}</div>'
+        '<div class="tour-root" id="tour" hidden>'
+        '<div class="tour-scrim"></div>'
+        '<div class="tour-spot" id="tour-spot" aria-hidden="true"></div>'
+        '<div class="tour-card" id="tour-card" role="dialog" aria-modal="true" '
+        'aria-labelledby="tour-heading">'
+        '<div class="tour-head">'
+        '<span class="tour-count mono" id="tour-count"></span>'
+        '<button class="tour-x" id="tour-close" type="button" '
+        'aria-label="End the tour (Esc)">&#10005;</button>'
+        "</div>"
+        '<h2 class="tour-heading" id="tour-heading"></h2>'
+        '<div class="tour-body" id="tour-body"></div>'
+        '<div class="tour-nav">'
+        '<button class="tour-btn" id="tour-back" type="button">Back</button>'
+        '<button class="tour-btn tour-btn-next" id="tour-next" type="button">'
+        "Next</button>"
+        "</div></div></div>"
+    )
+
+
 def _topbar(stats: Stats) -> str:
     stats_strip = (
         f'<div class="stat"><span class="stat-val mono">{stats.total}</span>'
@@ -462,8 +758,12 @@ def render_page(invs: list[Investigation], stats: Stats, hero: bool = False) -> 
     """
     list_html = render_list(invs)
     empty_detail = render_empty_detail(bool(invs))
+    # The tour, its CSS and its JS ship only with the published bundle — the
+    # served console is a working tool, and a stranger's walkthrough is chrome
+    # an operator never asked for. Appending rather than interleaving keeps the
+    # served page byte-for-byte what it was.
     return _PAGE_TEMPLATE.format(
-        css=_CSS,
+        css=_CSS + (_TOUR_CSS if hero else ""),
         accent=ACCENT,
         body_class=" class=\"has-hero\"" if hero else "",
         header=render_hero(invs, stats) if hero else _topbar(stats),
@@ -471,7 +771,8 @@ def render_page(invs: list[Investigation], stats: Stats, hero: bool = False) -> 
         filters=render_filters(invs) if invs else "",
         list_html=list_html,
         empty_detail=empty_detail,
-        js=_JS,
+        tour=render_tour(invs, stats) if hero else "",
+        js=_JS + (_TOUR_JS if hero else ""),
     )
 
 
@@ -503,7 +804,7 @@ _PAGE_TEMPLATE = """<!doctype html>
     {empty_detail}
   </section>
   {family}
-</main>
+</main>{tour}
 <script>{js}</script>
 </body>
 </html>
@@ -984,4 +1285,294 @@ a.fam:hover{text-decoration:underline; text-underline-offset:3px}
 @media (min-width:761px) and (max-width:1180px){
   .hero-chips{display:none}
 }
+"""
+
+# --------------------------------------------------------------------------
+# Tour CSS + JS. Appended to the shared sheet/script only when hero=True, so
+# `argus console` renders exactly the bytes it rendered before this existed.
+# --------------------------------------------------------------------------
+
+_TOUR_CSS = r"""
+/* ---- the "what am I looking at?" affordance in the landing band ---- */
+.hero-btn-tour{
+  background:var(--accent-dim); color:var(--text-1);
+  border-color:rgba(139,92,246,.45); gap:7px;
+}
+.hero-btn-tour:hover{background:rgba(139,92,246,.26); border-color:var(--accent)}
+.hero-btn-sub{
+  font-size:10.5px; font-weight:500; color:var(--text-3);
+  text-transform:uppercase; letter-spacing:.06em; white-space:nowrap;
+}
+
+/* ---- the tour itself ----
+   Three layers: a scrim that swallows clicks so the page underneath can't be
+   half-driven mid-tour, a spotlight box whose 9999px shadow *is* the dimming
+   (one element, no four-panel maths, no seams), and the card. */
+.tour-root{position:fixed; inset:0; z-index:1000}
+.tour-root[hidden]{display:none !important}
+.tour-scrim{position:absolute; inset:0; background:transparent}
+.tour-spot{
+  position:fixed; border-radius:12px; pointer-events:none;
+  border:1.5px solid rgba(139,92,246,.85);
+  box-shadow:0 0 0 9999px rgba(6,7,9,.74), 0 0 0 4px rgba(139,92,246,.18);
+  transition:top .22s ease,left .22s ease,width .22s ease,height .22s ease;
+}
+.tour-spot.is-blank{border-color:transparent; box-shadow:0 0 0 9999px rgba(6,7,9,.74)}
+.tour-card{
+  position:fixed; width:352px; max-width:calc(100vw - 32px);
+  background:var(--bg-raised); border:1px solid var(--border);
+  border-radius:14px; padding:16px 18px 14px;
+  box-shadow:0 18px 48px rgba(0,0,0,.55);
+}
+.tour-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:8px}
+.tour-count{font-size:11px; color:var(--text-3); letter-spacing:.08em}
+.tour-x{
+  background:transparent; border:none; color:var(--text-3); cursor:pointer;
+  font:inherit; font-size:13px; line-height:1; padding:4px 5px; border-radius:6px;
+}
+.tour-x:hover{color:var(--text-1); background:var(--bg-surface)}
+.tour-heading{
+  margin:0 0 8px; font-size:16px; font-weight:600; line-height:1.3;
+  letter-spacing:-.015em; color:var(--text-1);
+}
+.tour-body p{margin:0 0 9px; font-size:13px; line-height:1.55; color:var(--text-2)}
+.tour-body p:last-child{margin-bottom:0}
+.tour-link a{color:var(--accent); text-decoration:none; font-weight:500}
+.tour-link a:hover{text-decoration:underline}
+.tour-nav{display:flex; align-items:center; justify-content:flex-end; gap:8px; margin-top:14px}
+.tour-btn{
+  font:inherit; font-size:12.5px; font-weight:500; cursor:pointer;
+  border-radius:7px; padding:7px 14px; border:1px solid var(--border);
+  background:transparent; color:var(--text-2);
+}
+.tour-btn:hover{background:var(--bg-surface); color:var(--text-1)}
+.tour-btn[disabled]{opacity:.4; cursor:default}
+.tour-btn-next{background:var(--accent); border-color:var(--accent); color:#fff}
+.tour-btn-next:hover{background:#7C4DEF; color:#fff}
+.tour-btn:focus-visible,.tour-x:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+/* Narrow screens drop the spotlight (a cutout over a stacked, scrolling page
+   lands badly) and the card becomes a bottom sheet; the step's subject just
+   gets a ring so you still know what is being pointed at. */
+.tour-lit{outline:2px solid var(--accent); outline-offset:3px; border-radius:10px}
+@media (max-width:760px){
+  .tour-spot{display:none}
+  .tour-scrim{background:rgba(6,7,9,.5)}
+  .tour-card{
+    left:0; right:0; bottom:0; top:auto; width:auto; max-width:none;
+    border-radius:16px 16px 0 0; border-bottom:none; padding:16px 18px 18px;
+    max-height:72vh; overflow-y:auto;
+  }
+  /* Three affordances no longer fit beside the wordmark, so they take their
+     own full-width row instead of pushing the band into a sideways scroll. */
+  .hero-actions{
+    order:2; flex:1 1 100%; margin-left:0;
+    flex-wrap:wrap; justify-content:flex-start;
+  }
+}
+/* Laptop widths: the band is one fixed-height line, so the tour button buys its
+   space from its own sub-label and from "See the evidence" — which it makes
+   redundant anyway, since the tour walks you into exactly that evidence. */
+@media (min-width:761px) and (max-width:1180px){
+  .hero-btn-sub{display:none}
+  #hero-scroll{display:none}
+}
+@media (prefers-reduced-motion:reduce){.tour-spot{transition:none}}
+"""
+
+_TOUR_JS = r"""
+(function () {
+  var steps = document.getElementById('tour-steps');
+  var root = document.getElementById('tour');
+  var startBtn = document.getElementById('tour-start');
+  if (!steps || !root || !startBtn) return;
+
+  var items = [].slice.call(steps.querySelectorAll('.tour-step'));
+  if (!items.length) return;
+
+  var pane = document.getElementById('pane');
+  var spot = document.getElementById('tour-spot');
+  var card = document.getElementById('tour-card');
+  var heading = document.getElementById('tour-heading');
+  var body = document.getElementById('tour-body');
+  var count = document.getElementById('tour-count');
+  var backBtn = document.getElementById('tour-back');
+  var nextBtn = document.getElementById('tour-next');
+  var closeBtn = document.getElementById('tour-close');
+  var idx = 0;
+  var open = false;
+  var lit = null;
+  var opener = null;
+
+  function narrow() {
+    return window.matchMedia('(max-width: 760px)').matches;
+  }
+
+  function clearLit() {
+    if (lit) { lit.classList.remove('tour-lit'); lit = null; }
+  }
+
+  function placeCard(rect) {
+    if (narrow()) {
+      // Bottom sheet: the stylesheet pins it to the viewport edges, so any
+      // inline coordinates left over from a wider layout have to go.
+      card.style.top = '';
+      card.style.left = '';
+      return;
+    }
+    var m = 16, vw = window.innerWidth, vh = window.innerHeight;
+    var cw = card.offsetWidth, ch = card.offsetHeight;
+    var top, left;
+    if (!rect) {
+      card.style.top = Math.max(m, (vh - ch) / 2) + 'px';
+      card.style.left = Math.max(m, (vw - cw) / 2) + 'px';
+      return;
+    }
+    if (rect.bottom + m + ch + m <= vh) {          // below the subject
+      top = rect.bottom + m;
+      left = rect.left;
+    } else if (rect.top - m - ch >= m) {           // above it
+      top = rect.top - m - ch;
+      left = rect.left;
+    } else if (rect.right + m + cw + m <= vw) {    // beside it, right
+      top = rect.top;
+      left = rect.right + m;
+    } else if (rect.left - m - cw >= m) {          // beside it, left
+      top = rect.top;
+      left = rect.left - m - cw;
+    } else {
+      // The subject is taller and wider than any gap (a full-height card).
+      // Overlap is unavoidable, so overlap the *dimmed* side — the wider of
+      // the two margins — rather than sitting on the thing being pointed at.
+      top = (vh - ch) / 2;
+      left = rect.left >= vw - rect.right ? m : vw - cw - m;
+    }
+    card.style.top = Math.min(Math.max(m, top), Math.max(m, vh - ch - m)) + 'px';
+    card.style.left = Math.min(Math.max(m, left), Math.max(m, vw - cw - m)) + 'px';
+  }
+
+  function paint() {
+    var step = items[idx];
+    var target = null;
+    try { target = document.querySelector(step.getAttribute('data-target')); }
+    catch (e) { target = null; }
+
+    heading.textContent = step.getAttribute('data-title') || '';
+    body.innerHTML = '';
+    [].forEach.call(step.children, function (n) {
+      body.appendChild(n.cloneNode(true)); // server-escaped copy
+    });
+    count.textContent = (idx + 1) + ' / ' + items.length;
+    backBtn.disabled = idx === 0;
+    nextBtn.textContent = idx === items.length - 1 ? 'Done' : 'Next';
+
+    clearLit();
+    if (target && target.scrollIntoView) {
+      // On the bottom-sheet layout the card owns the lower half of the
+      // screen, so the subject goes to the top rather than the middle.
+      target.scrollIntoView({block: narrow() ? 'start' : 'center', inline: 'nearest'});
+    }
+    // One frame later the scroll has settled, so the rect is the real one.
+    requestAnimationFrame(function () {
+      var rect = target ? target.getBoundingClientRect() : null;
+      if (narrow() || !rect || !rect.width || !rect.height) {
+        spot.className = 'tour-spot is-blank';
+        spot.style.top = '-9999px';
+        spot.style.left = '-9999px';
+        spot.style.width = '0px';
+        spot.style.height = '0px';
+        if (narrow() && target) { target.classList.add('tour-lit'); lit = target; }
+        placeCard(null);
+        return;
+      }
+      var p = 8;
+      spot.className = 'tour-spot';
+      spot.style.top = (rect.top - p) + 'px';
+      spot.style.left = (rect.left - p) + 'px';
+      spot.style.width = (rect.width + p * 2) + 'px';
+      spot.style.height = (rect.height + p * 2) + 'px';
+      placeCard({
+        top: rect.top - p, left: rect.left - p,
+        bottom: rect.bottom + p, right: rect.right + p
+      });
+    });
+  }
+
+  function go(delta) {
+    var next = idx + delta;
+    if (next < 0) return;
+    if (next >= items.length) { stop(); return; }
+    idx = next;
+    paint();
+    nextBtn.focus();
+  }
+
+  function stop() {
+    open = false;
+    root.hidden = true;
+    clearLit();
+    document.removeEventListener('keydown', onKey, true);
+    if (opener && opener.focus) opener.focus();
+  }
+
+  function onKey(e) {
+    if (!open) return;
+    if (e.key === 'Escape') { e.preventDefault(); stop(); }
+    else if (e.key === 'ArrowRight') { e.preventDefault(); go(1); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); go(-1); }
+    else if (e.key === 'Tab') {
+      // Keep focus inside the dialog: the page behind is inert for now.
+      var focusables = [].filter.call(
+        card.querySelectorAll('button:not([disabled]), a[href]'),
+        function (n) { return n.offsetParent !== null; }
+      );
+      if (!focusables.length) return;
+      var first = focusables[0], last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault(); last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault(); first.focus();
+      }
+    }
+  }
+
+  function begin() {
+    opener = document.activeElement;
+    idx = 0;
+    open = true;
+    root.hidden = false;
+    document.addEventListener('keydown', onKey, true);
+    paint();
+    nextBtn.focus();
+  }
+
+  // The copy describes one specific run, so make sure that run is the one on
+  // screen before pointing at it. Then wait for the fetched fragment to land.
+  function start() {
+    var id = steps.getAttribute('data-inv');
+    if (id && location.hash.slice(1) !== id) {
+      location.hash = '#' + id;
+    }
+    var tries = 0;
+    (function wait() {
+      var stamp = pane && pane.querySelector('.verdict-id');
+      if (!id || (stamp && stamp.textContent.trim() === id) || tries > 60) {
+        begin();
+        return;
+      }
+      tries++;
+      setTimeout(wait, 50);
+    })();
+  }
+
+  startBtn.addEventListener('click', start);
+  nextBtn.addEventListener('click', function () { go(1); });
+  backBtn.addEventListener('click', function () { go(-1); });
+  closeBtn.addEventListener('click', stop);
+  window.addEventListener('resize', function () { if (open) paint(); });
+
+  // Deep link: /?tour=1 walks a visitor straight into the walkthrough.
+  if (/[?&]tour=1(&|$)/.test(location.search)) {
+    start();
+  }
+})();
 """

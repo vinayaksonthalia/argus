@@ -12,6 +12,7 @@ Two concerns:
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -428,3 +429,139 @@ def test_export_writes_the_hero_page(tmp_path):
     assert 'class="hero"' in index
     assert "fetch('detail/' + encodeURIComponent(id) + '.html')" in index
     assert (out / "detail" / "inv-aaa111.html").exists()
+
+
+# --------------------------------------------------------------------------
+# The guided tour (published static export only)
+# --------------------------------------------------------------------------
+
+_TOUR_MD = (
+    "- **Service:** `catalog`\n"
+    "- **Alert:** `Faultline catalog p99 latency > 1s`\n"
+    "- **Generated:** 2026-07-17 21:02 UTC\n"
+    "- LLM: test-model\n"
+    "- LLM calls: 1, tokens: 5700 in / 1470 out, est. $0.0407\n"
+)
+
+
+def _tour_corpus(tmp_path: Path, **overrides):
+    """One run shaped like the real hero investigation, plus a draft."""
+    payload = {
+        "title": "Faultline catalog p99 latency > 1s — catalog",
+        "confidence": 0.9,
+        "root_cause": (
+            "A pg_sleep(2.5) call in the products SELECT is causing the "
+            "latency. — Long reasoning here. (verified: found 'pg_sleep' in "
+            "20 matching rows) [Incident memory: similar to inv-old.]"
+        ),
+        "impact": "p99 up",
+        "timeline": [
+            "21:02:07 UTC — alert 'Faultline catalog p99 latency > 1s' started firing",
+            "21:02:57 UTC — hypothesis CONFIRMED: A pg_sleep(2.5) call.",
+        ],
+        "evidence_bullets": [
+            "p99_latency_ms rose (<http://sig.example/services/catalog|view in SigNoz>)",
+            "exemplar trace abc123 (<http://sig.example/trace/abc123|view in SigNoz>)",
+        ],
+        "refuted": [
+            "Load-dependent slowness — verification failed to run: 404",
+            "Novel log signatures explain it — '/products' not found in 0 rows",
+        ],
+        "degraded": False,
+        "needs_review": False,
+        "query_stats": "22 SigNoz queries · 306,252 rows scanned",
+    }
+    payload.update(overrides)
+    _write_report(tmp_path, "inv-hero01", payload, _TOUR_MD)
+    _write_report(
+        tmp_path, "inv-draft1",
+        {"title": "Draft", "confidence": 0.4, "root_cause": "", "impact": "",
+         "timeline": [], "evidence_bullets": [], "refuted": [],
+         "degraded": False, "needs_review": True},
+        "- **Service:** `s`\n- **Alert:** `a`\n"
+        "- **Generated:** 2026-07-16 10:00 UTC\n",
+    )
+    return cdata.load_investigations(tmp_path)
+
+
+def _tour_block(page: str) -> str:
+    start = page.index('<div id="tour-steps"')
+    return page[start : page.index("<script>", start)]
+
+
+def test_served_console_has_no_tour(tmp_path):
+    """A visitor's walkthrough is chrome an operator running `argus console`
+    never asked for. It ships with the published bundle only."""
+    invs = _tour_corpus(tmp_path)
+    page = render.render_page(invs, cdata.compute_stats(invs))
+    for marker in ('id="tour-steps"', 'id="tour-start"', ".tour-card", "tour-spot"):
+        assert marker not in page, marker
+
+
+def test_tour_reads_its_numbers_off_the_corpus(tmp_path):
+    """No hand-written figure in the tour: every number traces to a report."""
+    invs = _tour_corpus(tmp_path)
+    page = render.render_page(invs, cdata.compute_stats(invs), hero=True)
+    tour = _tour_block(page)
+    assert tour.count('class="tour-step"') == 6
+    # 1 — the alert, its real name, its real time, and the run's own latency
+    assert "Faultline catalog p99 latency &gt; 1s" in tour
+    assert "2026-07-17 21:02 UTC" in tour
+    assert "50 seconds later" in tour  # 21:02:07 firing -> 21:02:57 confirmed
+    assert "inv-hero01" in tour
+    # 2 — the rail's honest tally
+    assert "1 VERIFIED and 1 NEEDS REVIEW" in tour
+    # 3 — the verification that earned the confidence, quoted verbatim
+    assert "found &#x27;pg_sleep&#x27; in 20 matching rows" in tour
+    assert "90% confidence" in tour
+    # 4 — one survivor out of three, with each failure's real cause
+    assert "3 hypotheses were tested. 1 survived." in tour
+    assert "1 was confirmed against the data." in tour
+    assert "1 was refuted" in tour
+    assert "1 could not be verified at all" in tour
+    # 5 — evidence, and how much of it deep-links
+    assert "2 of the 2 bullets deep-link" in tour
+    # 6 — this run's cost and the corpus-wide honesty ratio
+    assert "cost $0.0407" in tour
+    assert "1 LLM call on test-model" in tour
+    assert "5,700 tokens in / 1,470 out" in tour
+    assert "1 of 2 cleared verification" in tour
+    assert 'href="https://github.com/vinayaksonthalia/argus"' in tour
+
+
+def test_tour_points_at_elements_the_console_actually_renders(tmp_path):
+    """A markup rename must break this test, not silently break the tour."""
+    invs = _tour_corpus(tmp_path)
+    page = render.render_page(invs, cdata.compute_stats(invs), hero=True)
+    markup = page + render.render_detail(invs[0])
+    targets = re.findall(r'data-target="([^"]+)"', _tour_block(page))
+    assert len(targets) == 6
+    for t in targets:
+        token = f'id="{t[1:]}"' if t.startswith("#") else f'class="{t[1:]}"'
+        assert token in markup, f"tour step points at {t}, which nothing renders"
+    # It walks the run the console actually opens on, not an arbitrary one.
+    default = cdata.default_selection(invs)
+    assert f'data-inv="{default.id}"' in page
+
+
+def test_tour_omits_claims_a_corpus_cannot_support(tmp_path):
+    """No timeline and no verification note means no invented latency or proof."""
+    invs = _tour_corpus(tmp_path, timeline=[], root_cause="Something happened.")
+    page = render.render_page(invs, cdata.compute_stats(invs), hero=True)
+    tour = _tour_block(page)
+    assert "seconds later" not in tour
+    assert "ran one more query back at SigNoz" not in tour
+    assert "on its own" in tour  # the honest fallback phrasing
+
+
+def test_tour_escapes_untrusted_telemetry(tmp_path):
+    """Alert names and root causes reach the tour copy — so they get escaped."""
+    invs = _tour_corpus(
+        tmp_path,
+        root_cause=f"{XSS_SCRIPT} — reasoning (verified: {XSS_IMG})",
+    )
+    page = render.render_page(invs, cdata.compute_stats(invs), hero=True)
+    tour = _tour_block(page)
+    assert XSS_SCRIPT not in tour and XSS_IMG not in tour
+    assert "&lt;script&gt;" in tour and "&lt;img src=x" in tour
+    assert "onerror=\"window" not in tour
