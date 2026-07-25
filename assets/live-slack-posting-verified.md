@@ -25,4 +25,4 @@ Both runs POSTed a real Block Kit RCA to a real Slack workspace.
 ## Status
 
 - Code path: implemented and live-verified twice.
-- Screenshot of the posted message in Slack: **pending** (not yet captured).
+- Screenshot of the posted message in Slack: **captured Jul 25** — see `screenshots/13-slack-personal-test-argus.png` (inv-66ed446ae4 in #incidents, posted by the ARGUS app).
