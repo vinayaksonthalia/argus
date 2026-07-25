@@ -81,7 +81,7 @@ Three layers, in trust order:
 
 1. **Unit** (no network, no LLM): payload builders vs golden JSON; webhook parsing incl. malformed → 4xx; dedup stability; hypothesis-schema accept/reject/repair; deep links exact-match; the scrubber; and an **adversarial injection string that must stay inert data.**
 2. **E2E replay**: the full graph over `fixtures/incident-1`, asserting the RCA names the DB root cause, ≥1 hypothesis confirmed, links well-formed, cost > 0. This test *is* the offline demo.
-3. **Evals** (`argus eval`): the same replay machinery scored against `ground_truth.json` — root-cause match, verified count, link validity, latency, tokens, cost. New recorded incidents = new eval cases. This is the seed of a publishable SigNoz-grounded RCA benchmark. Current scorecard: **3/3** recorded incident types, **97** offline tests green.
+3. **Evals** (`argus eval`): the same replay machinery scored against `ground_truth.json` — root-cause match, verified count, link validity, latency, tokens, cost. New recorded incidents = new eval cases. This is the seed of a publishable SigNoz-grounded RCA benchmark. Current scorecard: **3/3** recorded incident types, **158** offline tests green.
 
 The whole suite runs in about a second with no keys — because of the two seams.
 
