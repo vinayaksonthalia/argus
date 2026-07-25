@@ -19,6 +19,12 @@
 
 A SigNoz alert fires. Nobody types a question. ARGUS investigates across metrics, traces, and logs, tests each hypothesis against real queries, and posts a root cause you can click into SigNoz — and its own reasoning is traced back into the same SigNoz with `gen_ai.*` OpenTelemetry attributes, tokens and dollars included.
 
+<p align="center">
+  <img src="assets/demo/console-walkthrough.gif" alt="The Investigations Console: filtering 20 recorded investigations down to the one VERIFIED run, then reading its root cause, timeline, confirmed and refuted hypotheses, and SigNoz-linked evidence." width="860">
+</p>
+
+<p align="center"><sub>Twenty real recorded investigations, filtered down to the one that cleared the 75% bar — root cause, verified hypotheses, and evidence that deep-links into SigNoz. Browse it yourself: <code>python3 -m http.server -d docs 8000</code>.</sub></p>
+
 | The verified RCA, in the Investigations Console | The evidence itself, back in SigNoz |
 |---|---|
 | [<img src="assets/screenshots/10-console-detail.png" alt="ARGUS Investigations Console: one hypothesis CONFIRMED (an injected pg_sleep(2.5) in the products SELECT), two REFUTED, and an Evidence panel that deep-links every claim into SigNoz." width="100%">](assets/screenshots/10-console-detail.png) | [<img src="assets/screenshots/06-hero-trace-pg-sleep-waterfall.png" alt="The SigNoz trace waterfall for the same incident: a 25s SELECT span under GET /products — the exact span ARGUS named as root cause." width="100%">](assets/screenshots/06-hero-trace-pg-sleep-waterfall.png) |
