@@ -349,10 +349,14 @@ _HERO_MARK = (
     '<circle cx="32" cy="32" r="2.6" fill="#8B5CF6"/></svg>'
 )
 
+# Three type tiers carry the band: the wordmark says who, the thesis says what
+# you get, the prop says how it is true. The prop stays inside a ~140-character
+# budget so it sets on one line at the width this console is demoed at.
+_HERO_THESIS = "Alerts arrive already investigated."
+
 _HERO_PROP = (
-    "An autonomous AI SRE for self-hosted SigNoz. It investigates the alert on "
-    "its own, verifies every hypothesis against your telemetry, and refuses to "
-    "report what it cannot prove."
+    "An autonomous AI SRE for self-hosted SigNoz: it checks every hypothesis "
+    "against your telemetry and reports only what it can prove."
 )
 
 
@@ -383,15 +387,24 @@ def render_hero(invs: list[Investigation], stats: Stats) -> str:
     lives. It replaces the topbar rather than stacking on top of it, so the
     investigations stay above the fold.
     """
+    lead, *rest = _hero_chips(invs, stats)
+    # The strongest number the corpus backs gets the oversized treatment; the
+    # remaining three stay pills. Same markup, one promoted class — a wall of
+    # giant numerals would cancel the effect.
+    lead_html = (
+        f'<span class="hero-lead"><b class="mono">{esc(lead[0])}</b>'
+        f'<span class="hero-chip-label">{esc(lead[1])}</span></span>'
+    )
     chips = "".join(
         f'<span class="hero-chip"><b class="mono">{esc(value)}</b>'
         f'<span class="hero-chip-label">{esc(label)}</span></span>'
-        for value, label in _hero_chips(invs, stats)
+        for value, label in rest
     )
     return f"""<header class="hero">
   <div class="hero-row">
     <div class="hero-brand">{_HERO_MARK}<span class="hero-word">ARGUS</span></div>
-    <p class="hero-prop">{esc(_HERO_PROP)}</p>
+    {lead_html}
+    <div class="hero-chips">{chips}</div>
     <div class="hero-actions">
       <a class="hero-btn hero-btn-primary" href="{safe_url(REPO_URL)}"
          target="_blank" rel="noopener noreferrer">GitHub &rarr;</a>
@@ -399,8 +412,27 @@ def render_hero(invs: list[Investigation], stats: Stats) -> str:
               type="button">See the evidence &darr;</button>
     </div>
   </div>
-  <div class="hero-chips">{chips}</div>
+  <p class="hero-thesis">{esc(_HERO_THESIS)}</p>
+  <p class="hero-prop">{esc(_HERO_PROP)}</p>
 </header>"""
+
+
+# The family bar: the same block, in the same order, with the same per-tool
+# accents on all three published demo pages. It ships only with the landing
+# hero — `argus console` is a working tool, not a place to cross-sell.
+_FAMILY = """<div class="family">
+  <p class="fam-row">
+    <span class="fam fam-argus" aria-current="page">ARGUS</span>
+    <span class="fam-sep" aria-hidden="true">&middot;</span>
+    <a class="fam fam-glasspane"
+       href="https://vinayaksonthalia.github.io/glasspane/">GLASSPANE</a>
+    <span class="fam-sep" aria-hidden="true">&middot;</span>
+    <a class="fam fam-telelens"
+       href="https://vinayaksonthalia.github.io/telelens/">TELELENS</a>
+  </p>
+  <p class="fam-tag">Three tools for self-hosted SigNoz &mdash; investigate the
+    incident, watch the real browser, price the waste.</p>
+</div>"""
 
 
 def _topbar(stats: Stats) -> str:
@@ -435,6 +467,7 @@ def render_page(invs: list[Investigation], stats: Stats, hero: bool = False) -> 
         accent=ACCENT,
         body_class=" class=\"has-hero\"" if hero else "",
         header=render_hero(invs, stats) if hero else _topbar(stats),
+        family=_FAMILY if hero else "",
         filters=render_filters(invs) if invs else "",
         list_html=list_html,
         empty_detail=empty_detail,
@@ -469,6 +502,7 @@ _PAGE_TEMPLATE = """<!doctype html>
   <section class="pane" id="pane">
     {empty_detail}
   </section>
+  {family}
 </main>
 <script>{js}</script>
 </body>
@@ -677,21 +711,39 @@ body{
    the actual proof, and they must stay above the fold. */
 .hero{
   --hero-h:112px;
-  height:var(--hero-h); flex:none; box-sizing:border-box;
-  padding:14px 24px 12px; border-bottom:1px solid var(--hairline);
+  height:var(--hero-h); flex:none; box-sizing:border-box; overflow:hidden;
+  padding:12px 24px 10px; border-bottom:1px solid var(--hairline);
   background:
     radial-gradient(700px 130px at 8% -40%,rgba(139,92,246,.13),transparent 70%),
     var(--bg-surface);
 }
-.hero-row{display:flex; align-items:center; gap:24px}
+.hero-row{display:flex; align-items:center; gap:20px}
 .hero-brand{display:flex; align-items:center; gap:9px; flex:none}
 .hero-mark{width:26px; height:26px; display:block}
 .hero-word{font-weight:600; font-size:17px; letter-spacing:.16em}
+/* Three tiers, one band: wordmark (who) -> thesis (what you get) -> prop (why
+   it is true). One number gets the oversized treatment; the rest stay pills. */
+.hero-thesis{
+  margin:7px 0 0; font-size:18px; font-weight:600; line-height:1.25;
+  letter-spacing:-.018em; color:var(--text-1);
+}
 .hero-prop{
-  margin:0; flex:1 1 auto; min-width:0; max-width:74ch;
+  margin:2px 0 0;
   font-size:12.5px; line-height:1.45; color:var(--text-2);
 }
-.hero-actions{display:flex; align-items:center; gap:8px; flex:none}
+.hero-lead{
+  display:flex; align-items:baseline; gap:9px; flex:none;
+  padding-left:20px; border-left:1px solid var(--hairline);
+}
+.hero-lead b{
+  font-size:32px; font-weight:600; line-height:1; letter-spacing:-.03em;
+  color:var(--text-1);
+}
+.hero-lead .hero-chip-label{
+  font-size:10.5px; color:var(--text-3); text-transform:uppercase;
+  letter-spacing:.07em; line-height:1;
+}
+.hero-actions{display:flex; align-items:center; gap:8px; flex:none; margin-left:auto}
 .hero-btn{
   display:inline-flex; align-items:center; white-space:nowrap; cursor:pointer;
   font:inherit; font-size:12.5px; font-weight:500; text-decoration:none;
@@ -703,7 +755,7 @@ body{
 .hero-btn-ghost{background:transparent; color:var(--text-2); border-color:var(--border)}
 .hero-btn-ghost:hover{background:var(--bg-raised); color:var(--text-1)}
 .hero-btn:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
-.hero-chips{display:flex; flex-wrap:wrap; align-items:center; gap:7px; margin-top:11px}
+.hero-chips{display:flex; flex-wrap:wrap; align-items:center; gap:7px}
 .hero-chip{
   display:inline-flex; align-items:baseline; gap:6px;
   border:1px solid var(--hairline); border-radius:999px; padding:2.5px 10px;
@@ -713,8 +765,23 @@ body{
 .hero-chip-label{white-space:nowrap}
 
 /* ---- layout ---- */
-.layout{display:grid; grid-template-columns:320px 1fr; height:calc(100% - 56px)}
+.layout{display:grid; grid-template-columns:320px 1fr; grid-template-rows:1fr auto;
+  height:calc(100% - 56px)}
 .has-hero .layout{height:calc(100% - 112px)}
+
+/* ---- family bar (published export only; the same block, order and accents
+   ship on all three demo pages) ---- */
+.family{
+  grid-column:1 / -1; flex:none; padding:11px 24px 12px;
+  border-top:1px solid var(--hairline); background:var(--bg-surface);
+}
+.fam-row{display:flex; align-items:center; flex-wrap:wrap; gap:9px; margin:0}
+.fam{font-size:12.5px; font-weight:600; letter-spacing:.14em; text-decoration:none}
+a.fam:hover{text-decoration:underline; text-underline-offset:3px}
+.fam-argus{color:#8B5CF6} .fam-glasspane{color:#5B8DEF} .fam-telelens{color:#2DD4BF}
+[aria-current="page"].fam{border-bottom:1.5px solid currentColor; padding-bottom:1px}
+.fam-sep{color:var(--text-3)}
+.fam-tag{margin:5px 0 0; font-size:12px; color:var(--text-3)}
 .rail-col{
   display:flex; flex-direction:column; min-height:0;
   border-right:1px solid var(--hairline); background:var(--bg-canvas);
@@ -901,9 +968,20 @@ body{
   .pane{padding:20px 16px 48px}
   .stats-strip{gap:14px}
   /* The band stacks and the page scrolls; a fixed height would clip it. */
-  .hero{height:auto; padding:16px}
+  .hero{height:auto; overflow:visible; padding:16px}
   .hero-row{flex-wrap:wrap; gap:12px}
-  .hero-prop{flex:1 1 100%; order:3; max-width:none}
-  .hero-actions{margin-left:auto}
+  .hero-brand{order:1}
+  .hero-actions{order:2; margin-left:auto}
+  .hero-lead{order:3; flex:1 1 100%; padding-left:0; border-left:none}
+  .hero-lead b{font-size:38px}
+  .hero-lead .hero-chip-label{max-width:none}
+  .hero-chips{order:4; flex:1 1 100%}
+  .hero-thesis{font-size:19px; margin-top:12px}
+  .family{padding:14px 16px 16px}
+}
+/* Laptop widths: the band is one line of proof, so the secondary pills are the
+   first thing to go rather than letting the row wrap and clip. */
+@media (min-width:761px) and (max-width:1180px){
+  .hero-chips{display:none}
 }
 """
