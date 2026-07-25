@@ -151,18 +151,33 @@ python3 -m http.server -d docs 8000    # http://localhost:8000
 
 ## Architecture
 
-```
-SigNoz alert ──webhook──▶ ARGUS (FastAPI)
-                            │ dedup (fingerprint + rounded window)
-                            ▼
-      typed state machine (LangGraph-style, one OTel span per node)
-      triage → golden_signals → trace_dive → log_corr → infra →
-      change_corr → hypothesize ⇄ verify (≤2 loops) → report
-                            │
-        ┌───────────────────┼─────────────────────┐
-        ▼                   ▼                     ▼
-  Slack Block Kit RCA   postmortems/*.md    gen_ai.* traces ──OTLP──▶ SigNoz
-  (deep links into SigNoz)                  (tokens + $ per investigation)
+<p align="center">
+  <img src="assets/illustrations/04-system-architecture.png" alt="How ARGUS hangs together: the SigNoz webhook in, the investigation graph, the LLM provider seam, and Slack / postmortem / draft-rule outputs — with its own gen_ai.* spans flowing back into the same SigNoz." width="900">
+</p>
+
+And the loop itself, decision by decision. Every hypothesis leaves the model with a machine-runnable verification spec attached, and that spec is what decides the badge — the model never grades its own answer.
+
+```mermaid
+flowchart TD
+  A["SigNoz alert webhook<br/>any Alertmanager-compatible sender"] --> B["Triage<br/>dedup on fingerprint + rounded window"]
+  B --> C["Gather<br/>golden signals · trace dive · log clustering<br/>infra · change correlation"]
+  C --> D["Hypothesize<br/>LLM returns ranked causes, each with a<br/>machine-runnable verification spec"]
+  D --> E["Verify — one query per hypothesis,<br/>back against SigNoz metrics / traces / logs"]
+  E -->|"telemetry agrees"| F["CONFIRMED"]
+  E -->|"telemetry disagrees"| G["REFUTED"]
+  E -->|"the query itself failed"| H["UNVERIFIED<br/>reported, never counted as proof"]
+  E -.->|"≤2 refinement loops"| D
+  F --> I{"A confirmed hypothesis<br/>at ≥75% confidence?"}
+  G --> I
+  H --> I
+  I -->|"yes"| J["VERIFIED"]
+  I -->|"no"| K["NEEDS REVIEW<br/>DEGRADED if nothing survived"]
+  J --> L["Report"]
+  K --> L
+  L --> M["postmortems/*.md<br/>hypotheses, evidence, verdict, cost"]
+  L --> N["Slack Block Kit RCA<br/>deep links into SigNoz"]
+  L --> O["Draft follow-up alert rule<br/>created disabled, for a human to enable"]
+  L --> P["Incident memory<br/>cited when a similar alert next fires"]
 ```
 
 Two seams make this testable offline. **`SignozTransport`** tags every SigNoz read, making `HttpTransport` (live `/api/v5/query_range`), `ReplayTransport` (recorded JSON), and `ARGUS_TRANSPORT=mcp` (the SigNoz MCP server) interchangeable; **`LLMProvider`** swaps live Claude for the local `claude` CLI, any OpenAI-compatible endpoint, a heuristic, or recorded completions. Both outer edges are standards, not per-vendor adapters — any Alertmanager-compatible webhook in, plain OTLP with `gen_ai.*` attributes out — so vanilla Prometheus Alertmanager pages ARGUS identically and SigNoz's LLM views render its traces with zero config. Full design, seams, and [illustrations](assets/illustrations/): [`DOCS.md`](DOCS.md).
