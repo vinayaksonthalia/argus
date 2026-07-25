@@ -130,7 +130,7 @@ uv run pytest -q
 uv run argus console      # http://127.0.0.1:7332
 ```
 
-> It opens on `inv-fcdb95f553` — VERIFIED, deliberately not the newest run. One hypothesis card is CONFIRMED, the others REFUTED, muted but never dropped. The chips read `Verified 1` · `Review 13` · `Degraded 6`; open a Degraded one for *"no hypothesis survived verification."* One in twenty cleared the bar, and that ratio is published, not massaged.
+> It opens on `inv-fcdb95f553` — VERIFIED, deliberately not the newest run. One hypothesis card is CONFIRMED, one REFUTED and two unverified — muted but never dropped. The chips read `Verified 1` · `Review 13` · `Degraded 6`; open a Degraded one for *"no hypothesis survived verification."* One in twenty cleared the bar, and that ratio is published, not massaged.
 
 **7 — Browse the same corpus with nothing installed** (~2 min)
 
