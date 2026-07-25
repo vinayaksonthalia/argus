@@ -72,7 +72,7 @@ _Last verified live: July 17, 2026 (against SigNoz v0.132.2 self-hosted via Foun
 - **Three recorded incidents** (`fixtures/incident-{1,2,3}`: slow-db,
   error-storm, bad-deploy — 2 and 3 recorded from REAL Faultline telemetry
   with REAL Claude output) replay offline and pass the evals scorecard 3/3.
-- **Offline test suite**: 109 tests, no network, no LLM.
+- **Offline test suite**: 143 tests, no network, no LLM (`uv run pytest`).
 
 ## The Investigations Console (`argus console`)
 
@@ -90,16 +90,30 @@ uv run argus console --port 7500 --postmortem-dir postmortems
 - **Data source.** Each `postmortems/<id>.report.json` is the structured RCA
   contract; the sibling `<id>.md` supplies the metadata header (service, alert,
   date) and the token/$ cost line the JSON omits; the incident-memory SQLite is
-  a fallback for service/alert/date. The list re-reads on each page load, so a
-  new RCA landing in `postmortems/` shows up on refresh.
-- **Layout.** Left rail = every investigation newest-first with a confidence
+  a fallback for service/alert/date, and `postmortems/metadata.json` is a
+  last-resort fallback carrying that same recorded metadata for the committed
+  corpus (both `.md` files and the memory DB are per-run output and gitignored,
+  so without it a clean clone would show `unknown · undated`). The list re-reads
+  on each page load, so a new RCA landing in `postmortems/` shows up on refresh.
+- **Layout.** Left rail = every investigation newest-first (undated reports
+  group last rather than sorting by their random-hex id) with a confidence
   badge (green `VERIFIED` ≥75% · amber `NEEDS REVIEW` <75% · red `DEGRADED` =
-  all hypotheses refuted) and cost. Main pane = verdict header + confidence
+  all hypotheses refuted) and cost. A rail toolbar filters by service / alert /
+  id and by status chip with live counts. Main pane = verdict header + confidence
   ring, root cause, impact, timeline, hypotheses stamped `CONFIRMED ✓` /
   `REFUTED ✗` / errored, evidence deep-links into SigNoz (`localhost:8080`),
   similar-past-incident citations, and a token/$/queries/rows cost footer. A
   header stats strip shows totals (count, verified %, total spend) computed from
   the data. Empty/loading/error states follow the design system.
+- **Keyboard.** `/` focuses the filter, `↑`/`↓` or `j`/`k` walk the rail, `Enter`
+  in the filter opens the first match, `Escape` clears it. Every investigation is
+  addressable by URL fragment (`#inv-…`), so an RCA can be linked to directly.
+- **Static export.** `uv run python scripts/export_console.py` writes the whole
+  console to `docs/` as plain files — same `render.py`/`data.py`, one detail
+  fragment per investigation — so the corpus browses with no Python running:
+  `python3 -m http.server -d docs 8000`. Regenerate it after any console change;
+  the exporter aborts if it can no longer find the console's fetch call, so the
+  export cannot silently drift from the product it depicts.
 - **Security (this is the point).** Postmortem text is telemetry-derived and
   therefore untrusted — GLASSPANE's audit found an XSS in exactly this
   render-telemetry-into-a-page pattern. The console renders every dynamic value

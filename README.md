@@ -68,10 +68,18 @@ You will see node-by-node progress, the verified RCA (one hypothesis confirmed b
 ```bash
 uv run argus console   # read-only web UI on http://127.0.0.1:7332 — renders every past RCA from postmortems + memory, no LLM, no SigNoz calls
 uv run argus eval fixtures/incident-1 fixtures/incident-2 fixtures/incident-3   # scored against ground_truth.json — 3/3 correctly root-caused
-uv run pytest          # every node tested against recorded fixtures; no network, no LLM
+uv run pytest          # 143 tests: every node against recorded fixtures; no network, no LLM
 ```
 
-The console (stdlib `http.server`, no npm/React, localhost-only) is what the screenshots above show; incidents 2 and 3 were recorded from *real* telemetry with *real* Claude output via `scripts/record_incident.py`. Replay evals: 3/3 recorded incident types correctly root-caused, ~$0.02–0.04 per investigation, under 1s per replay.
+The console (stdlib `http.server`, no npm/React, localhost-only) is what the screenshots above show. Filter the rail by service, alert or id, or by status chip; `/` focuses the filter and `j`/`k` walk the list; every RCA has its own `#inv-…` URL. Incidents 2 and 3 were recorded from *real* telemetry with *real* Claude output via `scripts/record_incident.py`. Replay evals: 3/3 recorded incident types correctly root-caused, $0.019–$0.031 per replayed investigation, under 1s each.
+
+**Browse the 20 recorded investigations without installing anything** — the console is also exported to plain static files:
+
+```bash
+python3 -m http.server -d docs 8000   # then open http://localhost:8000
+```
+
+Regenerate that export after any console change with `uv run python scripts/export_console.py`.
 </details>
 
 ### Connect Slack (guided, ~2 minutes)
