@@ -6,7 +6,7 @@
 
 **An autonomous AI SRE for self-hosted SigNoz: it investigates alerts, verifies root cause against your telemetry, and posts an evidence-linked RCA.**
 
-**153** tests · **20** recorded investigations · **1** live-verified RCA at **90%** · **3/3** on the replay evals · **$0.94** total LLM spend · **zero-dependency** console
+**158** tests · **20** recorded investigations · **1** live-verified RCA at **90%** · **3/3** on the replay evals · **$0.94** total LLM spend · **zero-dependency** console
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-3776ab.svg)](pyproject.toml)
@@ -122,7 +122,7 @@ uv run argus eval fixtures/incident-1 fixtures/incident-2 fixtures/incident-3
 uv run pytest -q
 ```
 
-> `153 passed` — every node against recorded fixtures, plus an XSS suite proving hostile payloads render inert.
+> `158 passed` — every node against recorded fixtures, plus an XSS suite proving hostile payloads render inert.
 
 **6 — Open the Investigations Console** (~4 min — the main stop)
 
