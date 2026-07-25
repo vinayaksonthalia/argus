@@ -6,12 +6,14 @@
 
 **An autonomous AI SRE for self-hosted SigNoz: it investigates alerts, verifies root cause against your telemetry, and posts an evidence-linked RCA.**
 
+**153** tests · **20** recorded investigations · **1** live-verified RCA at **90%** · **3/3** on the replay evals · **$0.94** total LLM spend · **zero-dependency** console
+
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-3776ab.svg)](pyproject.toml)
 [![Last commit](https://img.shields.io/github/last-commit/vinayaksonthalia/argus.svg)](https://github.com/vinayaksonthalia/argus/commits)
 [![Repo size](https://img.shields.io/github/repo-size/vinayaksonthalia/argus.svg)](https://github.com/vinayaksonthalia/argus)
 
-[See it work](#see-it-work) · [Why it's different](#why-its-different) · [Quickstart](#quickstart) · [Architecture](#architecture) · [Integrations](#integrations) · [Security](#security) · [Status](#status) · [Learn](#learn)
+[See it work](#see-it-work) · [Why it's different](#why-its-different) · [Quickstart](#quickstart) · [The 15-minute tour](#the-15-minute-tour) · [Architecture](#architecture) · [Integrations](#integrations) · [Security](#security) · [Status](#status) · [Learn](#learn)
 
 </div>
 
@@ -74,7 +76,7 @@ You will see node-by-node progress, the verified RCA (one hypothesis confirmed b
 ```bash
 uv run argus console   # read-only web UI on http://127.0.0.1:7332 — renders every past RCA from postmortems + memory, no LLM, no SigNoz calls
 uv run argus eval fixtures/incident-1 fixtures/incident-2 fixtures/incident-3   # scored against ground_truth.json — 3/3 correctly root-caused
-uv run pytest          # 143 tests: every node against recorded fixtures; no network, no LLM
+uv run pytest          # 153 tests: every node against recorded fixtures; no network, no LLM
 ```
 
 The console (stdlib `http.server`, no npm/React, localhost-only) is what the screenshots above show. Filter the rail by service, alert or id, or by status chip; `/` focuses the filter and `j`/`k` walk the list; every RCA has its own `#inv-…` URL. Incidents 2 and 3 were recorded from *real* telemetry with *real* Claude output via `scripts/record_incident.py`. Replay evals: 3/3 recorded incident types correctly root-caused, $0.019–$0.031 per replayed investigation, under 1s each.
@@ -104,6 +106,136 @@ uv run argus serve      # webhook server on :7331
 ```
 
 Point a SigNoz webhook notification channel at `http://<host>:7331/webhook/signoz`. Alerts are deduplicated (re-delivery returns the existing investigation) with one in-flight investigation per service. Set `OTEL_EXPORTER_OTLP_ENDPOINT` and ARGUS's own investigation traces appear in the same SigNoz. For the full live demo — Faultline demo services, fault injection, a real alert, the webhook loop — see [`DOCS.md`](DOCS.md) ("Run the live demo in 5 commands").
+
+## The 15-minute tour
+
+The quickstart above gets ARGUS running. This is the guided route from a cold
+`git clone` to the one artifact worth arguing about: a root cause that was
+*verified*, sitting next to the runs that weren't. Nine steps, no SigNoz, no API
+keys, no network. Each step lists the line you should see.
+
+**1 — Clone and install** (~2 min)
+
+```bash
+git clone https://github.com/vinayaksonthalia/argus && cd argus
+uv venv && uv pip install -e ".[dev]"
+```
+
+> `Installed N packages` — nine runtime deps, all for the *live* path. Everything
+> in this tour runs offline.
+
+**2 — Replay the flagship incident: a slow database** (~1 min)
+
+```bash
+uv run argus investigate --replay fixtures/incident-1
+```
+
+> `ROOT CAUSE VERIFIED · confidence 90%`
+>
+> Watch the eleven nodes tick past (`triage … hypothesize … verify … report`),
+> then read the Hypotheses table: **one CONFIRMED** — an injected `pg_sleep(2.5)`
+> in the catalog `SELECT` — and the rest **REFUTED**, each with the query that
+> killed it (`'502' not found in 0 rows`). The verdict is not the model's
+> opinion; it is what survived a real before/after query.
+
+**3 — Replay a run that refuses to conclude** (~1 min)
+
+```bash
+uv run argus investigate --replay fixtures/incident-2
+```
+
+> `NEEDS HUMAN REVIEW · confidence 60%`
+>
+> This is the point of the whole design. The evidence was real but thin, so the
+> run flagged itself instead of dressing 60% up as an answer. Nothing hides it —
+> it ships in the corpus and the console lists it.
+
+**4 — Replay a deploy-correlated incident** (~1 min)
+
+```bash
+uv run argus investigate --replay fixtures/incident-3
+```
+
+> `ROOT CAUSE VERIFIED · confidence 75%` — a latency-and-error regression tied to
+> a deploy, landing exactly on the 75% threshold.
+
+**5 — Score all three against ground truth** (~1 min)
+
+```bash
+uv run argus eval fixtures/incident-1 fixtures/incident-2 fixtures/incident-3
+```
+
+> `3/3 cases passed`
+>
+> Six checks per case — `root_cause_keywords`, `service_identified`,
+> `hypotheses_confirmed`, `report_produced`, `links_present`,
+> `cost_within_budget` — scored against each fixture's `ground_truth.json`. Under
+> a second and roughly $0.03 per replayed investigation.
+
+**6 — Run the test suite** (~1 min)
+
+```bash
+uv run pytest -q
+```
+
+> `153 passed`
+>
+> Every node against recorded fixtures, plus the XSS suite that proves injected
+> `<script>` / `<img onerror>` / `javascript:` payloads render inert in the
+> console.
+
+**7 — Open the Investigations Console** (~4 min — the main stop)
+
+```bash
+uv run argus console      # http://127.0.0.1:7332
+```
+
+Four things to look at, in order:
+
+- **It opens on `inv-fcdb95f553` — VERIFIED, 90%.** Not the newest run: the
+  console deliberately lands on the highest-confidence *verified* investigation,
+  because "most recent" and "most worth reading" are different questions.
+- **Scroll to Hypotheses.** One card is green and CONFIRMED. The others are red,
+  **REFUTED, and rendered muted but still present** — the honesty feature. A tool
+  that quietly drops its wrong guesses is a tool you cannot audit.
+- **Every Evidence bullet carries a `view in SigNoz ↗` deep link.** They resolve
+  against whichever SigNoz recorded the incident, so they will not open from a
+  clean clone — that is the shape of the claim, not decoration.
+- **Use the filter chips.** `Verified 1` · `Review 13` · `Degraded 6` out of 20.
+  Click **Degraded** and open one: "no hypothesis survived verification." One in
+  twenty cleared the bar, and that ratio is published rather than massaged.
+  Press `/` to search, `j`/`k` to walk the rail, and note every RCA has its own
+  `#inv-…` URL.
+
+**8 — Browse the same corpus with nothing installed** (~2 min)
+
+```bash
+python3 -m http.server -d docs 8000    # http://localhost:8000
+```
+
+> `Serving HTTP on :: port 8000`
+>
+> `docs/` is the same console rendered to static files by
+> `scripts/export_console.py` — same `render.py`, same CSS, same keyboard
+> handling, so it cannot drift from the product. Regenerate it with
+> `uv run python scripts/export_console.py`; a second run leaves the tree
+> byte-identical.
+
+**9 — Check the receipts** (~2 min)
+
+Everything above is offline replay. The claims that needed a live system are
+written down with their evidence:
+
+| Claim | Where the proof lives |
+|---|---|
+| The flagship RCA came from a real SigNoz alert and a real Claude call | [`assets/live-e2e-VERIFIED-HERO-inv-fcdb95f553-postmortem.md`](assets/live-e2e-VERIFIED-HERO-inv-fcdb95f553-postmortem.md) |
+| The same fault, seen in SigNoz itself | [`assets/screenshots/06-hero-trace-pg-sleep-waterfall.png`](assets/screenshots/06-hero-trace-pg-sleep-waterfall.png) |
+| **Slack posting is real** — `chat.postMessage` returned HTTP 200 twice, to a real workspace | [`assets/live-slack-posting-verified.md`](assets/live-slack-posting-verified.md), with the exact Block Kit payload in [`assets/live-e2e-1-slack-blocks-inv-4199347358.json`](assets/live-e2e-1-slack-blocks-inv-4199347358.json) |
+| ARGUS's own reasoning traced back into SigNoz, tokens and dollars included | [`assets/screenshots/03-mission-control-dashboard.png`](assets/screenshots/03-mission-control-dashboard.png) |
+| What is *not* done | the ❌/⚠️ rows in [Status](#status), and "Honest limits" in [`learning/`](learning/README.md) |
+
+To go further — Faultline demo services, fault injection, a real alert through
+the webhook loop — see "Run the live demo in 5 commands" in [`DOCS.md`](DOCS.md).
 
 ## Architecture
 
