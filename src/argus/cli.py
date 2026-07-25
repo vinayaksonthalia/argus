@@ -218,6 +218,17 @@ def _cmd_console(args: argparse.Namespace) -> int:
     postmortem_dir = Path(args.postmortem_dir)
     memory_db = Path(settings.memory_db) if settings.memory_enabled() else None
 
+    # Serving an empty console because of a typo'd path is a confusing way to
+    # spend five minutes; say so before binding the port.
+    if not postmortem_dir.is_dir():
+        ui.print_error(
+            f"no postmortem directory at {postmortem_dir}",
+            why="the console renders past investigations from that directory",
+            try_="run an investigation first (argus investigate --replay "
+                 "fixtures/incident-1), or pass --postmortem-dir <path>",
+        )
+        return 2
+
     try:
         httpd = serve(postmortem_dir, memory_db, host=args.host, port=args.port)
     except OSError as exc:
@@ -234,7 +245,9 @@ def _cmd_console(args: argparse.Namespace) -> int:
     url = f"http://{args.host}:{args.port}"
     ui.console.print(
         f"[bold #8B5CF6]ARGUS Investigations Console[/] → [bold]{url}[/]\n"
-        f"[dim]{count} investigation(s) from {postmortem_dir}/ · read-only · localhost only · Ctrl-C to stop[/]"
+        f"[dim]{count} investigation(s) from {postmortem_dir}/ · read-only · localhost only · Ctrl-C to stop[/]\n"
+        f"[dim]in the browser: [/][#8B5CF6]/[/][dim] filters · [/][#8B5CF6]j[/][dim]/[/]"
+        f"[#8B5CF6]k[/][dim] or arrows walk the list · every RCA has its own #inv-… link[/]"
     )
     try:
         httpd.serve_forever()
