@@ -211,6 +211,17 @@ def test_hypothesis_classification():
     assert hyps[1].verdict == "REFUTED"
     assert hyps[2].verdict == "ERROR"
 
+    # "the data said no" and "the check never ran" are different claims, so
+    # they must not render as the same badge — a reader who conflates them
+    # reads a working verification loop as a broken integration.
+    refuted = render._hyp_card(hyps[1])
+    unverified = render._hyp_card(hyps[2])
+    assert 'class="hyp hyp-refuted"' in refuted
+    assert ">REFUTED<" in refuted
+    assert 'class="hyp hyp-unverified"' in unverified
+    assert "UNVERIFIED" in unverified and "CHECK DID NOT RUN" in unverified
+    assert "hyp-refuted" not in unverified and "hyp-error" not in unverified
+
 
 def test_degraded_has_no_confirmed_hypothesis():
     hyps = cdata._parse_hypotheses(
@@ -359,54 +370,80 @@ def test_served_console_has_no_landing_hero(tmp_path):
     """`argus console` is a working tool — it must not grow a marketing band."""
     invs = _hero_corpus(tmp_path)
     page = render.render_page(invs, cdata.compute_stats(invs))
-    assert 'class="hero"' not in page
+    assert 'class="case"' not in page
     assert '<body>' in page and 'class="has-hero"' not in page
-    assert 'id="hero-scroll"' not in page
+    assert 'id="case-tape"' not in page and 'id="theme-toggle"' not in page
     assert 'class="topbar"' in page
 
 
-def test_export_hero_states_only_numbers_the_corpus_backs(tmp_path):
-    """Every hero chip is derived from the loaded corpus, so it cannot drift."""
+def test_export_band_states_only_numbers_the_corpus_backs(tmp_path):
+    """The band's one stat line is derived from the corpus, so it can't drift."""
     invs = _hero_corpus(tmp_path)
     page = render.render_page(invs, cdata.compute_stats(invs), hero=True)
-    assert '<body class="has-hero">' in page
-    assert 'class="topbar"' not in page  # the hero replaces it, never stacks
-    # 2 investigations, 1 of them verified, at its real confidence.
-    assert ">2</b><span class=\"hero-chip-label\">recorded investigations<" in page
-    assert ">1</b><span class=\"hero-chip-label\">verified RCA at 90%<" in page
-    assert ">$0.00</b><span class=\"hero-chip-label\">total LLM spend<" in page
-    assert ">0</b><span class=\"hero-chip-label\">runtime dependencies<" in page
+    assert '<body class="has-hero" data-theme="auto">' in page
+    assert 'class="topbar"' not in page  # the band replaces it, never stacks
+    # 2 investigations, 1 of them verified, for what they actually cost.
+    assert "2 investigations recorded here" in page
+    assert '<span class="case-verified">1 verified</span>' in page
+    assert "$0.00</p>" in page
+    # The pill-chip stat row is gone: every number lives in that one line.
+    assert 'class="hero-chip"' not in page and 'class="hero-lead"' not in page
 
-
-def test_hero_links_to_the_repo_and_stays_above_the_fold(tmp_path):
-    invs = _hero_corpus(tmp_path)
-    page = render.render_page(invs, cdata.compute_stats(invs), hero=True)
-    assert 'href="https://github.com/vinayaksonthalia/argus"' in page
-    assert 'rel="noopener noreferrer"' in page
-    # The band has a fixed height budget and the layout subtracts exactly it,
-    # so the investigations rail can never be pushed off-screen.
-    assert "--hero-h:112px" in page
-    assert ".has-hero .layout{height:calc(100% - 112px)}" in page
-    # The CTA scrolls into the evidence rather than navigating to a fake hash.
-    assert 'id="hero-scroll"' in page
-    assert "href=\"#" not in page
-
-
-def test_hero_chip_label_pluralises_without_a_confidence_claim(tmp_path):
-    """Two verified runs have no single '90%' to quote — don't invent one."""
+    # Counts pluralise, and a second verified run adds no invented accuracy —
+    # the band quotes counts and spend only.
+    two = tmp_path / "two"
+    two.mkdir()
     for n, conf in (("inv-ccc333", 0.9), ("inv-ddd444", 0.8)):
         _write_report(
-            tmp_path, n,
+            two, n,
             {"title": "V", "confidence": conf, "root_cause": "", "impact": "",
              "timeline": [], "evidence_bullets": [], "refuted": [],
              "degraded": False, "needs_review": False},
             "- **Service:** `s`\n- **Alert:** `a`\n"
             "- **Generated:** 2026-07-20 10:00 UTC\n",
         )
-    invs = cdata.load_investigations(tmp_path)
+    invs2 = cdata.load_investigations(two)
+    page2 = render.render_page(invs2, cdata.compute_stats(invs2), hero=True)
+    assert '<span class="case-verified">2 verified</span>' in page2
+    assert "verified RCA at" not in page2
+
+
+def test_band_offers_the_tour_the_repo_and_both_themes(tmp_path):
+    invs = _hero_corpus(tmp_path)
     page = render.render_page(invs, cdata.compute_stats(invs), hero=True)
-    assert ">2</b><span class=\"hero-chip-label\">verified RCAs<" in page
-    assert "verified RCA at" not in page
+    assert 'href="https://github.com/vinayaksonthalia/argus"' in page
+    assert 'rel="noopener noreferrer"' in page
+    # The tour's anchor survives the reskin — the CTA is a prompt line now.
+    assert 'id="tour-start"' in page and "take the 60-second tour" in page
+    # Both palettes ship, and the OS preference is honoured with no JS.
+    assert 'body.has-hero[data-theme="light"]{' in page
+    assert '@media (prefers-color-scheme:light){' in page
+    assert 'id="theme-toggle"' in page
+    # The console below sizes itself from what the band leaves over.
+    assert "body.has-hero .layout{flex:1 1 auto" in page
+    assert "href=\"#" not in page
+
+
+def test_band_types_the_runs_own_timeline_and_nothing_else(tmp_path):
+    """The tape is read off the report; a run without one simply has no tape."""
+    invs = _tour_corpus(tmp_path)
+    page = render.render_page(invs, cdata.compute_stats(invs), hero=True)
+    band = page[page.index('<header class="case"') : page.index("</header>")]
+    assert band.count('class="case-line') == 2  # firing, then CONFIRMED
+    assert "21:02:07" in band and "21:02:57" in band
+    assert ">+50s<" in band and ">+0s<" not in band      # order is the device
+    assert "50 seconds later, the postmortem existed." in band
+    assert "Faultline catalog p99 latency &gt; 1s" in band  # escaped telemetry
+
+    bare_dir = tmp_path / "bare"
+    bare_dir.mkdir()
+    bare = render.render_page(
+        _tour_corpus(bare_dir, timeline=[]),
+        cdata.compute_stats(invs), hero=True,
+    )
+    bare_band = bare[bare.index('<header class="case"') : bare.index("</header>")]
+    assert 'class="case-line' not in bare_band
+    assert "seconds later" not in bare_band
 
 
 def test_export_writes_the_hero_page(tmp_path):
@@ -426,7 +463,7 @@ def test_export_writes_the_hero_page(tmp_path):
     out = tmp_path / "out"
     assert mod.export(src, out) == 2
     index = (out / "index.html").read_text()
-    assert 'class="hero"' in index
+    assert 'class="case"' in index
     assert "fetch('detail/' + encodeURIComponent(id) + '.html')" in index
     assert (out / "detail" / "inv-aaa111.html").exists()
 

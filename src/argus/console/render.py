@@ -111,17 +111,35 @@ def render_list(invs: list[Investigation]) -> str:
     return "".join(render_row(i, is_default=i is default) for i in invs)
 
 
+# Two different things happen when a hypothesis does not survive, and reading
+# them as one verdict is the fastest way to read the agent wrong:
+#
+#   REFUTED    — the verification query RAN and the telemetry said no. That is
+#                the product working, and it is why a run can be trusted.
+#   UNVERIFIED — the check never ran (the SigNoz call itself failed). Nothing
+#                was learned either way; it is reported rather than quietly
+#                dropped, but it is not evidence against the hypothesis.
+#
+# So they get different marks, labels and colours: refuted keeps the muted red
+# of a real negative result, unverified goes neutral grey.
+_HYP_DISPLAY = {
+    "CONFIRMED": ("✓", "hyp-confirmed", "CONFIRMED"),
+    "REFUTED": ("✗", "hyp-refuted", "REFUTED"),
+    "ERROR": ("?", "hyp-unverified", "UNVERIFIED · CHECK DID NOT RUN"),
+}
+
+
 def _hyp_card(h) -> str:
-    marks = {"CONFIRMED": ("✓", "hyp-confirmed"), "REFUTED": ("✗", "hyp-refuted"),
-             "ERROR": ("!", "hyp-error")}
-    mark, cls = marks.get(h.verdict, ("·", "hyp-error"))
+    mark, cls, label = _HYP_DISPLAY.get(
+        h.verdict, ("·", "hyp-unverified", h.verdict)
+    )
     detail = (
         f'<div class="hyp-detail">{esc(h.detail)}</div>' if h.detail else ""
     )
     return (
         f'<div class="hyp {cls}">'
         f'<div class="hyp-head"><span class="hyp-mark">{esc(mark)}</span>'
-        f'<span class="hyp-verdict">{esc(h.verdict)}</span></div>'
+        f'<span class="hyp-verdict">{esc(label)}</span></div>'
         f'<div class="hyp-text">{esc(h.text)}</div>'
         f"{detail}"
         f"</div>"
@@ -351,74 +369,153 @@ _HERO_MARK = (
     '<circle cx="32" cy="32" r="2.6" fill="#8B5CF6"/></svg>'
 )
 
-# Three type tiers carry the band: the wordmark says who, the thesis says what
-# you get, the prop says how it is true. The prop stays inside a ~140-character
-# budget so it sets on one line at the width this console is demoed at.
-_HERO_THESIS = "Alerts arrive already investigated."
-
-_HERO_PROP = (
-    "An autonomous AI SRE for self-hosted SigNoz: it checks every hypothesis "
-    "against your telemetry and reports only what it can prove."
+# One line of purpose. It has to answer "what am I looking at?" on its own,
+# because it is the only prose in the band: the typed tape above it is the
+# demonstration and the tour below it is the long version.
+_CASE_WHAT = (
+    "An autonomous AI SRE for self-hosted SigNoz — it investigates the alert "
+    "alone, checks every hypothesis against your telemetry, and refuses to "
+    "report what it cannot prove."
 )
 
+# The tape: the three lines the run wrote about itself, in the order it wrote
+# them. Order is the information here — the alert, the agent waking up, the
+# check that passed — so the elapsed offset is the structural device rather
+# than an ornamental 01 / 02 / 03.
+_TAPE_MARKS = (
+    ("started firing", "fired"),
+    ("investigation", "began"),
+    ("hypothesis CONFIRMED", "confirmed"),
+)
 
-def _hero_chips(invs: list[Investigation], stats: Stats) -> list[tuple[str, str]]:
-    """The landing stat chips, derived from the corpus so they cannot drift."""
-    verified = [i for i in invs if i.status == "VERIFIED"]
-    best = max((i.confidence for i in verified), default=0.0)
-    verified_label = (
-        f"verified RCA at {round(best * 100)}%"
-        if len(verified) == 1
-        else "verified RCAs"
+_RE_TL_SPLIT = re.compile(r"^(\d{2}:\d{2}:\d{2}) UTC\s+[—-]\s+(.*)$")
+
+_TAPE_MAX = 84
+
+
+def _clip(text: str, limit: int = _TAPE_MAX) -> str:
+    """Cut a telemetry line on a word boundary so the tape sets at one width."""
+    text = text.strip()
+    if len(text) <= limit:
+        return text
+    cut = text[:limit].rsplit(" ", 1)[0].rstrip(" ,.;:—-")
+    return f"{cut}…"
+
+
+def _case_tape(inv: Investigation | None) -> list[dict]:
+    """The typed case-file lines, read off the run's own timeline.
+
+    Nothing here is hand-written: if a report has no clock-stamped timeline,
+    the tape is empty and the band drops it rather than inventing a story.
+    """
+    if inv is None:
+        return []
+    stamped = []
+    for entry in inv.timeline:
+        m = _RE_TL_SPLIT.match(entry.strip())
+        if m:
+            stamped.append((m.group(1), m.group(2), _tl_seconds(entry)))
+    lines: list[dict] = []
+    used: set[int] = set()
+    for needle, kind in _TAPE_MARKS:
+        for i, (clock, text, secs) in enumerate(stamped):
+            if i in used or needle not in text:
+                continue
+            used.add(i)
+            lines.append({"clock": clock, "text": _clip(text), "kind": kind,
+                          "secs": secs})
+            break
+    if not lines or lines[0]["secs"] is None:
+        return lines
+    base = lines[0]["secs"]
+    # The first line IS the zero, so it carries no offset — "+0s" would be the
+    # one label on the page that tells a reader nothing.
+    for line in lines[1:]:
+        line["offset"] = (
+            f"+{line['secs'] - base}s" if line["secs"] is not None else ""
+        )
+    return lines
+
+
+def _set_line(invs: list[Investigation], stats: Stats) -> tuple[str, str, str]:
+    """`20 investigations recorded here · 1 verified · $0.94`, off the corpus.
+
+    One small mono line carries every number in the band — and "recorded here"
+    is what tells a stranger the page is a record rather than a pitch.
+    """
+    n_verified = sum(1 for i in invs if i.status == "VERIFIED")
+    noun = "investigation" if stats.total == 1 else "investigations"
+    return (
+        f"{stats.total} {noun} recorded here",
+        f"{n_verified} verified",
+        f"${stats.total_usd:.2f}",
     )
-    return [
-        (str(stats.total), "recorded investigations"),
-        (str(len(verified)), verified_label),
-        (f"${stats.total_usd:.2f}", "total LLM spend"),
-        ("0", "runtime dependencies"),
-    ]
 
 
 def render_hero(invs: list[Investigation], stats: Stats) -> str:
-    """A compact landing band for the published static export.
+    """The case-file band for the published static export.
 
     The served console is a working tool — an operator who typed ``argus
     console`` does not need to be sold the product. The published bundle is the
-    opposite: it is the first thing a stranger sees, so it gets one short band
-    that says what ARGUS is, what the corpus below proves, and where the source
-    lives. It replaces the topbar rather than stacking on top of it, so the
-    investigations stay above the fold.
+    opposite: it is the first thing a stranger sees. So it opens the way the
+    incident opened: the run's own timeline types itself out, the elapsed time
+    between the alert and the confirmed hypothesis becomes the headline, and
+    two plain sentences say what ARGUS is and what this page is.
+
+    Every string below is read off the loaded corpus. There is no hand-written
+    number in this band, so it cannot drift from the reports underneath it.
     """
-    lead, *rest = _hero_chips(invs, stats)
-    # The strongest number the corpus backs gets the oversized treatment; the
-    # remaining three stay pills. Same markup, one promoted class — a wall of
-    # giant numerals would cancel the effect.
-    lead_html = (
-        f'<span class="hero-lead"><b class="mono">{esc(lead[0])}</b>'
-        f'<span class="hero-chip-label">{esc(lead[1])}</span></span>'
+    inv = default_selection(invs)
+    tape = _case_tape(inv)
+    lines = "".join(
+        f'<p class="case-line case-{esc(line["kind"])}">'
+        f'<span class="case-clock mono">{esc(line["clock"])}</span>'
+        f'<span class="case-text mono" data-type>{esc(line["text"])}</span>'
+        f'<span class="case-off mono" aria-hidden="true">'
+        f'{esc(line.get("offset", ""))}</span></p>'
+        for line in tape
     )
-    chips = "".join(
-        f'<span class="hero-chip"><b class="mono">{esc(value)}</b>'
-        f'<span class="hero-chip-label">{esc(label)}</span></span>'
-        for value, label in rest
+    elapsed = _time_to_verdict(inv) if inv else None
+    thesis = (
+        f"{elapsed} seconds later, the postmortem existed."
+        if elapsed is not None
+        else "The postmortem was already written."
     )
-    return f"""<header class="hero">
-  <div class="hero-row">
-    <div class="hero-brand">{_HERO_MARK}<span class="hero-word">ARGUS</span></div>
-    {lead_html}
-    <div class="hero-chips">{chips}</div>
-    <div class="hero-actions">
-      <button class="hero-btn hero-btn-tour" id="tour-start" type="button"
-              aria-haspopup="dialog">What am I looking at?<span
-              class="hero-btn-sub">60-second tour</span></button>
-      <a class="hero-btn hero-btn-primary" href="{safe_url(REPO_URL)}"
-         target="_blank" rel="noopener noreferrer">GitHub &rarr;</a>
-      <button class="hero-btn hero-btn-ghost" id="hero-scroll"
-              type="button">See the evidence &darr;</button>
+    total, verified, spend = _set_line(invs, stats)
+    dot = '<span class="case-dot" aria-hidden="true">&middot;</span>'
+    set_html = (
+        f'<p class="case-set mono">{esc(total)}{dot}'
+        f'<span class="case-verified">{esc(verified)}</span>{dot}'
+        f'{esc(spend)}</p>'
+    )
+    prompt_html = (
+        '<button class="case-prompt mono" id="tour-start" type="button" '
+        'aria-haspopup="dialog">'
+        '<span class="case-caret" aria-hidden="true">&gt;</span>'
+        'take the 60-second tour</button>'
+    )
+    tape_html = (
+        f'<div class="case-tape" id="case-tape" aria-label="Investigation '
+        f'timeline, replayed">{lines}</div>'
+        if lines
+        else ""
+    )
+    return f"""<header class="case">
+  <div class="case-grid">
+    <div class="case-main">
+      {tape_html}
+      <h1 class="case-thesis">{esc(thesis)}</h1>
+      <p class="case-say">{esc(_CASE_WHAT)}</p>
+      <div class="case-act">{prompt_html}{set_html}</div>
     </div>
+    <aside class="case-side">
+      <div class="case-brand">{_HERO_MARK}<span class="case-word">ARGUS</span>
+        <button class="case-theme mono" id="theme-toggle" type="button"
+                aria-label="Switch to the paper theme">paper</button></div>
+      <a class="case-repo mono" href="{safe_url(REPO_URL)}" target="_blank"
+         rel="noopener noreferrer">run it yourself &rarr;</a>
+    </aside>
   </div>
-  <p class="hero-thesis">{esc(_HERO_THESIS)}</p>
-  <p class="hero-prop">{esc(_HERO_PROP)}</p>
 </header>"""
 
 
@@ -763,16 +860,19 @@ def render_page(invs: list[Investigation], stats: Stats, hero: bool = False) -> 
     # an operator never asked for. Appending rather than interleaving keeps the
     # served page byte-for-byte what it was.
     return _PAGE_TEMPLATE.format(
-        css=_CSS + (_TOUR_CSS if hero else ""),
+        css=_CSS + (_TOUR_CSS + _CASE_CSS if hero else ""),
         accent=ACCENT,
-        body_class=" class=\"has-hero\"" if hero else "",
+        # `data-theme="auto"` follows the OS until the band's own toggle pins a
+        # side; the light palette is a plain attribute swap, so the page works
+        # with JavaScript off. The served console never carries either.
+        body_class=' class="has-hero" data-theme="auto"' if hero else "",
         header=render_hero(invs, stats) if hero else _topbar(stats),
         family=_FAMILY if hero else "",
         filters=render_filters(invs) if invs else "",
         list_html=list_html,
         empty_detail=empty_detail,
         tour=render_tour(invs, stats) if hero else "",
-        js=_JS + (_TOUR_JS if hero else ""),
+        js=_JS + (_TOUR_JS + _CASE_JS if hero else ""),
     )
 
 
@@ -1207,8 +1307,12 @@ a.fam:hover{text-decoration:underline; text-underline-offset:3px}
 .hyp-refuted{border-left-color:var(--red); opacity:.78}
 .hyp-refuted .hyp-mark{background:var(--red)} .hyp-refuted .hyp-verdict{color:var(--red)}
 .hyp-refuted .hyp-text{color:var(--text-2)}
-.hyp-error{border-left-color:var(--amber)}
-.hyp-error .hyp-mark{background:var(--amber)} .hyp-error .hyp-verdict{color:var(--amber)}
+/* Neutral, not alarming: nothing was disproved here, the check just never ran.
+   Quieter than REFUTED, so the eye lands on the verdicts that mean something. */
+.hyp-unverified{border-left-color:var(--text-3); opacity:.88}
+.hyp-unverified .hyp-mark{background:var(--text-3); color:var(--bg-canvas)}
+.hyp-unverified .hyp-verdict{color:var(--text-3); letter-spacing:.06em}
+.hyp-unverified .hyp-text{color:var(--text-2)}
 
 /* ---- evidence / similar / links ---- */
 .ev-list,.sim-list,.link-list{list-style:none; margin:0; padding:0}
@@ -1574,5 +1678,363 @@ _TOUR_JS = r"""
   if (/[?&]tour=1(&|$)/.test(location.search)) {
     start();
   }
+})();
+"""
+
+# --------------------------------------------------------------------------
+# The case-file skin. Appended to the sheet only when hero=True, and namespaced
+# under `.case*` / `body.has-hero` so `argus console` renders byte-for-byte the
+# page it rendered before this existed.
+#
+# The band is four things and no more: the run's own timeline typing itself
+# out, the elapsed time as the headline, one line saying what ARGUS is, and the
+# tour prompt. Everything else on the page is the working console, spaced and
+# quieted so it reads next to a SigNoz dashboard without shouting over it.
+# --------------------------------------------------------------------------
+
+_CASE_CSS = r"""
+/* ---- palette: the night shift (default) ---- */
+body.has-hero{
+  --bg-canvas:#0B0A10; --bg-surface:#110F18; --bg-raised:#181524;
+  --hairline:rgba(233,231,244,.09); --border:rgba(233,231,244,.17);
+  --text-1:#E9E7F4; --text-2:#9C97AE; --text-3:#77718F;
+  --accent:#8B5CF6; --accent-dim:rgba(139,92,246,.15);
+  --green:#3DD68C; --amber:#F5A623; --red:#E5484D;
+  --plate:#15121F; --rule:rgba(233,231,244,.16);
+  --scrim:rgba(6,5,11,.78); --tex:233,231,244; --tex-a:.10;
+  --lift:0 18px 48px rgba(0,0,0,.55);
+  height:auto; min-height:100%;
+}
+/* ---- palette: the printed case file ---- */
+body.has-hero[data-theme="light"]{
+  --bg-canvas:#EFECE3; --bg-surface:#F7F5EE; --bg-raised:#E5E1D5;
+  --hairline:rgba(28,24,38,.13); --border:rgba(28,24,38,.22);
+  --text-1:#1B1726; --text-2:#544E62; --text-3:#6E687B;
+  --accent:#6A38CE; --accent-dim:rgba(106,56,206,.12);
+  --green:#12704A; --amber:#8A5A00; --red:#B02026;
+  --plate:#F7F5EE; --rule:rgba(28,24,38,.18);
+  --scrim:rgba(28,24,38,.5); --tex:28,24,38; --tex-a:.09;
+  --lift:0 16px 40px rgba(28,24,38,.16);
+}
+@media (prefers-color-scheme:light){
+  body.has-hero[data-theme="auto"]{
+    --bg-canvas:#EFECE3; --bg-surface:#F7F5EE; --bg-raised:#E5E1D5;
+    --hairline:rgba(28,24,38,.13); --border:rgba(28,24,38,.22);
+    --text-1:#1B1726; --text-2:#544E62; --text-3:#6E687B;
+    --accent:#6A38CE; --accent-dim:rgba(106,56,206,.12);
+    --green:#12704A; --amber:#8A5A00; --red:#B02026;
+    --plate:#F7F5EE; --rule:rgba(28,24,38,.18);
+    --scrim:rgba(28,24,38,.5); --tex:28,24,38; --tex-a:.09;
+    --lift:0 16px 40px rgba(28,24,38,.16);
+  }
+}
+/* The one mark that is painted ON a semantic colour rather than in it. */
+body.has-hero[data-theme="light"] .hyp-mark{color:#F7F5EE}
+/* The brand mark carries the night palette's violet inside its own SVG, so on
+   paper it is darkened to sit at the same weight as the rest of the ink. */
+body.has-hero[data-theme="light"] .case-side .hero-mark{
+  filter:saturate(1.3) brightness(.74);
+}
+/* The three tool accents are tuned for a dark canvas; on paper each drops to a
+   printable ink of the same hue so the family row stays legible. */
+body.has-hero[data-theme="light"] .fam-argus{color:#6A38CE}
+body.has-hero[data-theme="light"] .fam-glasspane{color:#2F5FBF}
+body.has-hero[data-theme="light"] .fam-telelens{color:#0F766E}
+@media (prefers-color-scheme:light){
+  body.has-hero[data-theme="auto"] .hyp-mark{color:#F7F5EE}
+  body.has-hero[data-theme="auto"] .case-side .hero-mark{
+    filter:saturate(1.3) brightness(.74);
+  }
+  body.has-hero[data-theme="auto"] .fam-argus{color:#6A38CE}
+  body.has-hero[data-theme="auto"] .fam-glasspane{color:#2F5FBF}
+  body.has-hero[data-theme="auto"] .fam-telelens{color:#0F766E}
+}
+
+/* ---- the band ---- */
+.case{
+  position:relative; overflow:hidden; background:var(--bg-canvas);
+  padding:36px 44px 32px; border-bottom:1px solid var(--hairline);
+}
+/* Texture, derived from the subject: a terminal's dot pitch and scanline,
+   faded out before it reaches the console below. */
+.case::before{
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background-image:
+    repeating-linear-gradient(0deg,
+      rgba(var(--tex),.03) 0 1px,transparent 1px 3px),
+    radial-gradient(rgba(var(--tex),var(--tex-a)) 1px,transparent 1px);
+  background-size:auto,24px 24px;
+  -webkit-mask-image:linear-gradient(180deg,#000,#000 50%,transparent);
+  mask-image:linear-gradient(180deg,#000,#000 50%,transparent);
+}
+.case-grid{
+  position:relative; display:grid; gap:56px; align-items:start;
+  grid-template-columns:minmax(0,1fr) minmax(170px,210px);
+  max-width:1280px; margin:0 auto;
+}
+
+/* ---- the tape: the run's own timeline, in the order it was written ---- */
+.case-tape{margin:0 0 22px; max-width:880px}
+.case-line{
+  display:grid; grid-template-columns:74px minmax(0,1fr) 48px; gap:14px;
+  align-items:baseline; margin:0; padding:6px 0 6px 16px;
+  border-left:2px solid var(--rule);
+  font-size:12.5px; line-height:1.55;
+}
+.case-clock{color:var(--text-3); font-variant-numeric:tabular-nums}
+.case-text{color:var(--text-2); overflow-wrap:anywhere}
+.case-off{
+  color:var(--text-3); text-align:right; font-size:11px;
+  font-variant-numeric:tabular-nums;
+}
+/* Violet marks the moment a claim survived a check. Nowhere else. */
+.case-confirmed{border-left-color:var(--accent)}
+.case-confirmed .case-text{color:var(--text-1)}
+.case-confirmed .case-off{color:var(--accent)}
+.case-text.is-typing::after{
+  content:""; display:inline-block; width:.55em; height:1em;
+  background:var(--text-3); vertical-align:-.13em; margin-left:1px;
+}
+
+/* ---- the headline: mono at display scale, the terminal's own voice ---- */
+.case-thesis{
+  margin:0 0 16px; max-width:22ch;
+  font-family:var(--mono); font-weight:700;
+  font-size:clamp(26px,2.6vw,37px); line-height:1.1;
+  letter-spacing:-.045em; color:var(--text-1);
+}
+.case-say{
+  margin:0 0 26px; max-width:74ch;
+  font-size:14px; line-height:1.6; color:var(--text-2);
+}
+
+/* ---- the tour prompt: a shell line, not a marketing button ---- */
+.case-prompt{
+  display:inline-flex; align-items:center; gap:9px; cursor:pointer;
+  font:inherit; font-family:var(--mono); font-size:13.5px; font-weight:500;
+  color:var(--text-1); background:var(--plate);
+  border:1px solid var(--border); border-left:2px solid var(--accent);
+  border-radius:4px; padding:12px 20px 12px 15px;
+  transition:background .14s,border-color .14s;
+}
+.case-prompt:hover{background:var(--bg-raised); border-color:var(--accent)}
+.case-prompt:focus-visible{outline:2px solid var(--accent); outline-offset:3px}
+.case-caret{color:var(--text-3)}
+.case-act{display:flex; align-items:center; flex-wrap:wrap; gap:14px 26px}
+
+/* ---- the one small line that carries every number ---- */
+.case-set{
+  margin:0; font-size:12px; color:var(--text-3);
+  letter-spacing:.01em; font-variant-numeric:tabular-nums;
+}
+.case-dot{margin:0 9px}
+/* "1 verified" is one fact; never let it break across two lines. */
+.case-set>span,.case-verified{white-space:nowrap}
+.case-verified{color:var(--accent)}
+
+/* ---- the quiet right column ---- */
+/* No rule between the columns: the gap already separates them, and a hairline
+   that stops halfway down the band reads as a stray stroke. */
+.case-side{
+  padding:2px 0 0; display:flex; flex-direction:column;
+  align-items:flex-start; gap:18px;
+}
+.case-brand{display:flex; align-items:center; gap:12px; width:100%}
+.case-theme{margin-left:auto}
+.case-side .hero-mark{width:23px; height:23px}
+.case-word{font-weight:600; font-size:14px; letter-spacing:.22em; color:var(--text-1)}
+.case-repo{
+  font-size:12.5px; color:var(--text-1); text-decoration:none;
+  border-bottom:1px solid var(--border); padding-bottom:3px;
+  transition:color .14s,border-color .14s;
+}
+.case-repo:hover{color:var(--accent); border-bottom-color:var(--accent)}
+.case-repo:focus-visible{outline:2px solid var(--accent); outline-offset:3px}
+/* Borderless: the tour prompt is the band's only boxed element, and a second
+   box in the corner competed with it for the eye. */
+.case-theme{
+  font:inherit; font-family:var(--mono); font-size:10px; cursor:pointer;
+  text-transform:uppercase; letter-spacing:.14em; color:var(--text-3);
+  background:transparent; border:none; padding:4px 0;
+  border-bottom:1px solid transparent; transition:color .14s,border-color .14s;
+}
+.case-theme:hover{color:var(--text-1); border-bottom-color:var(--border)}
+.case-theme:focus-visible{outline:2px solid var(--accent); outline-offset:3px}
+
+/* ---- the console below: same information, more air ----
+   The band is the only loud thing on the page. The working tool underneath
+   gets SigNoz's discipline instead: wider rows, quieter badges, one accent. */
+/* The band sizes itself to its content and the console takes what is left via
+   flex, rather than a hand-tuned pixel budget that drifts when the copy does.
+   On a desktop-sized window the document itself must not scroll: the rail
+   scrolls one way and the RCA pane the other, so opening a run can never
+   scroll the band off the top of the page. */
+body.has-hero{display:flex; flex-direction:column; min-height:100vh}
+body.has-hero .case{flex:none}
+body.has-hero .layout{flex:1 1 auto; height:auto; min-height:480px}
+@media (min-width:761px) and (min-height:620px){
+  body.has-hero{height:100vh; min-height:0; overflow:hidden}
+  body.has-hero .layout{min-height:0}
+}
+body.has-hero .rail{padding:10px}
+body.has-hero .row{padding:14px 14px; margin-bottom:6px; border-radius:4px}
+body.has-hero .row-alert{margin-bottom:7px}
+body.has-hero .row-meta{margin-top:3px}
+body.has-hero .badge{
+  background:transparent; border-color:transparent; padding:0;
+  font-size:10px; font-weight:600; letter-spacing:.1em;
+}
+body.has-hero .rail-toolbar{padding:14px 14px 12px}
+body.has-hero .filter-input{border-radius:4px; padding:8px 11px}
+body.has-hero .chip-filter{border-radius:4px; padding:4px 9px}
+body.has-hero .pane{padding:40px 44px 72px}
+body.has-hero .card{
+  border-radius:4px; padding:24px 26px; margin-bottom:22px;
+  background:var(--bg-surface);
+}
+body.has-hero .card h3{margin-bottom:16px; letter-spacing:.09em}
+body.has-hero .chip{border-radius:3px}
+body.has-hero .verdict{margin-bottom:30px}
+body.has-hero .review-banner{border-radius:4px; margin-bottom:26px}
+body.has-hero .hyp{border-radius:4px; padding:14px 16px}
+body.has-hero .hyp-list{gap:12px}
+body.has-hero .ev{padding:12px 0}
+body.has-hero .cost-footer{border-radius:4px; padding:20px 26px}
+body.has-hero .empty-cmd,body.has-hero .pane-error,
+body.has-hero .retry,body.has-hero .tour-card{border-radius:4px}
+
+/* ---- family footer: same block and copy, the band's typography ---- */
+body.has-hero .family{
+  background:var(--bg-canvas); border-top:1px solid var(--hairline);
+  padding:20px 44px 22px;
+}
+body.has-hero .fam{
+  font-family:var(--mono); font-size:11.5px; font-weight:500; letter-spacing:.2em;
+}
+body.has-hero .fam-tag{margin-top:8px; font-size:11.5px; max-width:74ch}
+
+/* ---- the tour, wearing whichever theme is on ---- */
+body.has-hero .tour-spot{
+  box-shadow:0 0 0 9999px var(--scrim),0 0 0 4px var(--accent-dim);
+}
+body.has-hero .tour-spot.is-blank{box-shadow:0 0 0 9999px var(--scrim)}
+body.has-hero .tour-card{box-shadow:var(--lift)}
+body.has-hero .tour-btn{border-radius:4px}
+body.has-hero[data-theme="light"] .filter-input::-webkit-search-cancel-button{
+  filter:none;
+}
+
+@media (max-width:1080px){
+  .case-grid{grid-template-columns:minmax(0,1fr); gap:34px}
+  .case-side{
+    border-top:1px solid var(--hairline); padding:22px 0 0;
+    flex-direction:row; align-items:center; gap:24px; flex-wrap:wrap;
+  }
+  .case-brand{width:auto}
+}
+@media (max-width:760px){
+  .case{padding:24px 18px 26px}
+  .case-line{
+    grid-template-columns:70px minmax(0,1fr); gap:4px 14px;
+    padding:5px 0 5px 13px; font-size:11.5px;
+  }
+  .case-tape{margin-bottom:18px}
+  .case-clock{grid-row:1; grid-column:1}
+  .case-off{grid-row:1; grid-column:2; text-align:right}
+  .case-text{grid-row:2; grid-column:1 / -1}
+  .case-thesis{max-width:none; font-size:clamp(25px,7.6vw,34px)}
+  .case-say{margin-bottom:26px}
+  body.has-hero .layout{height:auto; min-height:0}
+  body.has-hero .pane{padding:26px 18px 56px}
+  body.has-hero .family{padding:18px 18px 20px}
+}
+"""
+
+_CASE_JS = r"""
+(function () {
+  var body = document.body;
+
+  // The console centres its landing row on load. Where the page itself can
+  // scroll — narrow screens, short windows — that also scrolls the band off
+  // the top, so a first-time visitor lands mid-list with no idea what this is.
+  // A deep link (#inv-…) is a deliberate request for a row, so it is left be.
+  if (!location.hash) {
+    window.scrollTo(0, 0);
+    requestAnimationFrame(function () { window.scrollTo(0, 0); });
+  }
+
+  // ---- theme: OS by default, pinned by the band's toggle ------------------
+  var toggle = document.getElementById('theme-toggle');
+  var store = null;
+  try { store = window.localStorage; } catch (e) { store = null; }
+
+  function effective() {
+    var t = body.getAttribute('data-theme');
+    if (t === 'light' || t === 'dark') return t;
+    return window.matchMedia &&
+      window.matchMedia('(prefers-color-scheme: light)').matches
+      ? 'light' : 'dark';
+  }
+
+  function label() {
+    if (!toggle) return;
+    var next = effective() === 'light' ? 'night' : 'paper';
+    toggle.textContent = next;
+    toggle.setAttribute('aria-label', 'Switch to the ' + next + ' theme');
+  }
+
+  var saved = store && store.getItem('argus-theme');
+  if (saved === 'light' || saved === 'dark') body.setAttribute('data-theme', saved);
+  label();
+
+  if (toggle) {
+    toggle.addEventListener('click', function () {
+      var next = effective() === 'light' ? 'dark' : 'light';
+      body.setAttribute('data-theme', next);
+      if (store) { try { store.setItem('argus-theme', next); } catch (e) {} }
+      label();
+    });
+  }
+  if (window.matchMedia) {
+    var mq = window.matchMedia('(prefers-color-scheme: light)');
+    var onOS = function () { if (body.getAttribute('data-theme') === 'auto') label(); };
+    if (mq.addEventListener) mq.addEventListener('change', onOS);
+  }
+
+  // ---- the tape types itself out, once, on load ---------------------------
+  // The text is already in the DOM (server-escaped), so a reader with no
+  // JavaScript — or with "reduce motion" on — gets the finished timeline.
+  var cells = [].slice.call(
+    document.querySelectorAll('#case-tape .case-text[data-type]')
+  );
+  if (!cells.length) return;
+  if (window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  var plan = cells.map(function (el) {
+    // Reserve the finished height first: a line that grows as it types would
+    // shove the headline down the page three times.
+    el.style.minHeight = el.getBoundingClientRect().height + 'px';
+    var text = el.textContent;
+    el.textContent = '';
+    return {el: el, text: text};
+  });
+
+  var i = 0;
+  function typeLine() {
+    if (i >= plan.length) return;
+    var line = plan[i], n = 0;
+    line.el.classList.add('is-typing');
+    (function tick() {
+      n += 2;
+      line.el.textContent = line.text.slice(0, n);
+      if (n < line.text.length) { setTimeout(tick, 14); return; }
+      line.el.textContent = line.text;
+      line.el.classList.remove('is-typing');
+      i++;
+      setTimeout(typeLine, 220);
+    })();
+  }
+  typeLine();
 })();
 """
