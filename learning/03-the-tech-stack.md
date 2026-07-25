@@ -14,7 +14,7 @@ Building ARGUS is like building a robot detective, and every part is a decision.
 
 | Decision | Choice | Why | The trade-off we accepted |
 |---|---|---|---|
-| Language / runtime | Python 3.11 + `uv` | Track mandated Python; `uv` gives a fast, reproducible env | — |
+| Language / runtime | Python 3.11 + `uv` | the OTel and SigNoz client ecosystem is strongest in Python; `uv` gives a fast, reproducible env | — |
 | Web framework | FastAPI + uvicorn | pydantic models are shared between the HTTP layer and the graph state | — |
 | State machine | **hand-rolled** LangGraph-style typed graph (~100 lines) | hermetic tests, no langchain version churn in a one-week build, exact control over per-node spans/timeouts | had to write (and test) our own tiny engine instead of importing one |
 | SigNoz access | raw REST behind one `SignozTransport` seam | covers everything the loop needs, trivially replayable | MCP added later as a second transport, not the default |

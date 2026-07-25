@@ -27,7 +27,7 @@ A SigNoz alert fires. Nobody types a question. ARGUS investigates across metrics
 
 <p align="center"><sub>It opens on the run that cleared the 75% bar, then filters to one that <em>refused</em> to conclude.</sub></p>
 
-| The claim — one hypothesis CONFIRMED, two REFUTED | The proof — the 25s `SELECT` span, in real SigNoz |
+| The claim — one hypothesis CONFIRMED, one REFUTED, two unverified | The proof — the 25s `SELECT` span, in real SigNoz |
 |---|---|
 | [<img src="assets/screenshots/10-console-detail.png" alt="Console detail: confirmed and refuted hypotheses with SigNoz deep links." width="100%">](assets/screenshots/10-console-detail.png) | [<img src="assets/screenshots/06-hero-trace-pg-sleep-waterfall.png" alt="SigNoz trace waterfall: a 25s SELECT span under GET /products." width="100%">](assets/screenshots/06-hero-trace-pg-sleep-waterfall.png) |
 
