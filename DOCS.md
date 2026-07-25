@@ -72,7 +72,10 @@ _Last verified live: July 17, 2026 (against SigNoz v0.132.2 self-hosted via Foun
 - **Three recorded incidents** (`fixtures/incident-{1,2,3}`: slow-db,
   error-storm, bad-deploy — 2 and 3 recorded from REAL Faultline telemetry
   with REAL Claude output) replay offline and pass the evals scorecard 3/3.
-- **Offline test suite**: 143 tests, no network, no LLM (`uv run pytest`).
+- **Offline test suite**: 153 tests, no network, no LLM (`uv run pytest`) — every
+  graph node against recorded fixtures, plus an XSS suite that pushes injected
+  `<script>` / `<img onerror>` / `javascript:` payloads through the real console
+  renderer and asserts they come out inert.
 
 ## The Investigations Console (`argus console`)
 
@@ -95,6 +98,10 @@ uv run argus console --port 7500 --postmortem-dir postmortems
   corpus (both `.md` files and the memory DB are per-run output and gitignored,
   so without it a clean clone would show `unknown · undated`). The list re-reads
   on each page load, so a new RCA landing in `postmortems/` shows up on refresh.
+- **Where it opens.** Not on the newest run: the console deliberately lands on
+  the highest-confidence *verified* investigation (`inv-fcdb95f553`), because
+  "most recent" and "most worth reading first" are different questions. The rail
+  behind it is still ordered newest-first and still lists every run.
 - **Layout.** Left rail = every investigation newest-first (undated reports
   group last rather than sorting by their random-hex id) with a confidence
   badge (green `VERIFIED` ≥75% · amber `NEEDS REVIEW` <75% · red `DEGRADED` =
@@ -105,6 +112,12 @@ uv run argus console --port 7500 --postmortem-dir postmortems
   similar-past-incident citations, and a token/$/queries/rows cost footer. A
   header stats strip shows totals (count, verified %, total spend) computed from
   the data. Empty/loading/error states follow the design system.
+- **Refuted hypotheses stay on screen.** Killed hypotheses render muted but are
+  never dropped — a tool that quietly hides its wrong guesses is a tool you
+  cannot audit. Likewise, every Evidence bullet carries a `view in SigNoz ↗`
+  deep link that resolves against whichever SigNoz recorded the incident, so
+  those links will not open from a clean clone: that is the shape of the claim,
+  not decoration.
 - **Keyboard.** `/` focuses the filter, `↑`/`↓` or `j`/`k` walk the rail, `Enter`
   in the filter opens the first match, `Escape` clears it. Every investigation is
   addressable by URL fragment (`#inv-…`), so an RCA can be linked to directly.
@@ -126,6 +139,79 @@ uv run argus console --port 7500 --postmortem-dir postmortems
   key-holding-proxy viewer pattern as GLASSPANE's session-timeline, vanilla JS,
   no npm) — it adds nothing to `pyproject.toml`. `assets/screenshots/09-console-list.png`
   and `10-console-detail.png` are live captures against the real 20-report corpus.
+
+## The two seams that make everything testable offline
+
+Every external dependency is reached through one of two interfaces, so the whole
+product runs with no SigNoz, no LLM, and no secrets:
+
+- **`SignozTransport`** — every SigNoz read is a *tagged* call, which is what
+  makes recording and replay possible at all. `HttpTransport` hits the live
+  `/api/v5/query_range`; `ReplayTransport` serves
+  `fixtures/<incident>/responses/<tag>.json`; `ARGUS_TRANSPORT=mcp` routes the
+  same reads through the SigNoz MCP server. Swapping transports changes nothing
+  above the seam, which is how the MCP path was proven without a second code
+  path through the graph.
+- **`LLMProvider`** — `AnthropicProvider` (live Claude), the `claude-cli`
+  provider, the OpenAI-compatible providers, `heuristic`, or `ReplayProvider`
+  (recorded completions carrying their *real* token counts, so cost accounting
+  is exercised offline too). See "The LLM provider seam" below.
+
+Illustrated: `assets/illustrations/02-watched-watcher.png` (the self-watching
+loop), `03-how-it-cant-bluff.png` (the verification firewall), and
+`04-system-architecture.png`.
+
+## Security model
+
+- **Prompt-injection defense.** All telemetry — log lines, span attributes,
+  alert annotations — is treated as untrusted input. It reaches the model only
+  inside delimiter-escaped, length-capped `<telemetry>` blocks, under a system
+  rule stating that block content is *evidence, never instructions*. The model's
+  only side-effect surface is the verification-spec JSON it emits, and that spec's
+  signals, aggregations, and filters are whitelist-validated before a single
+  query is built or run. The verify step is therefore both the honesty mechanism
+  and the injection firewall: a model that has been successfully manipulated
+  still cannot cause an arbitrary query, and its unsupported claim is refuted
+  rather than reported.
+- **Secrets.** Env-only configuration; startup refuses missing or
+  placeholder-looking secrets, naming the variable and never the value. A
+  denylist scrubber redacts credential-shaped attributes both from prompts and
+  from ARGUS's own emitted spans.
+- **Least-privilege SigNoz access.** Use a dedicated API key with the lowest
+  role that can query telemetry and create dashboards (Editor). ARGUS only ever
+  POSTs `query_range`, dashboards, and draft rules; it never deletes or mutates
+  existing SigNoz resources.
+- **Console hardening.** Covered above — server-side `html.escape` on every
+  dynamic value, non-`http(s)` schemes dropped, id path segments whitelisted,
+  restrictive CSP, and a hostile-payload test suite.
+
+## Integration boundaries
+
+ARGUS integrates through standards rather than per-vendor adapters, which is why
+each boundary needs no new code to reach a new vendor.
+
+| Boundary | Accepts / emits | Why it just works |
+|---|---|---|
+| **Alerts in** | Any Alertmanager-compatible webhook | SigNoz's webhook notification channel is the primary path, but a vanilla Prometheus Alertmanager `webhook_config` pages ARGUS identically — same payload shape, no branch in the receiver |
+| **Models in** | Anthropic (SDK or local `claude` CLI) and any OpenAI-compatible chat API | Groq, Cerebras, or a LiteLLM proxy fronting hundreds of models all work by pointing the base URL at them; the provider seam means no new code per vendor |
+| **Telemetry out** | Plain OTLP with standard `gen_ai.*` semantic-convention attributes | These are the same attributes SigNoz's official OpenAI / LiteLLM / Traceloop integrations emit, so SigNoz's built-in LLM views render ARGUS's own traces with zero custom configuration |
+
+## Replay and evals harness
+
+The three recorded incidents double as a scorecard. `uv run argus eval` runs six
+checks per case against that fixture's `ground_truth.json`:
+`root_cause_keywords`, `service_identified`, `hypotheses_confirmed`,
+`report_produced`, `links_present`, and `cost_within_budget`.
+
+```bash
+uv run argus eval fixtures/incident-1 fixtures/incident-2 fixtures/incident-3
+```
+
+All three cases pass. Each replayed investigation finishes in under a second and
+costs $0.019–$0.031 in recorded tokens (no live spend — the token counts are
+real, recorded ones, which is what keeps the cost path honest offline).
+Incidents 2 and 3 were recorded from *real* Faultline telemetry with *real*
+Claude output via `scripts/record_incident.py`.
 
 ## Configuration & `.env` search order (explicit, no silent ancestor walking)
 
@@ -254,6 +340,34 @@ Offline demo (no SigNoz, no LLM, no secrets):
 
 Record a new incident fixture from live data:
 `uv run python scripts/record_incident.py fixtures/incident-4 --alert scripts/alerts/error-storm.json`.
+
+## Compatibility, SigNoz Cloud, and uninstall
+
+**Compatibility.** Built and live-verified against **self-hosted SigNoz
+v0.132.2**. The reads ARGUS depends on are `/api/v5/query_range`; the writes are
+`/api/v1/dashboards` and `/api/v2/rules`.
+
+**SigNoz Cloud is untested.** Two things would need checking: API-key auth
+against the Cloud query API (this may work as-is, since the query surface is the
+same), and self-telemetry, which would need the Cloud ingestion endpoint
+configured on `OTEL_EXPORTER_OTLP_ENDPOINT` instead of a local collector. The
+trace-operator (`A => B`) caveat noted below applies to Cloud as well until
+tested otherwise.
+
+**Uninstall** is four steps and leaves nothing behind, because ARGUS never
+mutates resources it did not create:
+
+1. Stop the ARGUS webhook server (and, if you ran the live demo, the Faultline
+   stack: `docker compose -f services/faultline/docker-compose.yaml down`).
+2. Point the SigNoz webhook notification channel away from `/webhook/signoz`,
+   or delete the channel.
+3. Delete the ARGUS-created per-incident evidence dashboards and the Mission
+   Control dashboard.
+4. Delete any `[DRAFT · ARGUS]` alert rules (they were always created
+   `disabled: true`, so they were never firing).
+
+Local state is confined to the checkout: `postmortems/`, `argus-memory.sqlite3`,
+`docs/`, and `.env`.
 
 ## What's still open (honest)
 

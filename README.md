@@ -13,42 +13,39 @@
 [![Last commit](https://img.shields.io/github/last-commit/vinayaksonthalia/argus.svg)](https://github.com/vinayaksonthalia/argus/commits)
 [![Repo size](https://img.shields.io/github/repo-size/vinayaksonthalia/argus.svg)](https://github.com/vinayaksonthalia/argus)
 
-[See it work](#see-it-work) · [Why it's different](#why-its-different) · [Quickstart](#quickstart) · [The 15-minute tour](#the-15-minute-tour) · [Architecture](#architecture) · [Integrations](#integrations) · [Security](#security) · [Status](#status) · [Learn](#learn)
+[See it work](#see-it-work) · [Why](#why-its-different) · [Quickstart](#quickstart) · [Tour](#the-15-minute-tour) · [Architecture](#architecture) · [Status](#status) · [Limits](#honest-limits) · [Compatibility](#compatibility-and-uninstall)
 
 </div>
 
 ## See it work
 
-A SigNoz alert fires. Nobody types a question. ARGUS investigates across metrics, traces, and logs, tests each hypothesis against real queries, and posts a root cause you can click into SigNoz — and its own reasoning is traced back into the same SigNoz with `gen_ai.*` OpenTelemetry attributes, tokens and dollars included.
+A SigNoz alert fires. Nobody types a question. ARGUS investigates across metrics, traces, and logs, tests each hypothesis against real queries, and posts a root cause you can click into SigNoz — tracing its own reasoning back into that SigNoz, tokens and dollars included.
 
 <p align="center">
-  <img src="assets/demo/console-walkthrough.gif" alt="The Investigations Console opening on its highest-confidence VERIFIED run — root cause, timeline, confirmed and refuted hypotheses, SigNoz-linked evidence — then filtering the rail down to the degraded runs that refused to conclude." width="820">
+  <img src="assets/demo/console-walkthrough.gif" alt="The Investigations Console opening on its VERIFIED run, then filtering down to a degraded one." width="900">
 </p>
 
-<p align="center"><sub>The console opens on the one run that cleared the 75% bar, then filters down to a run that <em>refused</em> to conclude — "no hypothesis survived verification." Both are in the shipped corpus; 1 of 20 was verified, and that number is not massaged. Browse it yourself: <code>python3 -m http.server -d docs 8000</code>.</sub></p>
+<p align="center"><sub>It opens on the run that cleared the 75% bar, then filters to one that <em>refused</em> to conclude.</sub></p>
 
-| The verified RCA, in the Investigations Console | The evidence itself, back in SigNoz |
+| The claim — one hypothesis CONFIRMED, two REFUTED | The proof — the 25s `SELECT` span, in real SigNoz |
 |---|---|
-| [<img src="assets/screenshots/10-console-detail.png" alt="ARGUS Investigations Console: one hypothesis CONFIRMED (an injected pg_sleep(2.5) in the products SELECT), two REFUTED, and an Evidence panel that deep-links every claim into SigNoz." width="100%">](assets/screenshots/10-console-detail.png) | [<img src="assets/screenshots/06-hero-trace-pg-sleep-waterfall.png" alt="The SigNoz trace waterfall for the same incident: a 25s SELECT span under GET /products — the exact span ARGUS named as root cause." width="100%">](assets/screenshots/06-hero-trace-pg-sleep-waterfall.png) |
-| One hypothesis **CONFIRMED** at 90%, two **REFUTED** — every claim deep-links into SigNoz. | The 25s `SELECT` span ARGUS named as the culprit, in real SigNoz. |
+| [<img src="assets/screenshots/10-console-detail.png" alt="Console detail: confirmed and refuted hypotheses with SigNoz deep links." width="100%">](assets/screenshots/10-console-detail.png) | [<img src="assets/screenshots/06-hero-trace-pg-sleep-waterfall.png" alt="SigNoz trace waterfall: a 25s SELECT span under GET /products." width="100%">](assets/screenshots/06-hero-trace-pg-sleep-waterfall.png) |
 
-*The flagship live run `inv-fcdb95f553` named the actual injected fault — "pg_sleep(2.5) embedded in the products SELECT", mechanically verified ("found 'pg_sleep' in 20 matching rows") — from a real SigNoz alert fired by real telemetry, with a real Claude model. Receipts: [`assets/live-e2e-VERIFIED-HERO-inv-fcdb95f553-postmortem.md`](assets/live-e2e-VERIFIED-HERO-inv-fcdb95f553-postmortem.md).*
+That flagship run, `inv-fcdb95f553`, named the actual injected fault — a `pg_sleep(2.5)` buried in the catalog service's products `SELECT` — and proved it mechanically ("found 'pg_sleep' in 20 matching rows"), from a real alert on real telemetry against a real Claude model. [Receipts](assets/live-e2e-VERIFIED-HERO-inv-fcdb95f553-postmortem.md).
 
 ## Why it's different
 
-On-call at 2 a.m., you don't need a chatbot to ask questions of — you need the answer already waiting. ARGUS is triggered by the alert webhook, not by a human prompt, and it refuses to guess: **every hypothesis the model proposes carries a machine-runnable, falsifiable verification spec, and any claim the telemetry doesn't back is *refuted*, not reported.** That verify step is also the prompt-injection firewall — the model's only side-effect is constrained JSON that is whitelist-validated before a single query runs.
+> At 2 a.m. you don't need a chatbot to ask questions of — you need the answer already waiting. ARGUS is triggered by the alert webhook, not a human prompt, and it cannot bluff: every hypothesis carries a machine-runnable, falsifiable verification spec, and any claim the telemetry doesn't back is **refuted**, not reported.
 
-- **Autonomous, not conversational.** The SigNoz alert webhook triggers the whole loop; nobody types a question.
 - **Verified, not vibes.** Each hypothesis is confirmed or refuted by a real before/after query; below 75% confidence a run flags itself for human review instead of overclaiming.
-- **Self-observing.** Each investigation is an `argus.investigation` trace — one OTel span per node, `gen_ai.usage.*` and `argus.cost.usd` attributes — flowing back into the same SigNoz it queries.
-- **Replayable & evaluated.** Recorded incidents replay with no SigNoz, no LLM, and no secrets, and double as an evals harness that scores RCA accuracy.
+- **Self-observing.** Every investigation is an `argus.investigation` trace — one OTel span per node, carrying `gen_ai.usage.*` and `argus.cost.usd` — flowing back into the SigNoz it queries.
+- **Hardened.** Telemetry reaches the model only inside delimiter-escaped, length-capped `<telemetry>` blocks, and its sole side-effect is constrained JSON, whitelist-validated before a query is built — so verification is the honesty mechanism *and* the [prompt-injection firewall](DOCS.md#security-model).
+- **Replayable.** Recorded incidents replay with no SigNoz, no LLM, and no secrets, doubling as an evals harness scoring RCA accuracy.
 
-## The story
-
-You're on call. It's 2 a.m. The page goes off — and here is how the night actually goes with ARGUS on the pager next to you.
+## The pager story
 
 <p align="center">
-  <img src="assets/illustrations/05-the-story.png" alt="Four panels: (1) 2 a.m., paged and exhausted as a checkout p99 alert fires; (2) ARGUS is already investigating, a tree of checks building itself, no question typed; (3) the verdict lands in #incidents with a root cause and clickable SigNoz evidence; (4) you go back to sleep while ARGUS's eye watches the calm services." width="900">
+  <img src="assets/illustrations/05-the-story.png" alt="Four panels: paged at 2 a.m.; ARGUS investigating unprompted; the verdict landing in #incidents; back to sleep." width="900">
 </p>
 
 ## Quickstart
@@ -56,73 +53,43 @@ You're on call. It's 2 a.m. The page goes off — and here is how the night actu
 Requires Python 3.11+ and [uv](https://docs.astral.sh/uv/).
 
 ```bash
-cd argus
-uv venv && uv pip install -e ".[dev]"
-```
-
-### Offline demo — no SigNoz, no API keys
-
-Replay a recorded `slow-db` incident (an injected `pg_sleep(2.5)` in the catalog service's product query):
-
-```bash
-uv run argus investigate --replay fixtures/incident-1
-```
-
-You will see node-by-node progress, the verified RCA (one hypothesis confirmed by a before/after p99 query, two refuted), the Slack Block Kit payload (dry-run by default), a markdown postmortem in `postmortems/`, and the token/cost line — all from recorded fixtures with real token counts, so cost tracking works offline too.
-
-<details>
-<summary><b>Investigations Console, evals harness, and tests</b></summary>
-
-```bash
-uv run argus console   # read-only web UI on http://127.0.0.1:7332 — renders every past RCA from postmortems + memory, no LLM, no SigNoz calls
-uv run argus eval fixtures/incident-1 fixtures/incident-2 fixtures/incident-3   # scored against ground_truth.json — 3/3 correctly root-caused
-uv run pytest          # 153 tests: every node against recorded fixtures; no network, no LLM
-```
-
-The console (stdlib `http.server`, no npm/React, localhost-only) is what the screenshots above show. Filter the rail by service, alert or id, or by status chip; `/` focuses the filter and `j`/`k` walk the list; every RCA has its own `#inv-…` URL. Incidents 2 and 3 were recorded from *real* telemetry with *real* Claude output via `scripts/record_incident.py`. Replay evals: 3/3 recorded incident types correctly root-caused, $0.019–$0.031 per replayed investigation, under 1s each.
-
-**Browse the 20 recorded investigations without installing anything** — the console is also exported to plain static files:
-
-```bash
-python3 -m http.server -d docs 8000   # then open http://localhost:8000
-```
-
-Regenerate that export after any console change with `uv run python scripts/export_console.py`.
-</details>
-
-### Connect Slack (guided, ~2 minutes)
-
-```bash
-uv run argus slack-setup
-```
-
-A wizard creates the Slack app, adds `chat:write`, live-validates the token (`auth.test`), sends a real test message so you see it land, and writes `SLACK_BOT_TOKEN` + `SLACK_CHANNEL` into `.env` (`chmod 600`, token never printed). Scripted use: `uv run argus slack-setup --token xoxb-… --channel '#incidents' --yes`. Without a token, ARGUS stays in dry-run and logs the Block Kit JSON.
-
-### Live mode
-
-```bash
-cp .env.example .env    # fill in real values — startup refuses placeholders
-uv run argus serve      # webhook server on :7331
-```
-
-Point a SigNoz webhook notification channel at `http://<host>:7331/webhook/signoz`. Alerts are deduplicated (re-delivery returns the existing investigation) with one in-flight investigation per service. Set `OTEL_EXPORTER_OTLP_ENDPOINT` and ARGUS's own investigation traces appear in the same SigNoz. For the full live demo — Faultline demo services, fault injection, a real alert, the webhook loop — see [`DOCS.md`](DOCS.md) ("Run the live demo in 5 commands").
-
-## The 15-minute tour
-
-The quickstart above gets ARGUS running. This is the guided route from a cold
-`git clone` to the one artifact worth arguing about: a root cause that was
-*verified*, sitting next to the runs that weren't. Nine steps, no SigNoz, no API
-keys, no network. Each step lists the line you should see.
-
-**1 — Clone and install** (~2 min)
-
-```bash
 git clone https://github.com/vinayaksonthalia/argus && cd argus
 uv venv && uv pip install -e ".[dev]"
 ```
 
-> `Installed N packages` — nine runtime deps, all for the *live* path. Everything
-> in this tour runs offline.
+**Offline demo** — no SigNoz, no API keys, no network:
+
+```bash
+uv run argus investigate --replay fixtures/incident-1   # the flagship slow-db incident
+uv run argus console                                    # read-only UI on http://127.0.0.1:7332
+```
+
+The replay prints node-by-node progress, the verified RCA, the Block Kit payload (dry-run by default), a postmortem in `postmortems/`, and the token/cost line — from fixtures carrying real token counts, so cost tracking works offline too.
+
+**Slack**, guided in about two minutes:
+
+```bash
+uv run argus slack-setup    # scripted: --token xoxb-… --channel '#incidents' --yes
+```
+
+It creates the app, live-validates the token, sends a real test message, and writes `.env` (`chmod 600`, token never printed). Without a token ARGUS stays in dry-run. [Full flow](DOCS.md#connecting-slack-argus-slack-setup).
+
+**Live mode:**
+
+```bash
+cp .env.example .env    # startup refuses placeholder values
+uv run argus serve      # webhook server on :7331
+```
+
+Point a SigNoz webhook notification channel at `http://<host>:7331/webhook/signoz`. Alerts are deduplicated — a re-delivery returns the existing investigation — one in flight per service. Set `OTEL_EXPORTER_OTLP_ENDPOINT` and ARGUS's traces appear in that same SigNoz. Faultline services, fault injection, and a real alert through the loop: [the live demo](DOCS.md#run-the-live-demo-in-5-commands).
+
+## The 15-minute tour
+
+From a cold clone to the artifact worth arguing about: a verified root cause next to the runs that weren't. Offline throughout; each step lists the line you should see.
+
+**1 — Install** (~2 min) — the two commands above.
+
+> `Installed N packages` — nine runtime deps, all for the *live* path.
 
 **2 — Replay the flagship incident: a slow database** (~1 min)
 
@@ -130,112 +97,57 @@ uv venv && uv pip install -e ".[dev]"
 uv run argus investigate --replay fixtures/incident-1
 ```
 
-> `ROOT CAUSE VERIFIED · confidence 90%`
->
-> Watch the eleven nodes tick past (`triage … hypothesize … verify … report`),
-> then read the Hypotheses table: **one CONFIRMED** — an injected `pg_sleep(2.5)`
-> in the catalog `SELECT` — and the rest **REFUTED**, each with the query that
-> killed it (`'502' not found in 0 rows`). The verdict is not the model's
-> opinion; it is what survived a real before/after query.
+> `ROOT CAUSE VERIFIED · confidence 90%` — eleven nodes tick past; one hypothesis lands CONFIRMED, the rest REFUTED with the query that killed each.
 
-**3 — Replay a run that refuses to conclude** (~1 min)
+**3 — Replay the other two** (~2 min)
 
 ```bash
 uv run argus investigate --replay fixtures/incident-2
-```
-
-> `NEEDS HUMAN REVIEW · confidence 60%`
->
-> This is the point of the whole design. The evidence was real but thin, so the
-> run flagged itself instead of dressing 60% up as an answer. Nothing hides it —
-> it ships in the corpus and the console lists it.
-
-**4 — Replay a deploy-correlated incident** (~1 min)
-
-```bash
 uv run argus investigate --replay fixtures/incident-3
 ```
 
-> `ROOT CAUSE VERIFIED · confidence 75%` — a latency-and-error regression tied to
-> a deploy, landing exactly on the 75% threshold.
+> `NEEDS HUMAN REVIEW · confidence 60%`, then `ROOT CAUSE VERIFIED · confidence 75%` — the first had thin but real evidence and flagged itself rather than dress 60% up as an answer; the second, a deploy-correlated regression, landed exactly on the threshold.
 
-**5 — Score all three against ground truth** (~1 min)
+**4 — Score all three against ground truth** (~1 min)
 
 ```bash
 uv run argus eval fixtures/incident-1 fixtures/incident-2 fixtures/incident-3
 ```
 
-> `3/3 cases passed`
->
-> Six checks per case — `root_cause_keywords`, `service_identified`,
-> `hypotheses_confirmed`, `report_produced`, `links_present`,
-> `cost_within_budget` — scored against each fixture's `ground_truth.json`. Under
-> a second and roughly $0.03 per replayed investigation.
+> `3/3 cases passed` — six checks per case against its `ground_truth.json` ([the checks](DOCS.md#replay-and-evals-harness)).
 
-**6 — Run the test suite** (~1 min)
+**5 — Run the test suite** (~1 min)
 
 ```bash
 uv run pytest -q
 ```
 
-> `153 passed`
->
-> Every node against recorded fixtures, plus the XSS suite that proves injected
-> `<script>` / `<img onerror>` / `javascript:` payloads render inert in the
-> console.
+> `153 passed` — every node against recorded fixtures, plus an XSS suite proving hostile payloads render inert.
 
-**7 — Open the Investigations Console** (~4 min — the main stop)
+**6 — Open the Investigations Console** (~4 min — the main stop)
 
 ```bash
 uv run argus console      # http://127.0.0.1:7332
 ```
 
-Four things to look at, in order:
+> It opens on `inv-fcdb95f553` — VERIFIED, deliberately not the newest run. One hypothesis card is CONFIRMED, the others REFUTED, muted but never dropped. The chips read `Verified 1` · `Review 13` · `Degraded 6`; open a Degraded one for *"no hypothesis survived verification."* One in twenty cleared the bar, and that ratio is published, not massaged.
 
-- **It opens on `inv-fcdb95f553` — VERIFIED, 90%.** Not the newest run: the
-  console deliberately lands on the highest-confidence *verified* investigation,
-  because "most recent" and "most worth reading" are different questions.
-- **Scroll to Hypotheses.** One card is green and CONFIRMED. The others are red,
-  **REFUTED, and rendered muted but still present** — the honesty feature. A tool
-  that quietly drops its wrong guesses is a tool you cannot audit.
-- **Every Evidence bullet carries a `view in SigNoz ↗` deep link.** They resolve
-  against whichever SigNoz recorded the incident, so they will not open from a
-  clean clone — that is the shape of the claim, not decoration.
-- **Use the filter chips.** `Verified 1` · `Review 13` · `Degraded 6` out of 20.
-  Click **Degraded** and open one: "no hypothesis survived verification." One in
-  twenty cleared the bar, and that ratio is published rather than massaged.
-  Press `/` to search, `j`/`k` to walk the rail, and note every RCA has its own
-  `#inv-…` URL.
-
-**8 — Browse the same corpus with nothing installed** (~2 min)
+**7 — Browse the same corpus with nothing installed** (~2 min)
 
 ```bash
 python3 -m http.server -d docs 8000    # http://localhost:8000
 ```
 
-> `Serving HTTP on :: port 8000`
->
-> `docs/` is the same console rendered to static files by
-> `scripts/export_console.py` — same `render.py`, same CSS, same keyboard
-> handling, so it cannot drift from the product. Regenerate it with
-> `uv run python scripts/export_console.py`; a second run leaves the tree
-> byte-identical.
+> `Serving HTTP on :: port 8000` — `docs/` is that console rendered to static files by `scripts/export_console.py`, from the same `render.py` and CSS, so it cannot drift.
 
-**9 — Check the receipts** (~2 min)
+**8 — Check the receipts** (~2 min) — everything above is offline replay; the claims needing a live system have their evidence written down:
 
-Everything above is offline replay. The claims that needed a live system are
-written down with their evidence:
-
-| Claim | Where the proof lives |
+| Claim | Proof |
 |---|---|
-| The flagship RCA came from a real SigNoz alert and a real Claude call | [`assets/live-e2e-VERIFIED-HERO-inv-fcdb95f553-postmortem.md`](assets/live-e2e-VERIFIED-HERO-inv-fcdb95f553-postmortem.md) |
-| The same fault, seen in SigNoz itself | [`assets/screenshots/06-hero-trace-pg-sleep-waterfall.png`](assets/screenshots/06-hero-trace-pg-sleep-waterfall.png) |
-| **Slack posting is real** — `chat.postMessage` returned HTTP 200 twice, to a real workspace | [`assets/live-slack-posting-verified.md`](assets/live-slack-posting-verified.md), with the exact Block Kit payload in [`assets/live-e2e-1-slack-blocks-inv-4199347358.json`](assets/live-e2e-1-slack-blocks-inv-4199347358.json) |
-| ARGUS's own reasoning traced back into SigNoz, tokens and dollars included | [`assets/screenshots/03-mission-control-dashboard.png`](assets/screenshots/03-mission-control-dashboard.png) |
-| What is *not* done | the ❌/⚠️ rows in [Status](#status), and "Honest limits" in [`learning/`](learning/README.md) |
-
-To go further — Faultline demo services, fault injection, a real alert through
-the webhook loop — see "Run the live demo in 5 commands" in [`DOCS.md`](DOCS.md).
+| The flagship RCA came from a real alert and a real Claude call | [postmortem](assets/live-e2e-VERIFIED-HERO-inv-fcdb95f553-postmortem.md) |
+| The same fault, seen in SigNoz itself | [trace waterfall](assets/screenshots/06-hero-trace-pg-sleep-waterfall.png) |
+| **Slack posting is real** — `chat.postMessage` returned HTTP 200 twice, to a real workspace | [verification](assets/live-slack-posting-verified.md) · [payload](assets/live-e2e-1-slack-blocks-inv-4199347358.json) |
+| Its own reasoning traced back into SigNoz, with cost | [Mission Control](assets/screenshots/03-mission-control-dashboard.png) |
 
 ## Architecture
 
@@ -253,62 +165,49 @@ SigNoz alert ──webhook──▶ ARGUS (FastAPI)
   (deep links into SigNoz)                  (tokens + $ per investigation)
 ```
 
-Two seams make everything testable offline:
-
-- **`SignozTransport`** — every SigNoz read is a tagged call. `HttpTransport` hits `/api/v5/query_range` live; `ReplayTransport` serves `fixtures/<incident>/responses/<tag>.json`; `ARGUS_TRANSPORT=mcp` routes reads through the SigNoz MCP server behind the same seam.
-- **`LLMProvider`** — `AnthropicProvider` (live Claude) or `ReplayProvider` (recorded completions with real token counts).
-
-Illustrated: [the self-watching loop](assets/illustrations/02-watched-watcher.png) · [how it can't bluff](assets/illustrations/03-how-it-cant-bluff.png) · [system architecture](assets/illustrations/04-system-architecture.png). Full design in [`DOCS.md`](DOCS.md).
-
-## Integrations
-
-ARGUS integrates through standards, not per-vendor adapters.
-
-| Boundary | What it accepts / emits | Why it just works |
-|---|---|---|
-| **Alerts in** | Any Alertmanager-compatible webhook | SigNoz's webhook channel is the primary path; a vanilla Prometheus Alertmanager `webhook_config` pages ARGUS identically |
-| **Models in** | Anthropic (SDK or local `claude` CLI) and any OpenAI-compatible chat API | Groq, Cerebras, or a LiteLLM proxy (hundreds of models) work by pointing the base URL — no new code per provider |
-| **Telemetry out** | Plain OTLP with standard `gen_ai.*` semantic-convention attributes | The same attributes SigNoz's official OpenAI/LiteLLM/Traceloop integrations emit, so SigNoz's LLM views render ARGUS's own traces with zero custom config |
-
-## Security
-
-- **Prompt-injection defense.** All telemetry (log lines, span attributes, alert annotations) is untrusted. It reaches the model only inside delimiter-escaped, length-capped `<telemetry>` blocks under a system rule that block content is evidence, never instructions. The model's only side-effect surface is the verification-spec JSON, whose signals/aggregations/filters are whitelist-validated before any query is built.
-- **Secrets.** Env-only config; startup refuses missing or placeholder-looking secrets (naming the variable, never the value); a denylist scrubber redacts credential-shaped attributes from prompts and from ARGUS's own spans.
-- **Least-privilege SigNoz access.** Use a dedicated API key with the lowest role that can query telemetry and create dashboards (Editor). ARGUS only ever POSTs `query_range`, dashboards, and draft rules — it never deletes or mutates existing resources.
+Two seams make this testable offline. **`SignozTransport`** tags every SigNoz read, making `HttpTransport` (live `/api/v5/query_range`), `ReplayTransport` (recorded JSON), and `ARGUS_TRANSPORT=mcp` (the SigNoz MCP server) interchangeable; **`LLMProvider`** swaps live Claude for the local `claude` CLI, any OpenAI-compatible endpoint, a heuristic, or recorded completions. Both outer edges are standards, not per-vendor adapters — any Alertmanager-compatible webhook in, plain OTLP with `gen_ai.*` attributes out — so vanilla Prometheus Alertmanager pages ARGUS identically and SigNoz's LLM views render its traces with zero config. Full design, seams, and [illustrations](assets/illustrations/): [`DOCS.md`](DOCS.md).
 
 ## Status
 
-Done and live-verified unless marked otherwise. Evidence lives in [`assets/`](assets/) and [`DOCS.md`](DOCS.md).
+Live-verified unless marked otherwise; evidence in [`assets/`](assets/).
 
 | Capability | Status | Evidence |
 |---|---|---|
-| End-to-end loop: webhook → dedup → golden signals → trace dive → log clustering → constrained-JSON hypotheses → refute-loop verify → Slack RCA → postmortem | ✅ Live-verified | Flagship run `inv-fcdb95f553` at 90% ([postmortem](assets/live-e2e-VERIFIED-HERO-inv-fcdb95f553-postmortem.md)) |
-| Verified-not-vibes: per-hypothesis confidence, 75% human-review threshold, below-threshold self-flagging | ✅ Live-verified | [`assets/live-e2e-degraded-run-inv-3a51fe90dd-postmortem.md`](assets/live-e2e-degraded-run-inv-3a51fe90dd-postmortem.md) |
-| Self-instrumentation: span per node, `gen_ai.*` + `argus.cost.usd`, Mission Control dashboard | ✅ Live | [screenshot 03](assets/screenshots/03-mission-control-dashboard.png) |
-| Incident memory: SQLite + hashed-TF recall, similar past incidents cited in the RCA | ✅ Live-verified | [`assets/live-memory-recall-inv-977e5fd4e8-postmortem.md`](assets/live-memory-recall-inv-977e5fd4e8-postmortem.md) |
-| Pluggable providers: `anthropic` / `claude-cli` / `groq` / `cerebras` / `heuristic` / `replay` | ✅ Live (groq verified; cerebras 402-limited) | [`evals/PROVIDER-BENCHMARK.md`](evals/PROVIDER-BENCHMARK.md) |
-| Act node: per-incident evidence dashboard + `[DRAFT · ARGUS]` alert rules (always `disabled: true`) | ✅ Live-verified | [screenshot 05](assets/screenshots/05-hero-incident-evidence-dashboard.png), [08](assets/screenshots/08-alert-rules-incl-draft.png) |
-| Spend meta-alert: `argus.cost.usd` → alert rule → webhook → ARGUS pages ARGUS | ✅ Live-verified | [meta-incident dashboard](assets/screenshots/04-meta-incident-argus-pages-itself-dashboard.png) |
-| MCP transport: SigNoz MCP server behind the transport seam | ✅ Live (run scored 55%, self-flagged — proves the transport) | [`assets/live-mcp-transport-inv-5736466ee5-postmortem.md`](assets/live-mcp-transport-inv-5736466ee5-postmortem.md) |
-| Live Slack posting: `chat.postMessage` Block Kit RCA | ✅ Live-verified (HTTP 200) | [`assets/live-slack-posting-verified.md`](assets/live-slack-posting-verified.md) |
-| Replay + evals harness: 3 recorded incidents scored against ground truth | ✅ Deterministic, 3/3 | `fixtures/incident-{1,2,3}` |
+| End-to-end loop: webhook → dedup → golden signals → trace dive → log clustering → hypothesize → verify → Slack RCA → postmortem | ✅ Live-verified | [`inv-fcdb95f553`](assets/live-e2e-VERIFIED-HERO-inv-fcdb95f553-postmortem.md) |
+| Per-hypothesis confidence, review threshold, self-flagging | ✅ Live-verified | [`inv-3a51fe90dd`](assets/live-e2e-degraded-run-inv-3a51fe90dd-postmortem.md) |
+| Self-instrumentation + Mission Control dashboard | ✅ Live | [screenshot](assets/screenshots/03-mission-control-dashboard.png) |
+| Incident memory: SQLite + hashed-TF recall, cited in the RCA | ✅ Live-verified | [`inv-977e5fd4e8`](assets/live-memory-recall-inv-977e5fd4e8-postmortem.md) |
+| Pluggable providers: `anthropic` / `claude-cli` / `groq` / `cerebras` / `heuristic` / `replay` | ✅ Live (groq verified, cerebras 402-limited) | [benchmark](evals/PROVIDER-BENCHMARK.md) |
+| Act node: evidence dashboard + `[DRAFT · ARGUS]` rules (always `disabled: true`) | ✅ Live-verified | [dashboard](assets/screenshots/05-hero-incident-evidence-dashboard.png) · [rules](assets/screenshots/08-alert-rules-incl-draft.png) |
+| Spend meta-alert: `argus.cost.usd` → rule → webhook → ARGUS pages ARGUS | ✅ Live-verified | [dashboard](assets/screenshots/04-meta-incident-argus-pages-itself-dashboard.png) |
+| MCP transport behind the same seam | ✅ Live (scored 55% and self-flagged — which is what proves it) | [`inv-5736466ee5`](assets/live-mcp-transport-inv-5736466ee5-postmortem.md) |
+| Live Slack posting: `chat.postMessage` Block Kit RCA | ✅ Live-verified (HTTP 200) | [receipt](assets/live-slack-posting-verified.md) |
+| Replay + evals harness scored against ground truth | ✅ Deterministic | `fixtures/incident-{1,2,3}` |
 | Foundry single-cast deploy (SigNoz + ARGUS + Faultline) | ⚠️ Generation dry-run validated | `deploy/casting.yaml` |
-| Multi-service blast-radius correlation | ❌ Planned | Single-service analysis today |
+| Multi-service blast-radius correlation | ❌ Planned | single-service analysis today |
 
-## Compatibility & uninstall
+## Honest limits
 
-**Compatibility:** built and live-verified against **self-hosted SigNoz v0.132.2**. SigNoz Cloud is untested — API-key auth against the Cloud query API may work as-is, and self-telemetry would need the Cloud ingestion endpoint instead of a local collector. (The trace-operator `A => B` query caveat in `DOCS.md` still applies.)
+Blast radius is single-service · the Anthropic SDK path is exercised through `claude-cli`, not a raw API key · incident-memory similarity uses local hashed-TF embeddings over a small corpus, so recall grows with use · a verification spec can 404 on a field that was never ingested, costing that hypothesis rather than faking it · trace operators (`A => B`) are avoided, as they generate malformed SQL on the verified SigNoz version · `foundryctl cast` was dry-run validated, never executed. Each is expanded in [`DOCS.md`](DOCS.md#whats-still-open-honest) and the [FAQ](learning/README.md).
 
-**Uninstall:** stop the ARGUS webhook server (and, for the demo, the Faultline stack); point the SigNoz webhook channel away from `/webhook/signoz`; delete the ARGUS-created evidence dashboards, the Mission Control dashboard, and any `[DRAFT · ARGUS]` rules. ARGUS never mutates existing SigNoz resources, so nothing else needs cleanup.
+## Compatibility and uninstall
+
+Built and live-verified against **self-hosted SigNoz v0.132.2** — reads to `/api/v5/query_range`, writes to `/api/v1/dashboards` and `/api/v2/rules`. **SigNoz Cloud is untested:** Cloud API-key auth may work as-is, but self-telemetry would need the Cloud ingestion endpoint.
+
+**Uninstall:** stop the webhook server, point the SigNoz webhook channel away from `/webhook/signoz`, and delete the ARGUS-created dashboards and any `[DRAFT · ARGUS]` rules. Nothing else needs cleanup. [Step by step](DOCS.md#compatibility-signoz-cloud-and-uninstall).
 
 ## Learn
 
-A full teaching curriculum lives in [`learning/`](learning/README.md) — the big picture, how the investigation loop works, a SigNoz API deep-dive, the tech stack and trade-offs, an FAQ (with honest limits and a glossary), the design rationale, and a bug-hunt war diary. Start at [`learning/README.md`](learning/README.md).
+[`learning/`](learning/README.md) is a full curriculum: the big picture, the investigation loop, a SigNoz API deep-dive, the stack and its trade-offs, an FAQ and glossary, the design rationale, and a bug-hunt diary.
+
+## License
+
+MIT — see [`LICENSE`](LICENSE).
 
 ---
 
 ## AI disclosure
 
-ARGUS uses Anthropic Claude as its reasoning model behind a pluggable provider interface (Claude / Groq / any OpenAI-compatible endpoint, or fully offline replay); every root-cause claim is verified against real SigNoz queries before it is reported. Claude Code was also used as a pair-programmer during development and testing — every design decision, live verification, and claim in this repo was reviewed against real evidence, and the [`assets/`](assets/) folder holds the receipts.
+ARGUS uses Anthropic Claude as its reasoning model behind a pluggable provider interface (Claude / Groq / any OpenAI-compatible endpoint, or fully offline replay); every root-cause claim is verified against real SigNoz queries before it is reported. Claude Code was also used as a pair-programmer during development and testing — every design decision, live verification, and claim in this repo was reviewed against real evidence, and [`assets/`](assets/) holds the receipts.
 
 <div align="center"><sub>Built for the SigNoz observability ecosystem · every claim in this file links to its proof.</sub></div>
