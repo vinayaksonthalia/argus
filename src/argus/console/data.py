@@ -189,6 +189,16 @@ def load_investigation(report_path: Path, memory_lookup: Optional[dict] = None) 
     date_display = generated or (mem.get("occurred_at", "")[:16].replace("T", " ") + " UTC" if mem.get("occurred_at") else "")
 
     cost: Cost = md_meta.get("cost", Cost())
+    if not cost.model and isinstance(mem.get("cost"), dict):
+        # No .md header on this checkout — fall back to the recorded sidecar so
+        # the token/$ footprint doesn't silently read as zero.
+        mc = mem["cost"]
+        cost = Cost(
+            model=str(mc.get("model", "")),
+            tokens_in=int(mc.get("tokens_in", 0) or 0),
+            tokens_out=int(mc.get("tokens_out", 0) or 0),
+            usd=float(mc.get("usd", 0.0) or 0.0),
+        )
     cost.query_stats = payload.get("query_stats", "")
 
     # Split evidence_bullets into evidence / similar-incidents / extra links.
@@ -255,6 +265,27 @@ def _memory_lookup(memory_db: Optional[Path]) -> dict:
     }
 
 
+def _sidecar_lookup(postmortem_dir: Path) -> dict:
+    """Recorded metadata for the committed corpus, in the memory-lookup shape.
+
+    A ``.md`` postmortem carries the service/alert/timestamp header, but ``.md``
+    files are per-run output and gitignored — and so is the incident-memory DB.
+    Without either, a clean clone can only show "unknown / undated" for reports
+    whose metadata it genuinely has on record elsewhere. ``metadata.json`` is
+    that record, committed alongside the corpus. It is a *fallback*: a real
+    ``.md`` header or a live memory DB always wins.
+    """
+    path = Path(postmortem_dir) / "metadata.json"
+    if not path.is_file():
+        return {}
+    try:
+        payload = json.loads(path.read_text())
+    except (OSError, json.JSONDecodeError):
+        return {}
+    incidents = payload.get("incidents")
+    return incidents if isinstance(incidents, dict) else {}
+
+
 def load_investigations(
     postmortem_dir: Path, memory_db: Optional[Path] = None
 ) -> list[Investigation]:
@@ -269,7 +300,8 @@ def load_investigations(
     postmortem_dir = Path(postmortem_dir)
     if not postmortem_dir.is_dir():
         return []
-    mem = _memory_lookup(memory_db)
+    mem = dict(_sidecar_lookup(postmortem_dir))
+    mem.update(_memory_lookup(memory_db))  # a live memory DB wins over the sidecar
     invs = [
         load_investigation(p, mem)
         for p in sorted(postmortem_dir.glob("*.report.json"))

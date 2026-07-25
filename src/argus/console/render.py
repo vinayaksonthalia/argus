@@ -105,11 +105,20 @@ def _hyp_card(h) -> str:
     )
 
 
+def _origin(url: str) -> str:
+    """'http://host:8080/trace/x?y' -> 'http://host:8080' (already-escaped input)."""
+    parts = url.split("/", 3)
+    return "/".join(parts[:3]) if len(parts) >= 3 else url
+
+
 def _evidence_item(ev) -> str:
     url = safe_url(ev.url)
     if url:
+        # These links point at whichever SigNoz recorded the incident. Say so,
+        # so a reader browsing someone else's RCA isn't surprised by a dead link.
+        hint = f"Deep-links resolve on your own SigNoz instance ({_origin(url)})"
         link = (
-            f'<a class="ev-link" href="{url}" target="_blank" '
+            f'<a class="ev-link" title="{hint}" href="{url}" target="_blank" '
             f'rel="noopener noreferrer">view in SigNoz ↗</a>'
         )
     else:

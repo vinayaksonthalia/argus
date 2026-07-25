@@ -1,0 +1,225 @@
+{
+  "_comment": "Recorded metadata for the committed postmortem corpus, exported from the ARGUS incident-memory DB (argus-memory.sqlite3) that produced these runs. The DB itself is per-machine runtime state and gitignored; this sidecar lets a clean clone render real service names and timestamps in the Investigations Console instead of unknown/undated. Regenerate with scripts/export_console.py --metadata.",
+  "incidents": {
+    "inv-0d3daf4f0f": {
+      "alert_name": "GLASSPANE: browser error spike",
+      "cost": {
+        "model": "claude-haiku-4-5-20251001 (live)",
+        "tokens_in": 4777,
+        "tokens_out": 1151,
+        "usd": 0.0295
+      },
+      "occurred_at": "2026-07-17T21:35:17.592786+00:00",
+      "service": "meridian-web"
+    },
+    "inv-2897e974fd": {
+      "alert_name": "[DRAFT \u00b7 ARGUS] meridian-web: A frontend deploy (service.version 1.4.2) introduced a code path that\u2026",
+      "cost": {
+        "model": "claude-haiku-4-5-20251001 (live)",
+        "tokens_in": 5234,
+        "tokens_out": 1192,
+        "usd": 0.0334
+      },
+      "occurred_at": "2026-07-17T21:36:28.527143+00:00",
+      "service": "unknown"
+    },
+    "inv-3a51fe90dd": {
+      "alert_name": "Faultline catalog p99 latency > 1s",
+      "cost": {
+        "model": "claude-haiku-4-5-20251001 (live)",
+        "tokens_in": 9925,
+        "tokens_out": 3349,
+        "usd": 0.0775
+      },
+      "occurred_at": "2026-07-16T21:55:00+00:00",
+      "service": "catalog"
+    },
+    "inv-3b55b3bdb8": {
+      "alert_name": "ARGUS LLM spend rate",
+      "cost": {
+        "model": "claude-haiku-4-5-20251001 (live)",
+        "tokens_in": 9614,
+        "tokens_out": 2578,
+        "usd": 0.0636
+      },
+      "occurred_at": "2026-07-17T21:15:33.977434+00:00",
+      "service": "argus"
+    },
+    "inv-4cfa29706d": {
+      "alert_name": "GLASSPANE: p75 LCP above 4s",
+      "cost": {
+        "model": "claude-haiku-4-5-20251001 (live)",
+        "tokens_in": 9083,
+        "tokens_out": 3056,
+        "usd": 0.0672
+      },
+      "occurred_at": "2026-07-17T21:08:55.810866+00:00",
+      "service": "unknown"
+    },
+    "inv-4f5067e229": {
+      "alert_name": "Faultline catalog p99 latency > 1s",
+      "cost": {
+        "model": "claude-haiku-4-5-20251001 (live)",
+        "tokens_in": 5693,
+        "tokens_out": 1459,
+        "usd": 0.0585
+      },
+      "occurred_at": "2026-07-17T13:23:02.004582+00:00",
+      "service": "catalog"
+    },
+    "inv-51d73b1d78": {
+      "alert_name": "ARGUS LLM spend rate",
+      "cost": {
+        "model": "claude-haiku-4-5-20251001 (live)",
+        "tokens_in": 9428,
+        "tokens_out": 2463,
+        "usd": 0.0787
+      },
+      "occurred_at": "2026-07-17T20:40:33.972617+00:00",
+      "service": "argus"
+    },
+    "inv-57942d0754": {
+      "alert_name": "[DRAFT \u00b7 ARGUS] unknown: The meridian-web 1.4.2 frontend deploy calls .map() on an API response\u2026",
+      "cost": {
+        "model": "claude-haiku-4-5-20251001 (live)",
+        "tokens_in": 5274,
+        "tokens_out": 857,
+        "usd": 0.0286
+      },
+      "occurred_at": "2026-07-17T21:39:04.906622+00:00",
+      "service": "unknown"
+    },
+    "inv-58c6674b76": {
+      "alert_name": "Faultline catalog p99 latency > 1s",
+      "cost": {
+        "model": "claude-haiku-4-5-20251001 (live)",
+        "tokens_in": 5617,
+        "tokens_out": 1370,
+        "usd": 0.0386
+      },
+      "occurred_at": "2026-07-16T23:27:08.096795+00:00",
+      "service": "catalog"
+    },
+    "inv-6bde2d57f9": {
+      "alert_name": "Faultline catalog p99 latency > 1s",
+      "cost": {
+        "model": "claude-haiku-4-5-20251001 (live)",
+        "tokens_in": 4864,
+        "tokens_out": 1468,
+        "usd": 0.035
+      },
+      "occurred_at": "2026-07-16T22:47:08+00:00",
+      "service": "catalog"
+    },
+    "inv-8874a6845f": {
+      "alert_name": "GLASSPANE: p75 LCP above 4s",
+      "cost": {
+        "model": "claude-haiku-4-5-20251001 (live)",
+        "tokens_in": 8896,
+        "tokens_out": 2638,
+        "usd": 0.0524
+      },
+      "occurred_at": "2026-07-17T21:01:42.912439+00:00",
+      "service": "unknown"
+    },
+    "inv-8aa5237eb9": {
+      "alert_name": "GLASSPANE: p75 INP regression by route",
+      "cost": {
+        "model": "claude-haiku-4-5-20251001 (live)",
+        "tokens_in": 4335,
+        "tokens_out": 1010,
+        "usd": 0.0244
+      },
+      "occurred_at": "2026-07-17T21:08:31.978775+00:00",
+      "service": "unknown"
+    },
+    "inv-8fcd8347ee": {
+      "alert_name": "[DRAFT \u00b7 ARGUS] catalog: A specific slow child span (e.g., a database query) inside catalog's\u2026",
+      "cost": {
+        "model": "claude-haiku-4-5-20251001 (live)",
+        "tokens_in": 5466,
+        "tokens_out": 854,
+        "usd": 0.0298
+      },
+      "occurred_at": "2026-07-17T13:24:35.529745+00:00",
+      "service": "unknown"
+    },
+    "inv-977e5fd4e8": {
+      "alert_name": "Faultline catalog p99 latency > 1s",
+      "cost": {
+        "model": "claude-haiku-4-5-20251001 (live)",
+        "tokens_in": 5200,
+        "tokens_out": 1366,
+        "usd": 0.0398
+      },
+      "occurred_at": "2026-07-16T23:12:08.110527+00:00",
+      "service": "catalog"
+    },
+    "inv-a2a0b2e215": {
+      "alert_name": "ARGUS LLM spend rate",
+      "cost": {
+        "model": "claude-haiku-4-5-20251001 (live)",
+        "tokens_in": 4998,
+        "tokens_out": 1396,
+        "usd": 0.0347
+      },
+      "occurred_at": "2026-07-16T23:29:33.979060+00:00",
+      "service": "argus"
+    },
+    "inv-a4bb985ac5": {
+      "alert_name": "GLASSPANE: p75 INP regression by route",
+      "cost": {
+        "model": "claude-haiku-4-5-20251001 (live)",
+        "tokens_in": 8865,
+        "tokens_out": 2147,
+        "usd": 0.0521
+      },
+      "occurred_at": "2026-07-17T21:07:18.036003+00:00",
+      "service": "unknown"
+    },
+    "inv-b526009b90": {
+      "alert_name": "[DRAFT \u00b7 ARGUS] unknown: The meridian-web frontend deploy at version 1.4.2 calls .map() on an API\u2026",
+      "cost": {
+        "model": "claude-haiku-4-5-20251001 (live)",
+        "tokens_in": 5269,
+        "tokens_out": 1414,
+        "usd": 0.0369
+      },
+      "occurred_at": "2026-07-17T21:37:46.575592+00:00",
+      "service": "unknown"
+    },
+    "inv-eb846fe1eb": {
+      "alert_name": "GLASSPANE: p75 INP regression by route",
+      "cost": {
+        "model": "claude-haiku-4-5-20251001 (live)",
+        "tokens_in": 8763,
+        "tokens_out": 2673,
+        "usd": 0.0593
+      },
+      "occurred_at": "2026-07-17T21:32:32.004099+00:00",
+      "service": "unknown"
+    },
+    "inv-ebc62d8028": {
+      "alert_name": "GLASSPANE: browser error spike",
+      "cost": {
+        "model": "claude-haiku-4-5-20251001 (live)",
+        "tokens_in": 8871,
+        "tokens_out": 2445,
+        "usd": 0.0565
+      },
+      "occurred_at": "2026-07-17T21:33:11.811110+00:00",
+      "service": "unknown"
+    },
+    "inv-fcdb95f553": {
+      "alert_name": "Faultline catalog p99 latency > 1s",
+      "cost": {
+        "model": "claude-haiku-4-5-20251001 (live)",
+        "tokens_in": 5700,
+        "tokens_out": 1470,
+        "usd": 0.0407
+      },
+      "occurred_at": "2026-07-17T21:02:38.082610+00:00",
+      "service": "catalog"
+    }
+  }
+}
