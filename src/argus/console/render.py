@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from html import escape
 
-from .data import Investigation, Stats
+from .data import Investigation, Stats, default_selection
 
 ACCENT = "#8B5CF6"
 
@@ -48,19 +48,39 @@ def _badge(status: str) -> str:
     return f'<span class="badge {cls}">{esc(status)}</span>'
 
 
-def render_row(inv: Investigation) -> str:
-    """One row in the left investigations rail."""
+def render_row(inv: Investigation, is_default: bool = False) -> str:
+    """One row in the left investigations rail.
+
+    ``is_default`` marks the row the console opens on (see
+    ``data.default_selection``). The rule is evaluated server-side and carried
+    as an attribute so the client never has to re-derive it.
+    """
     conf = f"{round(inv.confidence * 100)}%"
     usd = f"${inv.cost.usd:.4f}" if inv.cost.usd else "—"
     # Lower-cased haystack so the client-side filter never has to touch the DOM
     # text (and so it matches on id/service/alert, not on rendered chrome).
     haystack = f"{inv.service} {inv.alert} {inv.id}".lower()
+    # Why this row is the one the console opened on. A title/aria note rather
+    # than a visible ribbon: it answers the question if you ask it, and adds no
+    # chrome to a rail that is already dense.
+    if is_default:
+        why = (
+            "Opened by default — highest-confidence verified investigation"
+            if inv.status == "VERIFIED"
+            else "Opened by default — most recent investigation"
+        )
+        default_attrs = f'data-default title="{esc(why)}" '
+        default_note = f". {why}"
+    else:
+        default_attrs = ""
+        default_note = ""
     return (
         f'<button class="row" data-id="{esc(inv.id)}" role="option" '
         f'aria-selected="false" tabindex="-1" '
+        f'{default_attrs}'
         f'data-status="{esc(inv.status)}" data-search="{esc(haystack)}" '
         f'aria-label="{esc(inv.alert)} on {esc(inv.service)}, '
-        f'{esc(inv.status)}, confidence {esc(conf)}">'
+        f'{esc(inv.status)}, confidence {esc(conf)}{default_note}">'
         f'<div class="row-top">'
         f'<span class="row-service mono">{esc(inv.service)}</span>'
         f"{_badge(inv.status)}"
@@ -85,7 +105,8 @@ def render_list(invs: list[Investigation]) -> str:
         return (
             '<div class="rail-empty">No investigations found in this directory.</div>'
         )
-    return "".join(render_row(i) for i in invs)
+    default = default_selection(invs)
+    return "".join(render_row(i, is_default=i is default) for i in invs)
 
 
 def _hyp_card(h) -> str:
@@ -397,7 +418,7 @@ _JS = r"""
     pane.appendChild(box);
   }
 
-  function select(id) {
+  function select(id, block) {
     if (!id) return;
     current = id;
     [].forEach.call(rail.querySelectorAll('.row'), function (r) {
@@ -405,7 +426,10 @@ _JS = r"""
       r.classList.toggle('active', on);
       r.setAttribute('aria-selected', on ? 'true' : 'false');
       r.tabIndex = on ? 0 : -1;
-      if (on && r.scrollIntoView) r.scrollIntoView({block: 'nearest'});
+      // 'nearest' keeps j/k walking from jumping the list around; the initial
+      // landing row centres instead, so a rail that opens part-scrolled reads
+      // as deliberate rather than as a stray scroll position.
+      if (on && r.scrollIntoView) r.scrollIntoView({block: block || 'nearest'});
     });
     skeleton();
     fetch('api/detail/' + encodeURIComponent(id))
@@ -502,11 +526,13 @@ _JS = r"""
     else if (e.key === 'ArrowUp' || e.key === 'k') { e.preventDefault(); step(-1); }
   });
 
-  // Deep-link on load, else auto-select the newest investigation.
+  // A #inv-… deep link always wins. Otherwise open on the row the server
+  // marked (highest-confidence VERIFIED run, else newest) — see
+  // data.default_selection. The rail order itself is untouched by this.
   var initial = location.hash.slice(1);
-  var first = rail.querySelector('.row');
-  if (initial) select(initial);
-  else if (first) select(first.getAttribute('data-id'));
+  var landing = rail.querySelector('.row[data-default]') || rail.querySelector('.row');
+  if (initial) select(initial, 'center');
+  else if (landing) select(landing.getAttribute('data-id'), 'center');
 })();
 """
 

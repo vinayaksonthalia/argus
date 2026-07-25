@@ -312,6 +312,27 @@ def load_investigations(
     return invs
 
 
+def default_selection(invs: list[Investigation]) -> Optional[Investigation]:
+    """Which investigation the console should open on.
+
+    The rail is ordered honestly (newest first), but "newest" and "most useful
+    to look at first" are different questions. Opening on whatever ran last
+    means a visitor's first view is often a low-confidence draft, when the
+    corpus contains a run that actually cleared the 75% verification threshold.
+
+    So: open on the highest-confidence VERIFIED investigation if there is one,
+    otherwise on the newest. Ties go to the newer run, since ``invs`` arrives
+    newest-first and ``max`` keeps the first of equal keys. Nothing is hidden —
+    the rail still lists every investigation, drafts and degraded runs included.
+    """
+    if not invs:
+        return None
+    verified = [i for i in invs if i.status == "VERIFIED"]
+    if verified:
+        return max(verified, key=lambda i: i.confidence)
+    return invs[0]
+
+
 @dataclass
 class Stats:
     total: int

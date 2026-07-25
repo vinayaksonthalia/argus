@@ -89,6 +89,55 @@ def test_undated_reports_sort_after_dated_ones(tmp_path):
     assert ids == ["inv-ffff99", "inv-0000aa", "inv-ffffff"]
 
 
+def _inv(inv_id, conf, degraded=False, date=""):
+    return cdata.Investigation(
+        id=inv_id, title="t", service="s", alert="a", date_display=date,
+        date_sort=date, confidence=conf, degraded=degraded, needs_review=False,
+        root_cause="", impact="",
+    )
+
+
+def test_default_selection_prefers_the_best_verified_run():
+    """The console opens on the strongest verified RCA, not the latest draft."""
+    # newest-first, as load_investigations returns them
+    invs = [
+        _inv("inv-newest", 0.55, date="2026-07-20"),   # NEEDS REVIEW
+        _inv("inv-hero", 0.90, date="2026-07-18"),     # VERIFIED
+        _inv("inv-ok", 0.80, date="2026-07-17"),       # VERIFIED, weaker
+        _inv("inv-bad", 0.99, degraded=True, date="2026-07-16"),  # DEGRADED
+    ]
+    assert cdata.default_selection(invs).id == "inv-hero"
+
+
+def test_default_selection_falls_back_to_newest_without_a_verified_run():
+    invs = [
+        _inv("inv-newest", 0.55, date="2026-07-20"),
+        _inv("inv-older", 0.70, date="2026-07-18"),
+    ]
+    assert cdata.default_selection(invs).id == "inv-newest"
+    assert cdata.default_selection([]) is None
+
+
+def test_default_selection_ties_go_to_the_newer_run():
+    invs = [_inv("inv-newer", 0.90, date="2026-07-20"),
+            _inv("inv-older", 0.90, date="2026-07-18")]
+    assert cdata.default_selection(invs).id == "inv-newer"
+
+
+def test_exactly_one_row_is_marked_as_the_landing_view():
+    invs = [
+        _inv("inv-newest", 0.55, date="2026-07-20"),
+        _inv("inv-hero", 0.90, date="2026-07-18"),
+    ]
+    html = render.render_list(invs)
+    assert html.count("data-default") == 1
+    # the mark lands on the hero's row, not the newest one
+    hero_row = html[html.index('data-id="inv-hero"'):]
+    assert hero_row[: hero_row.index("</button>")].count("data-default") == 1
+    # ...and the rail order is untouched: newest still renders first
+    assert html.index('data-id="inv-newest"') < html.index('data-id="inv-hero"')
+
+
 def test_rail_rows_carry_filter_metadata(tmp_path):
     """The client-side filter matches service / alert / id — and only those."""
     _write_report(
