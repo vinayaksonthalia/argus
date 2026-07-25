@@ -113,6 +113,20 @@ def test_rail_rows_carry_filter_metadata(tmp_path):
     assert 'data-filter="DEGRADED"' not in page
 
 
+def test_hidden_attribute_actually_hides_rows(tmp_path):
+    """Regression: `.row{display:block}` outranks the UA sheet's [hidden] rule.
+
+    The rail filter hides rows by setting the ``hidden`` attribute. Without an
+    explicit override the rows kept rendering — the JS property read as hidden
+    while the user saw an unfiltered list, which is the worst kind of bug to
+    assert your way past. So assert the override exists, ahead of any display:
+    declaration that could shadow it.
+    """
+    page = render.render_page([], cdata.Stats(total=0, verified=0, total_usd=0.0))
+    assert "[hidden]{display:none !important}" in page
+    assert page.index("[hidden]{display:none") < page.index(".row{")
+
+
 def test_filter_toolbar_hidden_when_there_is_nothing_to_filter(tmp_path):
     page = render.render_page([], cdata.Stats(total=0, verified=0, total_usd=0.0))
     assert 'id="filter"' not in page
