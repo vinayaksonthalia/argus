@@ -20,10 +20,10 @@
 A SigNoz alert fires. Nobody types a question. ARGUS investigates across metrics, traces, and logs, tests each hypothesis against real queries, and posts a root cause you can click into SigNoz — and its own reasoning is traced back into the same SigNoz with `gen_ai.*` OpenTelemetry attributes, tokens and dollars included.
 
 <p align="center">
-  <img src="assets/demo/console-walkthrough.gif" alt="The Investigations Console: filtering 20 recorded investigations down to the one VERIFIED run, then reading its root cause, timeline, confirmed and refuted hypotheses, and SigNoz-linked evidence." width="860">
+  <img src="assets/demo/console-walkthrough.gif" alt="The Investigations Console opening on its highest-confidence VERIFIED run — root cause, timeline, confirmed and refuted hypotheses, SigNoz-linked evidence — then filtering the rail down to the degraded runs that refused to conclude." width="820">
 </p>
 
-<p align="center"><sub>Twenty real recorded investigations, filtered down to the one that cleared the 75% bar — root cause, verified hypotheses, and evidence that deep-links into SigNoz. Browse it yourself: <code>python3 -m http.server -d docs 8000</code>.</sub></p>
+<p align="center"><sub>The console opens on the one run that cleared the 75% bar, then filters down to a run that <em>refused</em> to conclude — "no hypothesis survived verification." Both are in the shipped corpus; 1 of 20 was verified, and that number is not massaged. Browse it yourself: <code>python3 -m http.server -d docs 8000</code>.</sub></p>
 
 | The verified RCA, in the Investigations Console | The evidence itself, back in SigNoz |
 |---|---|

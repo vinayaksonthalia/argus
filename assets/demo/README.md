@@ -7,19 +7,26 @@ console uses), against the 20 recorded investigations committed in
 
 What the walkthrough shows, in order:
 
-1. The rail on load — every investigation newest-first, with its service,
-   timestamp, confidence badge and dollar cost.
-2. Typing `catalog` into the rail filter, narrowing 20 rows to 7.
-3. Clicking the **Verified** status chip, narrowing to the single run that
-   cleared the 75% verification threshold (`inv-fcdb95f553`, 90%).
-4. That run's RCA: root cause with its `(verified: found 'pg_sleep' in 20
+1. The console on load. It opens on `inv-fcdb95f553` — the highest-confidence
+   VERIFIED run (90%) — because "most recent" and "most worth reading first"
+   are different questions. The rail behind it is still ordered newest-first
+   and still lists every draft.
+2. That run's RCA: root cause with its `(verified: found 'pg_sleep' in 20
    matching rows)` tail, impact, timeline, confirmed/refuted hypotheses,
    evidence deep-linking into SigNoz, and the token/$ footprint.
+3. Typing `catalog` into the rail filter, narrowing 20 rows to 7 — the rail is
+   the whole corpus, not a highlight reel.
+4. The **Degraded** status chip, and one of those runs opened: *"No hypothesis
+   survived verification. Evidence-only report; human investigation required."*
 
-The "5% verified" figure in the header strip is real and deliberately not
-massaged: 1 of the 20 committed runs cleared 75%. The rest self-flagged for
-human review or reported evidence-only, which is the behaviour ARGUS is
-supposed to have.
+That last beat is the point. The "5% verified" figure in the header strip is
+real and deliberately not massaged: 1 of the 20 committed runs cleared the 75%
+threshold. The other 19 self-flagged for human review or refused to conclude,
+which is the behaviour ARGUS is supposed to have — and the walkthrough ends on
+one of them rather than on the flattering result.
+
+Stills from the same session: `../screenshots/11-console-lands-on-verified-hero.png`
+and `../screenshots/12-console-degraded-self-flagged.png`.
 
 ## Reproduce
 
@@ -34,9 +41,7 @@ convert:
 
 ```bash
 ffmpeg -i capture.webm \
-  -vf "fps=8,scale=780:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=64[p];[b][p]paletteuse=dither=bayer:bayer_scale=5" \
+  -vf "fps=8,scale=740:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=56:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle" \
   -loop 0 console-walkthrough.gif
 ```
 
-`../screenshots/11-console-filtered-to-verified.png` is a still from the same
-session.
