@@ -327,3 +327,104 @@ def test_invalid_id_rejected_by_handler_regex():
     assert _ID_RE.match("inv-fcdb95f553")
     assert not _ID_RE.match("../../etc/passwd")
     assert not _ID_RE.match("inv-<script>")
+
+
+# --------------------------------------------------------------------------
+# Landing hero (published static export only)
+# --------------------------------------------------------------------------
+
+def _hero_corpus(tmp_path: Path):
+    """One VERIFIED run at 90% plus one draft — the shape of the real corpus."""
+    _write_report(
+        tmp_path, "inv-aaa111",
+        {"title": "Verified", "confidence": 0.9, "root_cause": "", "impact": "",
+         "timeline": [], "evidence_bullets": [], "refuted": [],
+         "degraded": False, "needs_review": False},
+        "- **Service:** `catalog`\n- **Alert:** `a`\n"
+        "- **Generated:** 2026-07-20 10:00 UTC\n",
+    )
+    _write_report(
+        tmp_path, "inv-bbb222",
+        {"title": "Draft", "confidence": 0.5, "root_cause": "", "impact": "",
+         "timeline": [], "evidence_bullets": [], "refuted": [],
+         "degraded": False, "needs_review": True},
+        "- **Service:** `catalog`\n- **Alert:** `a`\n"
+        "- **Generated:** 2026-07-19 10:00 UTC\n",
+    )
+    return cdata.load_investigations(tmp_path)
+
+
+def test_served_console_has_no_landing_hero(tmp_path):
+    """`argus console` is a working tool — it must not grow a marketing band."""
+    invs = _hero_corpus(tmp_path)
+    page = render.render_page(invs, cdata.compute_stats(invs))
+    assert 'class="hero"' not in page
+    assert '<body>' in page and 'class="has-hero"' not in page
+    assert 'id="hero-scroll"' not in page
+    assert 'class="topbar"' in page
+
+
+def test_export_hero_states_only_numbers_the_corpus_backs(tmp_path):
+    """Every hero chip is derived from the loaded corpus, so it cannot drift."""
+    invs = _hero_corpus(tmp_path)
+    page = render.render_page(invs, cdata.compute_stats(invs), hero=True)
+    assert '<body class="has-hero">' in page
+    assert 'class="topbar"' not in page  # the hero replaces it, never stacks
+    # 2 investigations, 1 of them verified, at its real confidence.
+    assert ">2</b><span class=\"hero-chip-label\">recorded investigations<" in page
+    assert ">1</b><span class=\"hero-chip-label\">verified RCA at 90%<" in page
+    assert ">$0.00</b><span class=\"hero-chip-label\">total LLM spend<" in page
+    assert ">0</b><span class=\"hero-chip-label\">runtime dependencies<" in page
+
+
+def test_hero_links_to_the_repo_and_stays_above_the_fold(tmp_path):
+    invs = _hero_corpus(tmp_path)
+    page = render.render_page(invs, cdata.compute_stats(invs), hero=True)
+    assert 'href="https://github.com/vinayaksonthalia/argus"' in page
+    assert 'rel="noopener noreferrer"' in page
+    # The band has a fixed height budget and the layout subtracts exactly it,
+    # so the investigations rail can never be pushed off-screen.
+    assert "--hero-h:112px" in page
+    assert ".has-hero .layout{height:calc(100% - 112px)}" in page
+    # The CTA scrolls into the evidence rather than navigating to a fake hash.
+    assert 'id="hero-scroll"' in page
+    assert "href=\"#" not in page
+
+
+def test_hero_chip_label_pluralises_without_a_confidence_claim(tmp_path):
+    """Two verified runs have no single '90%' to quote — don't invent one."""
+    for n, conf in (("inv-ccc333", 0.9), ("inv-ddd444", 0.8)):
+        _write_report(
+            tmp_path, n,
+            {"title": "V", "confidence": conf, "root_cause": "", "impact": "",
+             "timeline": [], "evidence_bullets": [], "refuted": [],
+             "degraded": False, "needs_review": False},
+            "- **Service:** `s`\n- **Alert:** `a`\n"
+            "- **Generated:** 2026-07-20 10:00 UTC\n",
+        )
+    invs = cdata.load_investigations(tmp_path)
+    page = render.render_page(invs, cdata.compute_stats(invs), hero=True)
+    assert ">2</b><span class=\"hero-chip-label\">verified RCAs<" in page
+    assert "verified RCA at" not in page
+
+
+def test_export_writes_the_hero_page(tmp_path):
+    """The published bundle is generated, never hand-edited."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "export_console",
+        Path(__file__).resolve().parent.parent / "scripts" / "export_console.py",
+    )
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+
+    src = tmp_path / "pm"
+    src.mkdir()
+    _hero_corpus(src)
+    out = tmp_path / "out"
+    assert mod.export(src, out) == 2
+    index = (out / "index.html").read_text()
+    assert 'class="hero"' in index
+    assert "fetch('detail/' + encodeURIComponent(id) + '.html')" in index
+    assert (out / "detail" / "inv-aaa111.html").exists()

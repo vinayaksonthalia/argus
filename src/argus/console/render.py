@@ -254,7 +254,7 @@ def render_detail(inv: Investigation) -> str:
     <ul class="timeline">{timeline_html}</ul>
   </section>
 
-  <section class="card">
+  <section class="card" id="hypotheses">
     <h3>Hypotheses <span class="chip">verified against telemetry</span></h3>
     <div class="hyp-list">{hyp_html}</div>
   </section>
@@ -326,8 +326,84 @@ def render_filters(invs: list[Investigation]) -> str:
     )
 
 
-def render_page(invs: list[Investigation], stats: Stats) -> str:
-    """The full single-page shell (server-rendered list + client detail fetch)."""
+REPO_URL = "https://github.com/vinayaksonthalia/argus"
+
+# The brand mark from assets/brand/icon.svg, inlined so the published bundle
+# stays a self-contained directory of HTML — no image requests, nothing to copy
+# alongside the export, nothing to 404.
+_HERO_MARK = (
+    '<svg class="hero-mark" viewBox="0 0 64 64" fill="none" aria-hidden="true" '
+    'xmlns="http://www.w3.org/2000/svg">'
+    '<defs><linearGradient id="argus-sweep" x1="30.4" y1="26" x2="37.1" y2="28.4" '
+    'gradientUnits="userSpaceOnUse">'
+    '<stop offset="0" stop-color="#8B5CF6" stop-opacity="0"/>'
+    '<stop offset="1" stop-color="#8B5CF6" stop-opacity=".8"/>'
+    "</linearGradient></defs>"
+    '<g stroke="#8B5CF6" fill="none" stroke-linecap="round" stroke-linejoin="round">'
+    '<path d="M32 12.5 A19.5 19.5 0 0 1 51.5 32" stroke-width="2.5" opacity=".34"/>'
+    '<path d="M32 51.5 A19.5 19.5 0 0 1 12.5 32" stroke-width="2.5" opacity=".34"/>'
+    '<path d="M8 32 C18 18 46 18 56 32 C46 46 18 46 8 32 Z" stroke-width="4"/>'
+    '<circle cx="32" cy="32" r="8" stroke-width="3.5"/></g>'
+    '<path d="M32 32 L30.4 26.0 A6.2 6.2 0 0 1 37.1 28.44 Z" fill="url(#argus-sweep)"/>'
+    '<path d="M32 32 L37.1 28.44" stroke="#8B5CF6" stroke-width="2" stroke-linecap="round"/>'
+    '<circle cx="32" cy="32" r="2.6" fill="#8B5CF6"/></svg>'
+)
+
+_HERO_PROP = (
+    "An autonomous AI SRE for self-hosted SigNoz. It investigates the alert on "
+    "its own, verifies every hypothesis against your telemetry, and refuses to "
+    "report what it cannot prove."
+)
+
+
+def _hero_chips(invs: list[Investigation], stats: Stats) -> list[tuple[str, str]]:
+    """The landing stat chips, derived from the corpus so they cannot drift."""
+    verified = [i for i in invs if i.status == "VERIFIED"]
+    best = max((i.confidence for i in verified), default=0.0)
+    verified_label = (
+        f"verified RCA at {round(best * 100)}%"
+        if len(verified) == 1
+        else "verified RCAs"
+    )
+    return [
+        (str(stats.total), "recorded investigations"),
+        (str(len(verified)), verified_label),
+        (f"${stats.total_usd:.2f}", "total LLM spend"),
+        ("0", "runtime dependencies"),
+    ]
+
+
+def render_hero(invs: list[Investigation], stats: Stats) -> str:
+    """A compact landing band for the published static export.
+
+    The served console is a working tool — an operator who typed ``argus
+    console`` does not need to be sold the product. The published bundle is the
+    opposite: it is the first thing a stranger sees, so it gets one short band
+    that says what ARGUS is, what the corpus below proves, and where the source
+    lives. It replaces the topbar rather than stacking on top of it, so the
+    investigations stay above the fold.
+    """
+    chips = "".join(
+        f'<span class="hero-chip"><b class="mono">{esc(value)}</b>'
+        f'<span class="hero-chip-label">{esc(label)}</span></span>'
+        for value, label in _hero_chips(invs, stats)
+    )
+    return f"""<header class="hero">
+  <div class="hero-row">
+    <div class="hero-brand">{_HERO_MARK}<span class="hero-word">ARGUS</span></div>
+    <p class="hero-prop">{esc(_HERO_PROP)}</p>
+    <div class="hero-actions">
+      <a class="hero-btn hero-btn-primary" href="{safe_url(REPO_URL)}"
+         target="_blank" rel="noopener noreferrer">GitHub &rarr;</a>
+      <button class="hero-btn hero-btn-ghost" id="hero-scroll"
+              type="button">See the evidence &darr;</button>
+    </div>
+  </div>
+  <div class="hero-chips">{chips}</div>
+</header>"""
+
+
+def _topbar(stats: Stats) -> str:
     stats_strip = (
         f'<div class="stat"><span class="stat-val mono">{stats.total}</span>'
         f'<span class="stat-label">investigations</span></div>'
@@ -336,12 +412,29 @@ def render_page(invs: list[Investigation], stats: Stats) -> str:
         f'<div class="stat"><span class="stat-val mono">${stats.total_usd:.2f}</span>'
         f'<span class="stat-label">total spend</span></div>'
     )
+    return f"""<header class="topbar">
+  <div class="wordmark">
+    <span class="mark" aria-hidden="true">◇</span>
+    <span class="word">ARGUS</span>
+    <span class="sub">Investigations Console</span>
+  </div>
+  <div class="stats-strip">{stats_strip}</div>
+</header>"""
+
+
+def render_page(invs: list[Investigation], stats: Stats, hero: bool = False) -> str:
+    """The full single-page shell (server-rendered list + client detail fetch).
+
+    ``hero=True`` swaps the working-tool topbar for the landing band used by the
+    published static export (see ``render_hero``).
+    """
     list_html = render_list(invs)
     empty_detail = render_empty_detail(bool(invs))
     return _PAGE_TEMPLATE.format(
         css=_CSS,
         accent=ACCENT,
-        stats_strip=stats_strip,
+        body_class=" class=\"has-hero\"" if hero else "",
+        header=render_hero(invs, stats) if hero else _topbar(stats),
         filters=render_filters(invs) if invs else "",
         list_html=list_html,
         empty_detail=empty_detail,
@@ -363,15 +456,8 @@ _PAGE_TEMPLATE = """<!doctype html>
 <title>ARGUS — Investigations Console</title>
 <style>{css}</style>
 </head>
-<body>
-<header class="topbar">
-  <div class="wordmark">
-    <span class="mark" aria-hidden="true">◇</span>
-    <span class="word">ARGUS</span>
-    <span class="sub">Investigations Console</span>
-  </div>
-  <div class="stats-strip">{stats_strip}</div>
-</header>
+<body{body_class}>
+{header}
 <main class="layout">
   <aside class="rail-col">
     {filters}
@@ -526,6 +612,17 @@ _JS = r"""
     else if (e.key === 'ArrowUp' || e.key === 'k') { e.preventDefault(); step(-1); }
   });
 
+  // ---- landing hero (published export only; absent in the served console) --
+  // Sends a first-time visitor from the pitch into the actual evidence: the
+  // root-cause pane of whichever run the console opened on.
+  var heroScroll = document.getElementById('hero-scroll');
+  if (heroScroll) {
+    heroScroll.addEventListener('click', function () {
+      var target = pane.querySelector('#hypotheses') || pane.querySelector('.card') || pane;
+      if (target.scrollIntoView) target.scrollIntoView({behavior: 'smooth', block: 'start'});
+    });
+  }
+
   // A #inv-… deep link always wins. Otherwise open on the row the server
   // marked (highest-confidence VERIFIED run, else newest) — see
   // data.default_selection. The rail order itself is untouched by this.
@@ -574,8 +671,50 @@ body{
 .stat-val{font-size:15px; font-weight:600}
 .stat-label{font-size:11px; color:var(--text-3); text-transform:uppercase; letter-spacing:.05em}
 
+/* ---- landing hero (published static export only; replaces .topbar) ----
+   Budget: one band under 120px on desktop. It introduces the product to a
+   stranger and then gets out of the way — the rail and the RCA below it are
+   the actual proof, and they must stay above the fold. */
+.hero{
+  --hero-h:112px;
+  height:var(--hero-h); flex:none; box-sizing:border-box;
+  padding:14px 24px 12px; border-bottom:1px solid var(--hairline);
+  background:
+    radial-gradient(700px 130px at 8% -40%,rgba(139,92,246,.13),transparent 70%),
+    var(--bg-surface);
+}
+.hero-row{display:flex; align-items:center; gap:24px}
+.hero-brand{display:flex; align-items:center; gap:9px; flex:none}
+.hero-mark{width:26px; height:26px; display:block}
+.hero-word{font-weight:600; font-size:17px; letter-spacing:.16em}
+.hero-prop{
+  margin:0; flex:1 1 auto; min-width:0; max-width:74ch;
+  font-size:12.5px; line-height:1.45; color:var(--text-2);
+}
+.hero-actions{display:flex; align-items:center; gap:8px; flex:none}
+.hero-btn{
+  display:inline-flex; align-items:center; white-space:nowrap; cursor:pointer;
+  font:inherit; font-size:12.5px; font-weight:500; text-decoration:none;
+  border-radius:6px; padding:7px 13px; border:1px solid transparent;
+  transition:background .12s,border-color .12s,color .12s;
+}
+.hero-btn-primary{background:var(--accent); color:#fff}
+.hero-btn-primary:hover{background:#7C4DEF}
+.hero-btn-ghost{background:transparent; color:var(--text-2); border-color:var(--border)}
+.hero-btn-ghost:hover{background:var(--bg-raised); color:var(--text-1)}
+.hero-btn:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+.hero-chips{display:flex; flex-wrap:wrap; align-items:center; gap:7px; margin-top:11px}
+.hero-chip{
+  display:inline-flex; align-items:baseline; gap:6px;
+  border:1px solid var(--hairline); border-radius:999px; padding:2.5px 10px;
+  font-size:11.5px; color:var(--text-3); background:var(--bg-canvas);
+}
+.hero-chip b{font-size:12.5px; font-weight:600; color:var(--text-1)}
+.hero-chip-label{white-space:nowrap}
+
 /* ---- layout ---- */
 .layout{display:grid; grid-template-columns:320px 1fr; height:calc(100% - 56px)}
+.has-hero .layout{height:calc(100% - 112px)}
 .rail-col{
   display:flex; flex-direction:column; min-height:0;
   border-right:1px solid var(--hairline); background:var(--bg-canvas);
@@ -756,9 +895,15 @@ body{
 
 @media (max-width:760px){
   .layout{grid-template-columns:1fr; height:auto}
+  .has-hero .layout{height:auto}
   .rail-col{border-right:none; border-bottom:1px solid var(--hairline)}
   .rail{max-height:40vh}
   .pane{padding:20px 16px 48px}
   .stats-strip{gap:14px}
+  /* The band stacks and the page scrolls; a fixed height would clip it. */
+  .hero{height:auto; padding:16px}
+  .hero-row{flex-wrap:wrap; gap:12px}
+  .hero-prop{flex:1 1 100%; order:3; max-width:none}
+  .hero-actions{margin-left:auto}
 }
 """

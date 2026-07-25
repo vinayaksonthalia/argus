@@ -29,9 +29,11 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from argus.console import data, render  # noqa: E402
 
-# The single behavioural difference between the served console and the static
+# The single *behavioural* difference between the served console and the static
 # one: where a detail fragment comes from. Everything else — markup, CSS, the
-# filter/keyboard logic — is shared, so the export can't drift from the product.
+# filter/keyboard logic — comes from the same render.py, so the export can't
+# drift from the product. (The published bundle also renders the landing hero;
+# that too is a render.py flag, not a post-hoc edit of the output.)
 _LIVE_FETCH = "fetch('api/detail/' + encodeURIComponent(id))"
 _STATIC_FETCH = "fetch('detail/' + encodeURIComponent(id) + '.html')"
 
@@ -41,7 +43,11 @@ def export(postmortem_dir: Path, out_dir: Path) -> int:
     if not invs:
         raise SystemExit(f"no investigations found in {postmortem_dir}")
 
-    page = render.render_page(invs, data.compute_stats(invs))
+    # hero=True is the one deliberate difference in *content*: the published
+    # bundle is a landing page for someone who has never heard of ARGUS, so it
+    # gets the introduction band. `argus console` is a working tool for someone
+    # who already has it installed, so it keeps the plain topbar.
+    page = render.render_page(invs, data.compute_stats(invs), hero=True)
     if _LIVE_FETCH not in page:
         raise SystemExit(
             "export is stale: the console's fetch call changed shape.\n"
