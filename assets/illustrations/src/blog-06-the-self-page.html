@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="sketch.css">
+<style>
+  body { --accent: #8B5CF6; }
+  .title { font-size: 52px; }
+  .badge { position:absolute; font-family:"Marker Felt","Chalkboard SE",cursive; font-size:22px; color:var(--accent); z-index:3; }
+  .phead { position:absolute; font-family:"Marker Felt","Chalkboard SE",cursive; font-size:24px; color:var(--ink); z-index:3; }
+  .pcap  { position:absolute; font-size:21px; color:var(--gray); line-height:1.3; z-index:3; }
+  .pcap b { color:var(--ink); font-weight:normal; }
+  .screen { padding:12px 16px; }
+  .screen .label { font-size:23px; }
+  .screen .sub { font-size:18px; }
+  .cardtop { justify-content:flex-start; padding-top:12px; }
+  .mono { font-family:"Courier New",monospace; font-size:16px; color:var(--gray); }
+  .storycap { position:absolute; font-family:"Marker Felt","Chalkboard SE",cursive; font-size:27px; color:var(--ink); text-align:center; width:100%; left:0; z-index:3; }
+  .storycap .em { color:var(--accent); }
+</style>
+</head>
+<body>
+  <div class="title" style="left:56px; top:34px;">the night it paged itself</div>
+  <div class="subtitle" style="left:60px; top:100px;">one real alert, 55 seconds, and the agent is both the pager and the patient. &mdash; ARGUS</div>
+
+<script src="sketch.js"></script>
+<script src="character.js"></script>
+<script src="blog-strip.js"></script>
+<script>
+window.addEventListener("load", () => {
+  Sketch.init();
+  Sketch.underline(".title");
+  const S = Strip, A = S.getAccent();
+
+  // ---- panel 1: 23:29 UTC — the webhook lands -----------------------------
+  S.frame(0); S.badge(0, 1);
+  S.headline(0, "23:29 UTC");
+  S.screen(0,
+    '<div class="label red-ink">&#9888; ARGUS LLM spend rate</div>' +
+    '<div class="sub mono">state: firing<br>service: argus<br>owner: argus</div>',
+    56, 336, 140, "red", "var(--red)");
+  S.character(0, "paged", { cy: 424 });
+  S.caption(0, "a real SigNoz rule fires.<br><b>the service it names is the agent.</b>");
+
+  // ---- panel 2: +30s — it investigates itself -----------------------------
+  S.frame(1); S.badge(1, 2);
+  S.headline(1, "+ 30 seconds");
+  const sc2 = S.screen(1,
+    '<div class="label">inv&ndash;a2a0b2e215</div>' +
+    '<div class="sub mono">target: service = argus</div>',
+    56, 336, 140, "cardtop");
+  S.character(1, "curious", { cy: 424 });
+  S.caption(1, "it opens an investigation<br><b>into its own traces.</b>");
+
+  // ---- panel 3: +55s — the cause, and it isn't the demo -------------------
+  S.frame(2); S.badge(2, 3);
+  S.headline(2, "+ 55 seconds");
+  S.screen(2,
+    '<div class="label">its own self&ndash;query 400s</div>' +
+    '<div class="sub mono">found \'400 Bad Request\'<br>in 2 matching rows</div>',
+    56, 336, 140);
+  S.character(2, "aha", { cy: 424 });
+  S.caption(2, "the cause it wrote down<br><b>was not the demo we staged.</b>");
+
+  // ---- little self-loop drawn inside panel 2's card -----------------------
+  (function selfLoop(s) {
+    const x = s.cx, y = s.top + 100;
+    Sketch.circle(x, y, 9, { color: A, width: 2.4, seed: 11, fill: A });
+    Sketch.arrow(x - 30, y - 14, x + 30, y - 14, { color: A, width: 2.2, curve: -20, seed: 12, head: 10, jit: 0.6 });
+    Sketch.arrow(x + 30, y + 14, x - 30, y + 14, { color: A, width: 2.2, curve: -20, seed: 13, head: 10, jit: 0.6 });
+  })(sc2);
+
+  [0, 1].forEach(i => S.seqArrow(i, 460));
+
+  S.el("storycap",
+    'we wired the loop as a demo. it came back with a <span class="em">real defect</span> &mdash; ours.',
+    'top:690px;');
+
+  window.__sketchDone = true;
+});
+</script>
+</body>
+</html>
