@@ -8,6 +8,8 @@
 
 **158** tests · **20** recorded investigations across three unrelated apps — including frontend RUM alerts it was never designed for · **1** live-verified RCA at **90%** (the rest self-flagged rather than guessed) · **3/3** on the replay evals · **$0.94** total LLM spend · **zero-dependency** console
 
+▶ **Watch it work (3:56):** https://youtu.be/yvWldNxsYf0
+
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-3776ab.svg)](pyproject.toml)
 [![Last commit](https://img.shields.io/github/last-commit/vinayaksonthalia/argus.svg)](https://github.com/vinayaksonthalia/argus/commits)
