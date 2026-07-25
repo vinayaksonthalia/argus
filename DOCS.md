@@ -384,7 +384,7 @@ Local state is confined to the checkout: `postmortems/`, `argus-memory.sqlite3`,
   and exercised against the real `auth.test` endpoint with an invalid token; a
   full happy-path wizard run (real `auth.test`/`chat.postMessage` success) needs
   a valid workspace token.
-- **UI screenshots** need a signed-in SigNoz browser session (agents can't
+- **UI screenshots** need a signed-in SigNoz browser session (headless capture can't
   perform logins); all UI-facing claims are evidenced via API queries in
   `assets/` until then.
 - **Memory corpus is small** (a handful of incidents) — similarity quality

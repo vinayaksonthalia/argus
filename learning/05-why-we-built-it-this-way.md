@@ -43,7 +43,7 @@ We studied the leaders in the commercial AI-SRE space (Cleric, incident.io, Data
 
 Three concrete refinements, adopted straight from the research and traceable in the shipped product:
 
-1. **We added the evals story.** The recorded-incident replay harness (`argus eval`) exists *because* the research said measured accuracy is rare and valuable. It's also our #1 anti-copy moat: others can claim accuracy; we measure it.
+1. **We added the evals story.** The recorded-incident replay harness (`argus eval`) exists *because* the research said measured accuracy is rare and valuable. It's also the project's strongest proof of substance: others can claim accuracy; we measure it.
 
 2. **We leaned all the way into self-observation.** "AI *and agent* observability" pointed at an obvious but rarely-taken step: make the agent observe itself. So ARGUS emits `gen_ai.*` spans, per-run cost, and a spend meta-alert that pages ARGUS about ARGUS. That closing image is unfakeable if you didn't design for it from day one.
 
@@ -51,9 +51,9 @@ Three concrete refinements, adopted straight from the research and traceable in 
 
 ---
 
-## The anti-copy moats we ended up with
+## What makes this hard to reproduce shallowly
 
-When other LLM-built agents inevitably appear, these are the things a weekend copy can't reproduce:
+These are the parts that took real engineering time and can't be reproduced by a quick reimplementation:
 
 - **Published, measured accuracy** — no one copies an evals corpus in a weekend.
 - **Refuted-hypothesis receipts** — our RCA *shows the theories that died* and the queries that killed them; a screenshot-visible difference from every "AI said X" bot.
