@@ -28,6 +28,13 @@ one of them rather than on the flattering result.
 Stills from the same session: `../screenshots/11-console-lands-on-verified-hero.png`
 and `../screenshots/12-console-degraded-self-flagged.png`.
 
+## Specs
+
+`console-walkthrough.gif` — **1200 × 750**, **12.5 fps**, **156 colours**, 274
+frames, 1.11 MB, infinite loop. Captured at `device_scale_factor=2` (2560 × 1600
+real pixels) and downscaled with lanczos, so text stays sharp at the README's
+900 px display width.
+
 ## Reproduce
 
 ```bash
@@ -35,13 +42,44 @@ uv run python scripts/export_console.py
 python3 -m http.server -d docs 7343
 ```
 
-Then drive it with Playwright (a capture-only dependency — deliberately **not**
-in `pyproject.toml`, since the product itself stays dependency-light) and
-convert:
+Then drive `http://localhost:7343` with Playwright — a capture-only dependency,
+deliberately **not** in `pyproject.toml`, since the product itself stays
+dependency-light. Launch Chromium with `device_scale_factor=2` and take a
+`page.screenshot()` **per beat** rather than recording video: a PNG sequence
+avoids all inter-frame video compression, which is what made the earlier capture
+blurry. Note that the rail and the detail pane are independent scroll
+containers, so the mouse must be moved over `#pane` before `mouse.wheel`.
+
+Write the shots into an ffmpeg concat-demuxer list, where the `duration` lines
+are the hold times that make each beat readable:
+
+```
+file 'f001.png'
+duration 2.2
+file 'f002.png'
+duration 1.9
+...
+```
+
+Then assemble with a proper two-pass palette (generating the palette from the
+whole sequence is what keeps the colour ramps clean):
 
 ```bash
-ffmpeg -i capture.webm \
-  -vf "fps=8,scale=740:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=56:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle" \
+ffmpeg -f concat -safe 0 -i frames.txt \
+  -vf "fps=12,scale=1200:-1:flags=lanczos,palettegen=max_colors=160:stats_mode=diff" \
+  palette.png
+
+ffmpeg -f concat -safe 0 -i frames.txt -i palette.png \
+  -filter_complex "fps=12,scale=1200:-1:flags=lanczos[x];[x][1:v]paletteuse=dither=floyd_steinberg:diff_mode=rectangle" \
   -loop 0 console-walkthrough.gif
+```
+
+`dither=bayer:bayer_scale=5` was compared frame-by-frame against
+`floyd_steinberg` and was visually indistinguishable; floyd came out ~3%
+smaller, so it is the one shipped. Verify the result by extracting frames back
+out and reading them — file specs alone do not prove legibility:
+
+```bash
+ffmpeg -i console-walkthrough.gif -vf "select='not(mod(n\,15))'" -vsync 0 /tmp/f%03d.png
 ```
 
