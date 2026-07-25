@@ -221,6 +221,8 @@ MIT — see [`LICENSE`](LICENSE).
 
 ---
 
+Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## AI disclosure
 
 ARGUS uses Anthropic Claude as its reasoning model behind a pluggable provider interface (Claude / Groq / any OpenAI-compatible endpoint, or fully offline replay); every root-cause claim is verified against real SigNoz queries before it is reported. Claude Code was also used as a pair-programmer during development and testing — every design decision, live verification, and claim in this repo was reviewed against real evidence, and [`assets/`](assets/) holds the receipts.
