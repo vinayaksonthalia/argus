@@ -52,9 +52,15 @@ def render_row(inv: Investigation) -> str:
     """One row in the left investigations rail."""
     conf = f"{round(inv.confidence * 100)}%"
     usd = f"${inv.cost.usd:.4f}" if inv.cost.usd else "—"
+    # Lower-cased haystack so the client-side filter never has to touch the DOM
+    # text (and so it matches on id/service/alert, not on rendered chrome).
+    haystack = f"{inv.service} {inv.alert} {inv.id}".lower()
     return (
         f'<button class="row" data-id="{esc(inv.id)}" role="option" '
-        f'aria-label="{esc(inv.alert)} on {esc(inv.service)}">'
+        f'aria-selected="false" tabindex="-1" '
+        f'data-status="{esc(inv.status)}" data-search="{esc(haystack)}" '
+        f'aria-label="{esc(inv.alert)} on {esc(inv.service)}, '
+        f'{esc(inv.status)}, confidence {esc(conf)}">'
         f'<div class="row-top">'
         f'<span class="row-service mono">{esc(inv.service)}</span>'
         f"{_badge(inv.status)}"
@@ -258,6 +264,38 @@ def render_empty_detail(has_any: bool) -> str:
     )
 
 
+_FILTERS = ("All", "VERIFIED", "NEEDS REVIEW", "DEGRADED")
+_FILTER_LABELS = {
+    "All": "All",
+    "VERIFIED": "Verified",
+    "NEEDS REVIEW": "Review",
+    "DEGRADED": "Degraded",
+}
+
+
+def render_filters(invs: list[Investigation]) -> str:
+    """Search box + status chips. Twenty rows is already too many to scan."""
+    counts = {"All": len(invs)}
+    for key in _FILTERS[1:]:
+        counts[key] = sum(1 for i in invs if i.status == key)
+    chips = "".join(
+        f'<button class="chip-filter{" active" if key == "All" else ""}" '
+        f'data-filter="{esc(key)}" aria-pressed="{"true" if key == "All" else "false"}">'
+        f'{esc(_FILTER_LABELS[key])}'
+        f'<span class="chip-count mono">{counts[key]}</span></button>'
+        for key in _FILTERS
+        if key == "All" or counts[key]
+    )
+    return (
+        '<div class="rail-toolbar">'
+        '<input id="filter" class="filter-input" type="search" autocomplete="off" '
+        'placeholder="Filter by service, alert, or id…  (press /)" '
+        'aria-label="Filter investigations">'
+        f'<div class="chip-row" role="group" aria-label="Filter by status">{chips}</div>'
+        "</div>"
+    )
+
+
 def render_page(invs: list[Investigation], stats: Stats) -> str:
     """The full single-page shell (server-rendered list + client detail fetch)."""
     stats_strip = (
@@ -274,6 +312,7 @@ def render_page(invs: list[Investigation], stats: Stats) -> str:
         css=_CSS,
         accent=ACCENT,
         stats_strip=stats_strip,
+        filters=render_filters(invs) if invs else "",
         list_html=list_html,
         empty_detail=empty_detail,
         js=_JS,
@@ -304,8 +343,12 @@ _PAGE_TEMPLATE = """<!doctype html>
   <div class="stats-strip">{stats_strip}</div>
 </header>
 <main class="layout">
-  <aside class="rail" id="rail" role="listbox" aria-label="Investigations">
-    {list_html}
+  <aside class="rail-col">
+    {filters}
+    <div class="rail" id="rail" role="listbox" aria-label="Investigations" tabindex="0">
+      {list_html}
+    </div>
+    <div class="rail-noresults" id="noresults" hidden>No investigations match.</div>
   </aside>
   <section class="pane" id="pane">
     {empty_detail}
@@ -349,7 +392,11 @@ _JS = r"""
     if (!id) return;
     current = id;
     [].forEach.call(rail.querySelectorAll('.row'), function (r) {
-      r.classList.toggle('active', r.getAttribute('data-id') === id);
+      var on = r.getAttribute('data-id') === id;
+      r.classList.toggle('active', on);
+      r.setAttribute('aria-selected', on ? 'true' : 'false');
+      r.tabIndex = on ? 0 : -1;
+      if (on && r.scrollIntoView) r.scrollIntoView({block: 'nearest'});
     });
     skeleton();
     fetch('api/detail/' + encodeURIComponent(id))
@@ -376,6 +423,74 @@ _JS = r"""
   window.addEventListener('hashchange', function () {
     var id = location.hash.slice(1);
     if (id && id !== current) select(id);
+  });
+
+  // ---- filtering: free-text over service/alert/id + a status chip ----------
+  var input = document.getElementById('filter');
+  var noresults = document.getElementById('noresults');
+  var chips = [].slice.call(document.querySelectorAll('.chip-filter'));
+  var status = 'All';
+
+  function visibleRows() {
+    return [].filter.call(rail.querySelectorAll('.row'), function (r) {
+      return !r.hidden;
+    });
+  }
+
+  function applyFilter() {
+    var q = (input && input.value || '').trim().toLowerCase();
+    var shown = 0;
+    [].forEach.call(rail.querySelectorAll('.row'), function (r) {
+      var okText = !q || r.getAttribute('data-search').indexOf(q) !== -1;
+      var okStatus = status === 'All' || r.getAttribute('data-status') === status;
+      r.hidden = !(okText && okStatus);
+      if (!r.hidden) shown++;
+    });
+    if (noresults) noresults.hidden = shown !== 0;
+  }
+
+  if (input) {
+    input.addEventListener('input', applyFilter);
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') { input.value = ''; applyFilter(); input.blur(); }
+      if (e.key === 'Enter') {
+        var rows = visibleRows();
+        if (rows.length) select(rows[0].getAttribute('data-id'));
+      }
+    });
+  }
+
+  chips.forEach(function (c) {
+    c.addEventListener('click', function () {
+      status = c.getAttribute('data-filter');
+      chips.forEach(function (o) {
+        var on = o === c;
+        o.classList.toggle('active', on);
+        o.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+      applyFilter();
+    });
+  });
+
+  // ---- keyboard: / focuses the filter, arrows / j / k walk the rail --------
+  function step(delta) {
+    var rows = visibleRows();
+    if (!rows.length) return;
+    var idx = -1;
+    for (var i = 0; i < rows.length; i++) {
+      if (rows[i].getAttribute('data-id') === current) { idx = i; break; }
+    }
+    var next = rows[Math.min(rows.length - 1, Math.max(0, idx + delta))];
+    if (next) { select(next.getAttribute('data-id')); next.focus(); }
+  }
+
+  document.addEventListener('keydown', function (e) {
+    var tag = (e.target.tagName || '').toLowerCase();
+    var typing = tag === 'input' || tag === 'textarea';
+    if (e.key === '/' && !typing) { e.preventDefault(); if (input) input.focus(); return; }
+    if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === 'ArrowDown' || e.key === 'j') { e.preventDefault(); step(1); }
+    else if (e.key === 'ArrowUp' || e.key === 'k') { e.preventDefault(); step(-1); }
   });
 
   // Deep-link on load, else auto-select the newest investigation.
@@ -422,11 +537,37 @@ body{
 
 /* ---- layout ---- */
 .layout{display:grid; grid-template-columns:320px 1fr; height:calc(100% - 56px)}
-.rail{
-  border-right:1px solid var(--hairline); overflow-y:auto;
-  background:var(--bg-canvas); padding:8px;
+.rail-col{
+  display:flex; flex-direction:column; min-height:0;
+  border-right:1px solid var(--hairline); background:var(--bg-canvas);
 }
+.rail{overflow-y:auto; padding:8px; flex:1; min-height:0}
+.rail:focus{outline:none}
 .pane{overflow-y:auto; padding:28px 32px 64px}
+
+/* ---- rail toolbar (filter + status chips) ---- */
+.rail-toolbar{padding:10px 12px 8px; border-bottom:1px solid var(--hairline); flex:none}
+.filter-input{
+  width:100%; background:var(--bg-surface); color:var(--text-1);
+  border:1px solid var(--border); border-radius:8px; padding:7px 10px;
+  font:inherit; font-size:12.5px; margin-bottom:8px;
+}
+.filter-input::placeholder{color:var(--text-3)}
+.filter-input:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-dim)}
+.filter-input::-webkit-search-cancel-button{filter:invert(.6)}
+.chip-row{display:flex; flex-wrap:wrap; gap:5px}
+.chip-filter{
+  display:inline-flex; align-items:center; gap:4px; cursor:pointer; white-space:nowrap;
+  background:transparent; color:var(--text-2); font:inherit; font-size:11px;
+  border:1px solid var(--hairline); border-radius:999px; padding:3px 8px;
+  transition:background .12s,border-color .12s,color .12s;
+}
+.chip-filter:hover{background:var(--bg-surface); color:var(--text-1)}
+.chip-filter.active{background:var(--accent-dim); border-color:rgba(139,92,246,.4); color:var(--text-1)}
+.chip-filter:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+.chip-count{font-size:11px; color:var(--text-3)}
+.chip-filter.active .chip-count{color:var(--text-2)}
+.rail-noresults{padding:18px 14px; color:var(--text-3); font-size:12.5px; flex:none}
 
 /* ---- rail rows ---- */
 .row{
@@ -567,9 +708,18 @@ body{
 .rail::-webkit-scrollbar-thumb,.pane::-webkit-scrollbar-thumb{
   background:var(--border); border-radius:8px; border:3px solid var(--bg-canvas)}
 
+/* Respect the OS "reduce motion" setting: the shimmer becomes a flat block. */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms !important; animation-iteration-count:1 !important;
+    transition-duration:.01ms !important; scroll-behavior:auto !important}
+  .sk{background:var(--bg-surface)}
+}
+
 @media (max-width:760px){
   .layout{grid-template-columns:1fr; height:auto}
-  .rail{border-right:none; border-bottom:1px solid var(--hairline); max-height:40vh}
+  .rail-col{border-right:none; border-bottom:1px solid var(--hairline)}
+  .rail{max-height:40vh}
+  .pane{padding:20px 16px 48px}
   .stats-strip{gap:14px}
 }
 """

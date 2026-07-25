@@ -210,7 +210,7 @@ def load_investigation(report_path: Path, memory_lookup: Optional[dict] = None) 
         service=service,
         alert=alert,
         date_display=date_display,
-        date_sort=date_sort or inv_id,
+        date_sort=date_sort,
         confidence=float(payload.get("confidence", 0.0)),
         degraded=bool(payload.get("degraded", False)),
         needs_review=bool(payload.get("needs_review", False)),
@@ -258,7 +258,14 @@ def _memory_lookup(memory_db: Optional[Path]) -> dict:
 def load_investigations(
     postmortem_dir: Path, memory_db: Optional[Path] = None
 ) -> list[Investigation]:
-    """Load every investigation, newest first."""
+    """Load every investigation, newest first.
+
+    Ordering is deliberate. A report whose sibling ``.md`` was pruned (they are
+    per-run output and gitignored) and that the memory DB doesn't know about has
+    no timestamp at all. Sorting those by their id would be sorting by random
+    hex — so undated investigations are grouped *after* every dated one and
+    ordered stably by id, instead of being interleaved arbitrarily.
+    """
     postmortem_dir = Path(postmortem_dir)
     if not postmortem_dir.is_dir():
         return []
@@ -267,7 +274,9 @@ def load_investigations(
         load_investigation(p, mem)
         for p in sorted(postmortem_dir.glob("*.report.json"))
     ]
-    invs.sort(key=lambda i: i.date_sort, reverse=True)
+    # (has-a-date, date) descending puts dated newest-first, undated last;
+    # the pre-sorted-by-id input keeps the undated tail deterministic.
+    invs.sort(key=lambda i: (bool(i.date_sort), i.date_sort), reverse=True)
     return invs
 
 

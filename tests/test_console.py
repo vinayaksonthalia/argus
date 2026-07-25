@@ -69,6 +69,56 @@ def test_reports_sorted_newest_first():
     assert dates == sorted(dates, reverse=True)
 
 
+def test_undated_reports_sort_after_dated_ones(tmp_path):
+    """An undated report has no timestamp, so it must not be interleaved.
+
+    Sorting it by its id would be sorting by random hex — which used to push
+    a 0%-confidence draft above a real, dated investigation in the rail.
+    """
+    base = {"root_cause": "", "impact": "", "timeline": [], "evidence_bullets": [],
+            "refuted": [], "degraded": False, "needs_review": False}
+    hdr = "- **Service:** `s`\n- **Alert:** `a`\n- **Generated:** {} UTC\n"
+    _write_report(tmp_path, "inv-0000aa", {**base, "title": "old", "confidence": 0.9},
+                  hdr.format("2026-07-16 10:00"))
+    _write_report(tmp_path, "inv-ffff99", {**base, "title": "new", "confidence": 0.9},
+                  hdr.format("2026-07-18 10:00"))
+    # no sibling .md -> no date at all, despite an id that sorts high
+    _write_report(tmp_path, "inv-ffffff", {**base, "title": "undated", "confidence": 0.9})
+
+    ids = [i.id for i in cdata.load_investigations(tmp_path)]
+    assert ids == ["inv-ffff99", "inv-0000aa", "inv-ffffff"]
+
+
+def test_rail_rows_carry_filter_metadata(tmp_path):
+    """The client-side filter matches service / alert / id — and only those."""
+    _write_report(
+        tmp_path, "inv-abc123",
+        {"title": "T", "confidence": 0.9, "root_cause": "", "impact": "",
+         "timeline": [], "evidence_bullets": [], "refuted": [],
+         "degraded": False, "needs_review": False},
+        "- **Service:** `catalog`\n- **Alert:** `p99 breach`\n"
+        "- **Generated:** 2026-07-20 10:00 UTC\n",
+    )
+    invs = cdata.load_investigations(tmp_path)
+    row = render.render_row(invs[0])
+    assert 'data-status="VERIFIED"' in row
+    assert 'data-search="catalog p99 breach inv-abc123"' in row
+    # listbox options must expose selection state to assistive tech
+    assert 'aria-selected="false"' in row
+
+    page = render.render_page(invs, cdata.compute_stats(invs))
+    assert 'id="filter"' in page
+    assert 'data-filter="VERIFIED"' in page
+    # statuses with no investigations don't get a dead chip
+    assert 'data-filter="DEGRADED"' not in page
+
+
+def test_filter_toolbar_hidden_when_there_is_nothing_to_filter(tmp_path):
+    page = render.render_page([], cdata.Stats(total=0, verified=0, total_usd=0.0))
+    assert 'id="filter"' not in page
+    assert "No investigations yet." in page
+
+
 def test_status_badge_thresholds():
     def mk(conf, degraded=False):
         return cdata.Investigation(
