@@ -28,6 +28,16 @@ def test_webhook_rejects_missing_secret(alert_payload):
     assert resp.status_code == 401
 
 
+def test_webhook_non_ascii_secret_is_401_not_500(alert_payload):
+    # compare_digest(str, str) raises TypeError on non-ASCII; must be a clean 401
+    resp = make_auth_client().post(
+        "/webhook/signoz", json=alert_payload,
+        # raw latin-1 header bytes, as a hostile client would send them
+        headers={"X-Argus-Webhook-Secret": "s\xe9cret-\xfcnicode".encode("latin-1")},
+    )
+    assert resp.status_code == 401
+
+
 def test_webhook_rejects_wrong_secret(alert_payload):
     resp = make_auth_client().post(
         "/webhook/signoz", json=alert_payload,

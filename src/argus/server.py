@@ -122,7 +122,11 @@ def _webhook_authorized(request: Request, secret: str) -> bool:
         auth = request.headers.get("authorization", "")
         if auth.lower().startswith("bearer "):
             supplied = auth[7:]
-    return bool(supplied) and hmac.compare_digest(supplied, secret)
+    # bytes comparison: compare_digest raises TypeError on non-ASCII str,
+    # and a hostile header must yield 401, not a 500
+    return bool(supplied) and hmac.compare_digest(
+        supplied.encode("utf-8", "surrogateescape"), secret.encode()
+    )
 
 
 def create_app(settings: Settings) -> FastAPI:
