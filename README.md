@@ -39,7 +39,7 @@ That flagship run, `inv-fcdb95f553`, named the actual injected fault — a `pg_s
 
 > At 2 a.m. you don't need a chatbot to ask questions of — you need the answer already waiting. ARGUS is triggered by the alert webhook, not a human prompt, and it cannot bluff: every hypothesis carries a machine-runnable, falsifiable verification spec, and any claim the telemetry doesn't back is **refuted**, not reported.
 
-- **Verified, not vibes.** Each hypothesis is confirmed or refuted by a real before/after query; below 75% confidence a run flags itself for human review instead of overclaiming.
+- **Verified, not vibes.** Each hypothesis is confirmed or refuted by a real before/after query; below the review bar (75% by default) a run flags itself for human review instead of overclaiming. The bar is adaptive: when incident memory recalls the same failure class *and* that past incident was itself verified, it drops to 65% — earned confidence, stated in the report.
 - **Self-observing.** Every investigation is an `argus.investigation` trace — one OTel span per node, carrying `gen_ai.usage.*` and `argus.cost.usd` — flowing back into the SigNoz it queries.
 - **Hardened.** Telemetry reaches the model only inside delimiter-escaped, length-capped `<telemetry>` blocks, and its sole side-effect is constrained JSON, whitelist-validated before a query is built — so verification is the honesty mechanism *and* the [prompt-injection firewall](DOCS.md#security-model).
 - **Replayable.** Recorded incidents replay with no SigNoz, no LLM, and no secrets, doubling as an evals harness scoring RCA accuracy.
@@ -83,7 +83,7 @@ cp .env.example .env    # startup refuses placeholder values
 uv run argus serve      # webhook server on :7331
 ```
 
-Point a SigNoz webhook notification channel at `http://<host>:7331/webhook/signoz`. Alerts are deduplicated — a re-delivery returns the existing investigation — one in flight per service. Set `OTEL_EXPORTER_OTLP_ENDPOINT` and ARGUS's traces appear in that same SigNoz. Faultline services, fault injection, and a real alert through the loop: [the live demo](DOCS.md#run-the-live-demo-in-5-commands).
+Point a SigNoz webhook notification channel at `http://<host>:7331/webhook/signoz`. Set `ARGUS_WEBHOOK_SECRET` and the endpoint requires that value in an `X-Argus-Webhook-Secret` header (unauthenticated posts are refused). Alerts are deduplicated — a re-delivery returns the existing investigation, **and dedup state persists across restarts** (`ARGUS_STATE_DB`) — one in flight per service. Set `OTEL_EXPORTER_OTLP_ENDPOINT` and ARGUS's traces appear in that same SigNoz. Faultline services, fault injection, and a real alert through the loop: [the live demo](DOCS.md#run-the-live-demo-in-5-commands).
 
 ## The 15-minute tour
 
@@ -205,7 +205,7 @@ Live-verified unless marked otherwise; evidence in [`assets/`](assets/).
 
 ## Honest limits
 
-Blast radius is single-service · the Anthropic SDK path is exercised through `claude-cli`, not a raw API key · incident-memory similarity uses local hashed-TF embeddings over a small corpus, so recall grows with use · a verification spec can 404 on a field that was never ingested, costing that hypothesis rather than faking it · trace operators (`A => B`) are avoided, as they generate malformed SQL on the verified SigNoz version · `foundryctl cast` was dry-run validated, never executed. Each is expanded in [`DOCS.md`](DOCS.md#whats-still-open-honest) and the [FAQ](learning/README.md).
+Blast radius is single-service · the Anthropic SDK path is exercised through `claude-cli`, not a raw API key · incident-memory similarity uses local hashed-TF embeddings over a small corpus, so recall grows with use · a verification spec can still fail on a field that was never ingested — the hypothesis is then reported as **untested, not refuted**, and the next iteration is told to write a runnable spec · trace operators (`A => B`) are avoided, as they generate malformed SQL on the verified SigNoz version · `foundryctl cast` was dry-run validated, never executed. Each is expanded in [`DOCS.md`](DOCS.md#whats-still-open-honest) and the [FAQ](learning/README.md).
 
 ## Compatibility and uninstall
 

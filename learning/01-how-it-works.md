@@ -91,7 +91,7 @@ This is where hallucinations die. A claim the telemetry doesn't back is *refuted
 
 The `report` node builds a Slack Block Kit card and a markdown postmortem: header (severity + service + verdict), impact summary, root cause + confidence, evidence bullets each **deep-linked to the exact SigNoz query that backs it**, a muted footnote listing the *refuted* theories and the queries that killed them (our favorite flex), a reconstructed timeline, and a footer with tokens, dollars, and rows scanned.
 
-**Below 75% confidence, it does not call a verdict.** It ships an evidence-only report flagged for human review. A run that can't prove anything says so.
+**Below the review bar, it does not call a verdict.** It ships an evidence-only report flagged for human review. A run that can't prove anything says so. The bar defaults to 75% and is **adaptive**: when incident memory recalls the same failure class *and* that past incident was itself verified, the bar drops to 65% — earned confidence, and the report always states which bar it was judged against ([details](../DOCS.md#the-adaptive-review-bar)).
 
 Optionally, the **act node** turns a confirmed root cause into a `[DRAFT · ARGUS]` leading-indicator alert rule (always born `disabled: true` — a human enables it) and auto-creates a per-incident evidence dashboard. ARGUS proposes; it never mutates prod.
 

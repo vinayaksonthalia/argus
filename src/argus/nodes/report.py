@@ -3,6 +3,7 @@ claim deep-links into SigNoz, plus a markdown postmortem draft."""
 
 from __future__ import annotations
 
+import os
 from datetime import datetime, timezone
 
 from ..models import Evidence, InvestigationState, Report, Verdict
@@ -10,7 +11,14 @@ from ..slack import build_blocks
 from . import Deps
 
 
-REVIEW_THRESHOLD = 0.75  # below this the RCA is flagged for human review
+# Below this the RCA is flagged for human review.
+REVIEW_THRESHOLD = float(os.getenv("ARGUS_REVIEW_THRESHOLD", "0.75"))
+# Adaptive threshold: when incident memory recalls the same failure class AND
+# that past incident was itself verified, the bar drops by this much — "we
+# have seen this before and were right" is earned confidence. 0 disables.
+MEMORY_TRUST_DISCOUNT = float(os.getenv("ARGUS_MEMORY_TRUST_DISCOUNT", "0.10"))
+# The bar never drops below this, no matter how familiar the failure class.
+THRESHOLD_FLOOR = 0.60
 
 
 def _evidence_bullet(ev: Evidence) -> str:
@@ -67,12 +75,14 @@ def build_postmortem(state: InvestigationState, report: Report) -> str:
         f"- **Alert:** `{state.alert.name}`",
         f"- **Generated:** {now} (auto-drafted by ARGUS — review before publishing)",
         f"- **Confidence:** {report.confidence:.0%}" + ("  (DEGRADED: evidence-only)" if report.degraded else ""),
+        f"- **Review bar:** {report.review_threshold:.0%}"
+        + (f"  ({report.threshold_note})" if report.threshold_note else "  (default)"),
         "",
         "## Root cause",
         report.root_cause,
         ("" if not report.needs_review else
          "\n> ⚠ **Flagged for human review** — confidence below threshold "
-         f"({report.confidence:.0%} < {REVIEW_THRESHOLD:.0%}) or no hypothesis verified.\n"),
+         f"({report.confidence:.0%} < {report.review_threshold:.0%}) or no hypothesis verified.\n"),
         "## Impact",
         report.impact,
         "",
@@ -85,7 +95,8 @@ def build_postmortem(state: InvestigationState, report: Report) -> str:
         *memory_section,
         "## Hypotheses considered",
         *[
-            f"- [{h.verdict.value.upper()}] {h.claim} — {h.verdict_detail}"
+            f"- [{'UNVERIFIED — check failed to run' if h.verdict == Verdict.error else h.verdict.value.upper()}] "
+            f"{h.claim} — {h.verdict_detail}"
             for h in state.hypotheses
         ],
         "",
@@ -123,28 +134,42 @@ def build_self_diagnosis(state: InvestigationState) -> str:
         lines.append("**Node errors during the run:**")
         lines += [f"- {err}" for err in state.errors]
         lines.append("")
-    refuted = [h for h in state.hypotheses if h.verdict in (Verdict.refuted, Verdict.error)]
+    refuted = [h for h in state.hypotheses if h.verdict == Verdict.refuted]
+    errored = [h for h in state.hypotheses if h.verdict == Verdict.error]
     if refuted:
         lines.append("**Hypotheses proposed and struck down (with the disproving query):**")
         lines += [f"- {h.claim} — {h.verdict_detail}" for h in refuted]
         lines.append("")
-    lines.append(
-        "**Likely failure mode:** "
-        + (
-            "insufficient evidence reached the hypothesizer (see empty sources above)."
-            if unavailable and not refuted
-            else "every mechanistically plausible hypothesis was falsified by the "
-                 "telemetry — the true cause is outside the collected evidence "
-                 "(consider widening the window or adding infra/change signals)."
+    if errored:
+        lines.append(
+            "**Hypotheses that could not be tested (the verification check "
+            "itself failed to run — these are untested, not disproven):**"
         )
-    )
+        lines += [f"- {h.claim} — {h.verdict_detail}" for h in errored]
+        lines.append("")
+    if errored and not refuted:
+        failure_mode = (
+            "verification checks failed to run (often a schema mismatch — the "
+            "spec references fields this service's telemetry doesn't carry), so "
+            "the proposed theories remain untested."
+        )
+    elif unavailable and not refuted:
+        failure_mode = "insufficient evidence reached the hypothesizer (see empty sources above)."
+    else:
+        failure_mode = (
+            "every mechanistically plausible hypothesis was falsified by the "
+            "telemetry — the true cause is outside the collected evidence "
+            "(consider widening the window or adding infra/change signals)."
+        )
+    lines.append("**Likely failure mode:** " + failure_mode)
     return "\n".join(lines)
 
 
 def make(deps: Deps):
     def report(state: InvestigationState) -> InvestigationState:
         confirmed = [h for h in state.hypotheses if h.verdict == Verdict.confirmed]
-        refuted = [h for h in state.hypotheses if h.verdict in (Verdict.refuted, Verdict.error)]
+        refuted = [h for h in state.hypotheses if h.verdict == Verdict.refuted]
+        unverified = [h for h in state.hypotheses if h.verdict == Verdict.error]
         degraded = not confirmed
 
         # Incident-memory citation: a high-similarity past incident is part of
@@ -177,6 +202,28 @@ def make(deps: Deps):
             )
             confidence = 0.0
 
+        # Adaptive review bar (see module constants): only a *verified* past
+        # incident of the same failure class earns a discount — a degraded or
+        # low-confidence memory proves nothing. Never applies to degraded runs.
+        effective_threshold = REVIEW_THRESHOLD
+        threshold_note = ""
+        trusted_memories = [
+            e for e in memory_evs
+            if not e.data.get("degraded", True)
+            and e.data.get("confidence", 0.0) >= REVIEW_THRESHOLD
+        ]
+        if confirmed and trusted_memories and MEMORY_TRUST_DISCOUNT > 0:
+            top_mem = max(trusted_memories, key=lambda e: e.data.get("similarity", 0))
+            effective_threshold = max(
+                THRESHOLD_FLOOR, REVIEW_THRESHOLD - MEMORY_TRUST_DISCOUNT
+            )
+            threshold_note = (
+                f"adaptive: known failure class — similar to "
+                f"{top_mem.data.get('incident_id')} "
+                f"(similarity {top_mem.data.get('similarity', 0):.0%}, "
+                f"previously verified at {top_mem.data.get('confidence', 0):.0%})"
+            )
+
         metric_evs = [e for e in state.available_evidence() if e.kind.value == "metric"]
         impact = (
             "; ".join(e.summary for e in metric_evs[:3])
@@ -202,9 +249,12 @@ def make(deps: Deps):
             timeline=build_timeline(state),
             evidence_bullets=[_evidence_bullet(e) for e in state.available_evidence()],
             refuted=[f"{h.claim} — {h.verdict_detail}" for h in refuted],
+            unverified=[f"{h.claim} — {h.verdict_detail}" for h in unverified],
             links=[link for e in state.available_evidence() for link in e.links],
             degraded=degraded,
-            needs_review=degraded or confidence < REVIEW_THRESHOLD,
+            needs_review=degraded or confidence < effective_threshold,
+            review_threshold=effective_threshold,
+            threshold_note=threshold_note,
             llm_label=llm_label,
             query_stats=stats.summary() if stats else "",
         )

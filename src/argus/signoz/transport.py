@@ -11,6 +11,7 @@ eval cases.
 from __future__ import annotations
 
 import json
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Protocol
@@ -58,7 +59,15 @@ class SignozTransport(Protocol):
 
 
 class HttpTransport:
-    """Live SigNoz over REST with SIGNOZ-API-KEY header auth."""
+    """Live SigNoz over REST with SIGNOZ-API-KEY header auth.
+
+    Transient failures (connect errors, 5xx) are retried with a short
+    backoff so one blip doesn't degrade a whole investigation; 4xx responses
+    are the caller's bug and raise immediately.
+    """
+
+    MAX_ATTEMPTS = 3
+    BACKOFF_S = 0.5  # doubles per retry: 0.5s, 1.0s
 
     def __init__(self, base_url: str, api_key: str, timeout: float = 30.0) -> None:
         self._base = base_url.rstrip("/")
@@ -67,10 +76,29 @@ class HttpTransport:
         )
         self.stats = QueryStats()
 
+    def _post_with_retry(self, url: str, payload: dict[str, Any]) -> httpx.Response:
+        last_exc: Exception | None = None
+        for attempt in range(self.MAX_ATTEMPTS):
+            if attempt:
+                time.sleep(self.BACKOFF_S * (2 ** (attempt - 1)))
+            try:
+                resp = self._client.post(url, json=payload)
+            except httpx.TransportError as exc:
+                last_exc = exc
+                continue
+            if resp.status_code >= 500 and attempt < self.MAX_ATTEMPTS - 1:
+                last_exc = httpx.HTTPStatusError(
+                    f"server error {resp.status_code}", request=resp.request, response=resp
+                )
+                continue
+            return resp
+        assert last_exc is not None
+        raise last_exc
+
     def query_range(self, payload: dict[str, Any], tag: str) -> dict[str, Any]:
         with tracer().start_as_current_span(f"signoz.query_range.{tag}") as span:
             span.set_attribute("argus.signoz.tag", tag)
-            resp = self._client.post(f"{self._base}/api/v5/query_range", json=payload)
+            resp = self._post_with_retry(f"{self._base}/api/v5/query_range", payload)
             span.set_attribute("http.status_code", resp.status_code)
             resp.raise_for_status()
             envelope = resp.json()

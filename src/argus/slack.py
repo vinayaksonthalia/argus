@@ -41,7 +41,9 @@ def build_blocks(state: InvestigationState, report: Report, elapsed_s: float) ->
             {"type": "mrkdwn", "text": f"*Started:*  {started}"},
             {"type": "mrkdwn", "text": f"*Duration:*  {elapsed_s:.0f}s to RCA"},
             {"type": "mrkdwn", "text": f"*Service:*  {state.service}"},
-            {"type": "mrkdwn", "text": f"*Confidence:*  {report.confidence:.0%}"},
+            {"type": "mrkdwn", "text": f"*Confidence:*  {report.confidence:.0%}"
+             + (f" (bar {report.review_threshold:.0%} — known failure class)"
+                if report.threshold_note else "")},
         ]},
         {"type": "divider"},
         _section(f"*Root cause{' (draft — flagged for review)' if report.needs_review else ''}:*\n"
@@ -56,6 +58,11 @@ def build_blocks(state: InvestigationState, report: Report, elapsed_s: float) ->
     if report.refuted:
         refuted = "\n".join(f"• ~{r}~" for r in report.refuted[:4])
         blocks.append(_section(f"*Ruled out by verification queries:*\n{refuted}"))
+    if report.unverified:
+        unverified = "\n".join(f"• {u}" for u in report.unverified[:4])
+        blocks.append(_section(
+            f"*Could not be tested (check failed to run — untested, not ruled out):*\n{unverified}"
+        ))
     blocks.append({"type": "divider"})
     context_bits = [
         f"🤖 Drafted by ARGUS · `{state.investigation_id}` · LLM: {report.llm_label}",

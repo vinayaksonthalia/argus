@@ -18,7 +18,7 @@ A **webhook** is a "phone call" one program makes to another when something happ
 
 ### confidence threshold (75%)
 A cutoff for how sure the system has to be before it's allowed to state a conclusion. Below it, it says "I'm not sure" instead of guessing.
-**→ in ARGUS:** below **75%** confidence ARGUS refuses to call a verdict and ships an evidence-only report flagged for human review.
+**→ in ARGUS:** below the review bar (**75%** by default) ARGUS refuses to call a verdict and ships an evidence-only report flagged for human review. The bar drops to 65% when incident memory recalls the same failure class and that past incident was itself verified — earned confidence, always stated in the report.
 
 ### deduplication (dedup)
 Noticing that two messages are really *the same* event and not doing the work twice.

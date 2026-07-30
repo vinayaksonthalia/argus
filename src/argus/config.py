@@ -44,6 +44,10 @@ class Settings:
     otlp_endpoint: str = ""  # empty -> telemetry no-ops
     listen_port: int = 7331
     max_verify_iterations: int = 2
+    # shared secret required on webhook requests; empty -> unauthenticated (warned)
+    webhook_secret: str = ""
+    # dedup/result persistence SQLite path; "off" disables (in-memory only)
+    state_db: str = "argus-state.sqlite3"
     # incident memory SQLite path; "off" disables recall/learning
     memory_db: str = "argus-memory.sqlite3"
     # SigNoz read transport: rest (default) | mcp
@@ -70,6 +74,8 @@ class Settings:
             otlp_endpoint=os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", ""),
             listen_port=int(os.getenv("ARGUS_PORT", "7331")),
             max_verify_iterations=int(os.getenv("ARGUS_MAX_ITERATIONS", "2")),
+            webhook_secret=os.getenv("ARGUS_WEBHOOK_SECRET", "").strip(),
+            state_db=os.getenv("ARGUS_STATE_DB", "argus-state.sqlite3").strip(),
             memory_db=os.getenv("ARGUS_MEMORY_DB", "argus-memory.sqlite3").strip(),
             transport=os.getenv("ARGUS_TRANSPORT", "rest").strip().lower(),
             mcp_url=os.getenv("ARGUS_MCP_URL", "http://localhost:8000/mcp").strip(),
@@ -77,6 +83,9 @@ class Settings:
 
     def memory_enabled(self) -> bool:
         return self.memory_db.lower() not in ("", "off", "none", "disabled")
+
+    def state_enabled(self) -> bool:
+        return self.state_db.lower() not in ("", "off", "none", "disabled")
 
     def resolved_llm_provider(self) -> str:
         """Resolve 'auto' to a concrete provider name."""
@@ -110,5 +119,9 @@ class Settings:
         if self.slack_bot_token and _looks_placeholder(self.slack_bot_token):
             raise ConfigError(
                 "Refusing to start: SLACK_BOT_TOKEN is set but looks like a placeholder."
+            )
+        if self.webhook_secret and _looks_placeholder(self.webhook_secret):
+            raise ConfigError(
+                "Refusing to start: ARGUS_WEBHOOK_SECRET is set but looks like a placeholder."
             )
         self.validated = True

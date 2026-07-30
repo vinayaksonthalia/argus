@@ -3,12 +3,15 @@ service, an investigation window, and a dedup fingerprint (FR-1/FR-2)."""
 
 from __future__ import annotations
 
+import os
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from ..models import Alert, InvestigationState, TimeWindow, dedup_fingerprint
 
-LOOKBACK_MINUTES = 30
+# How far before the alert the evidence window opens. Overridable for slow
+# burns (memory leaks, gradual drift) that a 30-minute window can't see.
+LOOKBACK_MINUTES = int(os.getenv("ARGUS_LOOKBACK_MINUTES", "30"))
 
 
 class TriageError(ValueError):

@@ -9,12 +9,16 @@ service.
 
 from __future__ import annotations
 
+import hmac
+import json
 import logging
+import sqlite3
 import threading
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from typing import Any, Optional
 
-from fastapi import BackgroundTasks, FastAPI, HTTPException
+from fastapi import BackgroundTasks, FastAPI, HTTPException, Request
 
 from .config import Settings
 from .models import TimeWindow, dedup_fingerprint
@@ -22,15 +26,58 @@ from .nodes.triage import LOOKBACK_MINUTES, TriageError, parse_webhook
 
 logger = logging.getLogger("argus.server")
 
+_STATE_SCHEMA = """
+CREATE TABLE IF NOT EXISTS dedup (
+    fingerprint      TEXT PRIMARY KEY,
+    investigation_id TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS results (
+    investigation_id TEXT PRIMARY KEY,
+    payload          TEXT NOT NULL
+);
+"""
+
 
 class DedupStore:
-    """In-memory idempotency + per-service concurrency guard."""
+    """Idempotency + per-service concurrency guard.
 
-    def __init__(self) -> None:
+    With a `db_path`, fingerprints and results are persisted to SQLite so a
+    restart cannot re-run an already-delivered alert or forget past results.
+    In-flight ("running") entries found at startup are marked "interrupted" —
+    the process that owned them is gone. Without a path, purely in-memory
+    (tests, ephemeral runs).
+    """
+
+    def __init__(self, db_path: str | Path | None = None) -> None:
         self._lock = threading.Lock()
         self._by_fingerprint: dict[str, str] = {}  # fingerprint -> investigation_id
         self._active_services: set[str] = set()
         self.results: dict[str, dict[str, Any]] = {}  # investigation_id -> status/result
+        self._conn: Optional[sqlite3.Connection] = None
+        if db_path:
+            path = Path(db_path)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            self._conn = sqlite3.connect(str(path), check_same_thread=False)
+            self._conn.execute("PRAGMA journal_mode=WAL")
+            self._conn.executescript(_STATE_SCHEMA)
+            for fp, inv in self._conn.execute("SELECT fingerprint, investigation_id FROM dedup"):
+                self._by_fingerprint[fp] = inv
+            for inv, payload in self._conn.execute(
+                "SELECT investigation_id, payload FROM results"
+            ):
+                result = json.loads(payload)
+                if result.get("status") == "running":
+                    result["status"] = "interrupted"
+                    self._persist_result(inv, result)
+                self.results[inv] = result
+            self._conn.commit()
+
+    def _persist_result(self, investigation_id: str, result: dict[str, Any]) -> None:
+        if self._conn is not None:
+            self._conn.execute(
+                "INSERT OR REPLACE INTO results VALUES (?, ?)",
+                (investigation_id, json.dumps(result)),
+            )
 
     def claim(self, fingerprint: str, service: str, investigation_id: str) -> Optional[str]:
         """Returns existing investigation id if duplicate/busy, else None (claimed)."""
@@ -46,18 +93,50 @@ class DedupStore:
             self._by_fingerprint[fingerprint] = investigation_id
             self._active_services.add(service)
             self.results[investigation_id] = {"status": "running", "service": service}
+            if self._conn is not None:
+                self._conn.execute(
+                    "INSERT OR REPLACE INTO dedup VALUES (?, ?)",
+                    (fingerprint, investigation_id),
+                )
+                self._persist_result(
+                    investigation_id, self.results[investigation_id]
+                )
+                self._conn.commit()
             return None
 
     def finish(self, investigation_id: str, service: str, result: dict[str, Any]) -> None:
         with self._lock:
             self._active_services.discard(service)
             self.results[investigation_id] = {**result, "service": service}
+            if self._conn is not None:
+                self._persist_result(investigation_id, self.results[investigation_id])
+                self._conn.commit()
+
+
+def _webhook_authorized(request: Request, secret: str) -> bool:
+    """Constant-time check of the shared secret, accepted either as the
+    `X-Argus-Webhook-Secret` header or as `Authorization: Bearer <secret>`
+    (SigNoz/Alertmanager webhook channels can set custom headers)."""
+    supplied = request.headers.get("x-argus-webhook-secret", "")
+    if not supplied:
+        auth = request.headers.get("authorization", "")
+        if auth.lower().startswith("bearer "):
+            supplied = auth[7:]
+    return bool(supplied) and hmac.compare_digest(supplied, secret)
 
 
 def create_app(settings: Settings) -> FastAPI:
     app = FastAPI(title="ARGUS", version="0.1.0")
-    dedup = DedupStore()
+    dedup = DedupStore(settings.state_db if settings.state_enabled() else None)
     app.state.dedup = dedup
+    if not settings.webhook_secret:
+        logger.warning(
+            "ARGUS_WEBHOOK_SECRET is not set — /webhook/signoz will accept "
+            "unauthenticated requests. Anyone who can reach port %s can trigger "
+            "investigations (and LLM spend). Set a secret and configure the "
+            "SigNoz webhook channel to send it.",
+            settings.listen_port,
+        )
 
     def _make_deps():
         from .live import make_live_deps
@@ -98,7 +177,13 @@ def create_app(settings: Settings) -> FastAPI:
             dedup.finish(investigation_id, service, {"status": "error", "error": str(exc)})
 
     @app.post("/webhook/signoz", status_code=202)
-    def webhook(payload: dict[str, Any], background: BackgroundTasks) -> dict[str, Any]:
+    def webhook(
+        payload: dict[str, Any], background: BackgroundTasks, request: Request
+    ) -> dict[str, Any]:
+        if settings.webhook_secret and not _webhook_authorized(
+            request, settings.webhook_secret
+        ):
+            raise HTTPException(status_code=401, detail="invalid or missing webhook secret")
         try:
             alert = parse_webhook(payload)
         except TriageError as exc:

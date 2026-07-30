@@ -101,6 +101,11 @@ def build_user_prompt(state: InvestigationState) -> str:
         for h in state.hypotheses
         if h.verdict == Verdict.refuted
     ]
+    unrunnable = [
+        f"- CHECK FAILED TO RUN (iteration {state.iteration}): {h.claim} — {h.verdict_detail}"
+        for h in state.hypotheses
+        if h.verdict == Verdict.error
+    ]
     parts = [
         f"Alert '{alert.name}' is firing for service '{state.service}'.",
         wrap_telemetry(
@@ -114,6 +119,14 @@ def build_user_prompt(state: InvestigationState) -> str:
         parts.append(
             "Previously proposed hypotheses were REFUTED by verification queries. "
             "Do not repeat them; propose different root causes:\n" + "\n".join(refutations)
+        )
+    if unrunnable:
+        parts.append(
+            "These hypotheses were NOT disproven — their verification checks "
+            "failed to run (often a field name that doesn't exist in this "
+            "service's telemetry). You may re-propose the same theory, but "
+            "write a verification spec that only references fields visible in "
+            "the evidence above:\n" + "\n".join(unrunnable)
         )
     parts.append("Produce the JSON array of hypotheses now.")
     return "\n\n".join(parts)
@@ -139,9 +152,10 @@ def make(deps: Deps):
             )
             state.usage.add(repair.input_tokens, repair.output_tokens, repair.cost_usd, repair.model)
             hypotheses = parse_hypotheses(repair.text)
-        # Keep refuted history from prior iterations for the report footnote.
+        # Keep refuted/unverified history from prior iterations for the report footnote.
         state.hypotheses = [
-            h for h in state.hypotheses if h.verdict == Verdict.refuted
+            h for h in state.hypotheses
+            if h.verdict in (Verdict.refuted, Verdict.error)
         ] + hypotheses
         return state
 

@@ -9,7 +9,8 @@ from argus.server import create_app
 
 
 def make_client() -> TestClient:
-    app = create_app(Settings())
+    # state_db="off": tests must not persist dedup state between runs.
+    app = create_app(Settings(state_db="off"))
     return TestClient(app)
 
 

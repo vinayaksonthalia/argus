@@ -173,6 +173,13 @@ loop), `03-how-it-cant-bluff.png` (the verification firewall), and
   and the injection firewall: a model that has been successfully manipulated
   still cannot cause an arbitrary query, and its unsupported claim is refuted
   rather than reported.
+- **Webhook authentication.** Set `ARGUS_WEBHOOK_SECRET` and
+  `POST /webhook/signoz` requires the same value in an
+  `X-Argus-Webhook-Secret` header (or `Authorization: Bearer <secret>`),
+  compared constant-time. Configure it as a custom header on the SigNoz
+  webhook notification channel. Without it anyone who can reach the port can
+  trigger investigations — and LLM spend — so ARGUS logs a loud warning at
+  startup when the secret is unset.
 - **Secrets.** Env-only configuration; startup refuses missing or
   placeholder-looking secrets, naming the variable and never the value. A
   denylist scrubber redacts credential-shaped attributes both from prompts and
@@ -184,6 +191,46 @@ loop), `03-how-it-cant-bluff.png` (the verification firewall), and
 - **Console hardening.** Covered above — server-side `html.escape` on every
   dynamic value, non-`http(s)` schemes dropped, id path segments whitelisted,
   restrictive CSP, and a hostile-payload test suite.
+
+## Operational hardening
+
+- **Restart-safe dedup.** Alert fingerprints and investigation results persist
+  to SQLite (`ARGUS_STATE_DB`, default `argus-state.sqlite3`; `off` for
+  in-memory). A re-delivered alert after a restart still returns the original
+  investigation id instead of spawning a duplicate; investigations that were
+  mid-flight when the process died are marked `interrupted`, not silently
+  forgotten. WAL mode is enabled on both this store and the incident memory.
+- **Retry with backoff on SigNoz reads.** Live `query_range` calls retry
+  transient failures (connect errors, 5xx) up to 3 attempts with 0.5s/1s
+  backoff. 4xx responses raise immediately — those are a query bug, and
+  retrying them is how the meta-alert incident happened.
+- **Untested ≠ refuted.** A hypothesis whose verification check *fails to run*
+  (e.g. the spec references a field this service never ingests) is reported as
+  `UNVERIFIED — check failed to run`, separately from hypotheses the telemetry
+  actually disproved. The next hypothesize iteration is told the check failed
+  and may re-propose the same theory with a runnable spec. Slack renders these
+  under "Could not be tested", never struck through as "Ruled out".
+- **Tunable evidence window.** `ARGUS_LOOKBACK_MINUTES` (default 30) sets how
+  far before the alert the investigation looks — raise it for slow burns.
+
+## The adaptive review bar
+
+The human-review threshold (`ARGUS_REVIEW_THRESHOLD`, default 0.75) is no
+longer a single fixed constant. When the memory-recall node finds a past
+incident of the same failure class — similarity ≥ 55%, **and** that incident
+was itself verified (confirmed hypothesis at/above the bar, not degraded) —
+the bar for the current run drops by `ARGUS_MEMORY_TRUST_DISCOUNT` (default
+0.10, floor 0.60). The reasoning: "we have seen this exact failure class
+before and were right about it" is earned confidence, and re-paging a human
+for a known pattern is the review-queue toil an autonomous investigator
+exists to remove.
+
+The discount is deliberately hard to earn: degraded memories, unverified
+memories, and low-similarity matches count for nothing, a degraded current
+run can never benefit, and every report states the bar it was judged against
+(`Review bar: 65% (adaptive: known failure class — similar to inv-…)`), so a
+lowered bar is always visible, never silent. Set the discount to `0` to
+restore a fixed threshold.
 
 ## Integration boundaries
 

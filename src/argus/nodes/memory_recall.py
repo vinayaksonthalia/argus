@@ -65,6 +65,7 @@ def make(deps: Deps):
                     "occurred_at": rec.occurred_at,
                     "service": rec.service,
                     "confidence": rec.confidence,
+                    "degraded": rec.degraded,
                 },
             ))
             logger.info(

@@ -175,11 +175,18 @@ class Report(BaseModel):
     timeline: list[str] = Field(default_factory=list)
     evidence_bullets: list[str] = Field(default_factory=list)
     refuted: list[str] = Field(default_factory=list)
+    # hypotheses whose verification check failed to run (e.g. schema mismatch)
+    # — untested, which is weaker than refuted and must not read as ruled out
+    unverified: list[str] = Field(default_factory=list)
     links: list[str] = Field(default_factory=list)
     slack_blocks: list[dict[str, Any]] = Field(default_factory=list)
     postmortem_md: str = ""
     degraded: bool = False  # evidence-only report (no verified hypothesis)
     needs_review: bool = False  # confidence below the human-review threshold
+    # the bar this run was judged against (lower than the default when the
+    # failure class was previously seen AND verified — adaptive threshold)
+    review_threshold: float = 0.75
+    threshold_note: str = ""  # why the bar was lowered, "" when default
     llm_label: str = ""  # which LLM/provider produced the hypotheses (honesty label)
     query_stats: str = ""  # ARGUS's own read footprint (rowsScanned etc.)
 
